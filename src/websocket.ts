@@ -5,14 +5,14 @@ import {CQTag, parse} from "./tags";
 
 const shortid = require("shortid");
 
-interface Reconnection {
+export interface Reconnection {
   times: number;
   delay: number;
   timesMax: number;
   timeout: number
 }
 
-interface options {
+export interface options {
   accessToken?: string,
   baseUrl?: string,
   qq?: number,
@@ -22,7 +22,7 @@ interface options {
 }
 
 
-interface APIResponse {
+export interface APIResponse {
   status: string,
   /**
    * |retcode|说明|
@@ -40,15 +40,15 @@ interface APIResponse {
   echo: any
 }
 
-interface ErrorAPIResponse extends APIResponse {
+export interface ErrorAPIResponse extends APIResponse {
   mag: string
   wording: string
 }
 
-type onSuccess = (json: APIResponse) => void;
-type onFailure = (reason: ErrorAPIResponse) => void;
+export type onSuccess = (json: APIResponse) => void;
+export type onFailure = (reason: ErrorAPIResponse) => void;
 
-interface ResponseHandler {
+export interface ResponseHandler {
   onSuccess: onSuccess
   onFailure: onFailure
 }
@@ -195,7 +195,7 @@ export class CQWebSocket {
    * @param message 要发送的内容
    * @param auto_escape=false  消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 `message` 字段是字符串时有效
    */
-  public send_private_msg(user_id: number | string, message: CQTag[], auto_escape = false) {
+  public send_private_msg(user_id: number | string, message: CQTag[] | string, auto_escape = false) {
     return this.send("send_private_msg", {user_id, message, auto_escape})
         .then(this.messageSuccess, this.messageFail);
   }
@@ -206,7 +206,7 @@ export class CQWebSocket {
    * @param message  要发送的内容
    * @param auto_escape=false 消息内容是否作为纯文本发送 ( 即不解析 CQ 码) , 只在 `message` 字段是字符串时有效
    */
-  public send_group_msg(group_id: number | string, message: CQTag[], auto_escape = false) {
+  public send_group_msg(group_id: number | string, message: CQTag[] | string, auto_escape = false) {
     return this.send("send_group_msg", {group_id, message, auto_escape})
         .then(this.messageSuccess, this.messageFail);
   }

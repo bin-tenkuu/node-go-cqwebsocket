@@ -1,17 +1,35 @@
 {
   "name": "go-cqwebsocket",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "cq-websocket停止维护后的替代品",
+  "engines": {
+    "node": ">=8"
+  },
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "files": [
+    "out/**/*.js",
+    "out/**/*.d.ts"
+  ],
   "scripts": {
     "build": "tsc",
-    "runtest": "ts-node ./src/test.ts",
-    "test": "node --inspect",
-    "tstest": "ts-node --inspect"
+    "test": "tsc && node --inspect",
+    "publish": "npm publish"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2938137849/go-cqwebsocket.git"
+  },
+  "keywords": [
+    "go-cqhttp",
+    "websocket"
+  ],
+  "author": "bin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/2938137849/go-cqwebsocket/issues"
+  },
+  "homepage": "https://github.com/2938137849/go-cqwebsocket",
   "devDependencies": {
     "@types/node": "^14.14.22",
     "ts-node": "^9.1.1",
