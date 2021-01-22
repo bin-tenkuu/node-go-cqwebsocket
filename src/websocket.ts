@@ -1,6 +1,6 @@
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {CQEvent, CQEventBus, EventType, MessageEventType} from "./event-bus";
-import {CQTag, parse} from "./tags";
+import {CQNode, CQTag, parse} from "./tags";
 
 
 const shortid = require("shortid");
@@ -21,6 +21,11 @@ export interface options {
   reconnectionDelay?: number,
 }
 
+export interface APIRequest {
+  action: string,
+  params: CQTag[] | string,
+  echo: any,
+}
 
 export interface APIResponse {
   status: string,
@@ -47,14 +52,16 @@ export interface ErrorAPIResponse extends APIResponse {
 
 export type onSuccess = (json: APIResponse) => void;
 export type onFailure = (reason: ErrorAPIResponse) => void;
+export type SocketType = "api" | "event"
 
 export interface ResponseHandler {
   onSuccess: onSuccess
   onFailure: onFailure
+  message: APIRequest
 }
 
 export class CQWebSocket {
-  public messageSuccess: (ret: any) => void;
+  public messageSuccess: onSuccess;
   public messageFail: onFailure;
 
   public reconnection?: Reconnection;
@@ -133,15 +140,15 @@ export class CQWebSocket {
     {
       let urlAPI = `${this._baseUrl}/api/?access_token=${this._accessToken}`;
       this._socketAPI = new w3cwebsocket(urlAPI);
-      this._socketAPI.onopen = () => this._open();
-      this._socketAPI.onclose = evt => this._close(evt);
+      this._socketAPI.onopen = () => this._open("api");
+      this._socketAPI.onclose = evt => this._close(evt, "api");
       this._socketAPI.onmessage = evt => this._onmessageAPI(evt);
     }
     {
       let urlEVENT = `${this._baseUrl}/event/?access_token=${this._accessToken}`;
       this._socketEVENT = new w3cwebsocket(urlEVENT);
-      this._socketEVENT.onopen = () => this._open();
-      this._socketEVENT.onclose = evt => this._close(evt);
+      this._socketEVENT.onopen = () => this._open("event");
+      this._socketEVENT.onclose = evt => this._close(evt, "event");
       this._socketEVENT.onmessage = evt => this._onmessage(evt);
     }
   }
@@ -160,11 +167,11 @@ export class CQWebSocket {
    * @param params
    * @return
    */
-  send(method: string, params: any) {
+  send(method: string, params: any): Promise<APIResponse> {
     return new Promise((resolve, reject) => {
       let reqId = shortid.generate();
 
-      const onSuccess = (ctxt: any) => {
+      const onSuccess = (ctxt: APIResponse) => {
         this._responseHandlers.delete(reqId);
         delete ctxt.echo;
         resolve(ctxt);
@@ -175,15 +182,15 @@ export class CQWebSocket {
         reject(err);
       };
 
-      this._responseHandlers.set(reqId, {onSuccess, onFailure});
-      const apiRequest = {
+      const message: APIRequest = {
         action: method,
         params: params,
         echo: reqId,
       };
+      this._responseHandlers.set(reqId, {message, onSuccess, onFailure});
 
-      this._eventBus.handle("api.preSend", apiRequest).then(() => {
-        this._socketAPI.send(JSON.stringify(apiRequest));
+      this._eventBus.handle("api.preSend", message).then(() => {
+        this._socketAPI.send(JSON.stringify(message));
       });
 
     });
@@ -195,7 +202,7 @@ export class CQWebSocket {
    * @param message 要发送的内容
    * @param auto_escape=false  消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 `message` 字段是字符串时有效
    */
-  public send_private_msg(user_id: number | string, message: CQTag[] | string, auto_escape = false) {
+  public send_private_msg(user_id: number | string, message: CQTag[] | string, auto_escape = false): Promise<void> | void {
     return this.send("send_private_msg", {user_id, message, auto_escape})
         .then(this.messageSuccess, this.messageFail);
   }
@@ -206,16 +213,27 @@ export class CQWebSocket {
    * @param message  要发送的内容
    * @param auto_escape=false 消息内容是否作为纯文本发送 ( 即不解析 CQ 码) , 只在 `message` 字段是字符串时有效
    */
-  public send_group_msg(group_id: number | string, message: CQTag[] | string, auto_escape = false) {
+  public send_group_msg(group_id: number | string, message: CQTag[] | string, auto_escape = false): Promise<void> | void {
     return this.send("send_group_msg", {group_id, message, auto_escape})
+        .then(this.messageSuccess, this.messageFail);
+  }
+
+  /**
+   *
+   * @param group_id 群号
+   * @param messages 自定义转发消息
+   */
+  public send_group_forward_msg(group_id: number | string, messages: CQNode[]): Promise<void> | void {
+    return this.send("send_group_forward_msg", {group_id, messages})
         .then(this.messageSuccess, this.messageFail);
   }
 
   /**
    * | eventType | handler |
    * |-|-|
-   * |"socket.open"| () => void |
-   * |"socket.close"|(code: number, reason: string) => void|
+   * |"socket.open"| (type: string) => void |
+   * |"socket.close"|(code: number, reason: string, type: string) => void|
+   * |"api.preSend"|(message: APIRequest) => void|
    * |`MessageEventType`|(event: CQEvent, message: any, CQTag: CQTag[]) => void|
    * |`EventType`|(event: CQEvent, message: any) => void|
    * @param eventType
@@ -232,8 +250,9 @@ export class CQWebSocket {
   /**
    * | eventType | handler |
    * |-|-|
-   * |"socket.open"| () => void |
-   * |"socket.close"|(code: number, reason: string) => void|
+   * |"socket.open"| (type: string) => void |
+   * |"socket.close"|(code: number, reason: string, type: string) => void|
+   * |"api.preSend"|(message: APIRequest) => void|
    * |`MessageEventType`|(event: CQEvent, message: any, CQTag: CQTag[]) => void|
    * |`EventType`|(event: CQEvent, message: any) => void|
    * @param eventType
@@ -250,8 +269,9 @@ export class CQWebSocket {
   /**
    * | eventType | handler |
    * |-|-|
-   * |"socket.open"| () => void |
-   * |"socket.close"|(code: number, reason: string) => void|
+   * |"socket.open"| (type: string) => void |
+   * |"socket.close"|(code: number, reason: string, type: string) => void|
+   * |"api.preSend"|(message: APIRequest) => void|
    * |`MessageEventType`|(event: CQEvent, message: any, CQTag: CQTag[]) => void|
    * |`EventType`|(event: CQEvent, message: any) => void|
    * @param eventType
@@ -265,19 +285,25 @@ export class CQWebSocket {
     return this;
   }
 
-  private _open() {
-    this._eventBus.handle("socket.open");
+  private _open(data: SocketType) {
+    return this._eventBus.handle("socket.open", data);
   }
 
   private _onmessageAPI(evt: IMessageEvent) {
     if (typeof evt.data !== "string") {
       return;
     }
-    let json: APIResponse = JSON.parse(evt.data);
+    let json: ErrorAPIResponse = JSON.parse(evt.data);
     if (json.echo) {
-      let {onSuccess} = this._responseHandlers.get(json.echo) || {};
-      if (typeof onSuccess === "function") {
-        onSuccess(json);
+      let {onSuccess, onFailure} = this._responseHandlers.get(json.echo) || {};
+      if (json.retcode < 100) {
+        if (typeof onSuccess === "function") {
+          onSuccess(json);
+        }
+      } else {
+        if (typeof onFailure === "function") {
+          onFailure(json);
+        }
       }
       this._eventBus.handle("api.response", json).then();
       return;
@@ -292,11 +318,11 @@ export class CQWebSocket {
     return this._handleMSG(json);
   }
 
-  private _close(evt: ICloseEvent) {
+  private _close(evt: ICloseEvent, type: SocketType) {
     if (evt.code === 1000) {
-      return this._eventBus.handle("socket.close", evt.code, evt.reason);
+      return this._eventBus.handle("socket.close", evt.code, evt.reason, type);
     } else {
-      return this._eventBus.handle("socket.error", evt.code, evt.reason);
+      return this._eventBus.handle("socket.error", evt.code, evt.reason, type);
     }
   }
 
@@ -310,7 +336,7 @@ export class CQWebSocket {
           case "private":
           case "discuss":
           case "group":
-            return this._eventBus.handle(post_type + messageType, json, cqTags);
+            return this._eventBus.handle([post_type, messageType], json, cqTags);
           default:
             return console.warn(`未知的消息类型: ${messageType}`);
         }
@@ -319,13 +345,13 @@ export class CQWebSocket {
         let notice_type = json["notice_type"];
         switch (notice_type) {
           case "group_upload":
-            return this._eventBus.handle(post_type + notice_type, json);
+            return this._eventBus.handle([post_type, notice_type], json);
           case "group_admin": {
             let subType = json["sub_type"];
             switch (subType) {
               case "set":
               case "unset":
-                return this._eventBus.handle(post_type + notice_type + subType, json);
+                return this._eventBus.handle([post_type, notice_type, subType], json);
               default:
                 return console.warn(`未知的 notice.group_admin 类型: ${subType}`);
             }
@@ -336,7 +362,7 @@ export class CQWebSocket {
               case "leave":
               case "kick":
               case "kick_me":
-                return this._eventBus.handle(post_type + notice_type + subType, json);
+                return this._eventBus.handle([post_type, notice_type, subType], json);
               default:
                 return console.warn(`未知的 notice.group_decrease 类型: ${subType}`);
             }
@@ -346,7 +372,7 @@ export class CQWebSocket {
             switch (subType) {
               case "approve":
               case "invite":
-                return this._eventBus.handle(post_type + notice_type + subType, json);
+                return this._eventBus.handle([post_type, notice_type, subType], json);
               default:
                 return console.warn(`未知的 notice.group_increase 类型: ${subType}`);
             }
@@ -356,13 +382,13 @@ export class CQWebSocket {
             switch (subType) {
               case "ban":
               case "lift_ban":
-                return this._eventBus.handle(post_type + notice_type + subType, json);
+                return this._eventBus.handle([post_type, notice_type, subType], json);
               default:
                 return console.warn(`未知的 notice.group_ban 类型: ${subType}`);
             }
           }
           case "friend_add":
-            return this._eventBus.handle(post_type + notice_type, json);
+            return this._eventBus.handle([post_type, notice_type], json);
           case "group_recall":
             return console.warn(`制作中 group_recall 类型`);
           case "friend_recall":
@@ -392,13 +418,13 @@ export class CQWebSocket {
         let request_type = json["request_type"];
         switch (request_type) {
           case "friend":
-            return this._eventBus.handle(post_type + request_type, json);
+            return this._eventBus.handle([post_type, request_type], json);
           case "group": {
             let subType = json["sub_type"];
             switch (subType) {
               case "add":
               case "invite":
-                return this._eventBus.handle(post_type + request_type + subType, json);
+                return this._eventBus.handle([post_type, request_type, subType], json);
               default:
                 return console.warn(`未知的 request.group 类型: ${subType}`);
             }
@@ -412,7 +438,7 @@ export class CQWebSocket {
         switch (meta_event_type) {
           case "lifecycle":
           case "heartbeat":
-            return this._eventBus.handle(post_type + meta_event_type, json);
+            return this._eventBus.handle([post_type, meta_event_type], json);
           default:
             return console.warn(`未知的 meta_event 类型: ${meta_event_type}`);
         }

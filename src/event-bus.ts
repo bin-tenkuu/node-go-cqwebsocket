@@ -181,7 +181,7 @@ export class CQEventBus {
    * @param eventType
    * @param handler
    */
-  off(eventType: EventType, handler: Function) {
+  off(eventType: EventType | string[], handler: Function) {
     let node = this.get(eventType);
     let fun = <Function>this._onceListeners.get(handler);
     fun = this._onceListeners.delete(handler) ? fun : handler;
@@ -193,10 +193,12 @@ export class CQEventBus {
    * @param eventType
    * @return
    */
-  get(eventType: EventType): Node {
-    let split = eventType.split(".");
-    let node: Node = this._EventMap;
-    for (let key of split) {
+  get(eventType: EventType | string[]): Node {
+    if (typeof eventType === "string") {
+      eventType = eventType.split(".");
+    }
+    let node = this._EventMap;
+    for (let key of eventType) {
       let nodeP = node;
       node = node.child(key);
       if (node === undefined) {
@@ -213,7 +215,10 @@ export class CQEventBus {
    * @param args
    * @return {Promise<void>}
    */
-  async handle(eventType: EventType, ...args: any[]): Promise<void> {
+  async handle(eventType: EventType | string[], ...args: any[]): Promise<void> {
+    if (typeof eventType === "string") {
+      eventType = eventType.split(".");
+    }
     for (let node = this.get(eventType); node.hasParent; node = node.parent) {
       let event = new CQEvent();
       for (let handle of node.handle) {

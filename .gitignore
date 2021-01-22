@@ -105,4 +105,5 @@ dist
 
 # IDEA
 /.idea/
-/out/
+/out/*
+/go-cqwebsocket.iml
