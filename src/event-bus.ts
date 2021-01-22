@@ -1,8 +1,8 @@
-interface dom {
+declare interface dom {
   [key: string]: [] | dom
 }
 
-class Node {
+export class Node {
   _child: { [key: string]: Node };
   _parent?: Node;
   _name: string;
@@ -19,7 +19,7 @@ class Node {
   }
 
   get hasParent() {
-    return this._parent !== undefined;
+    return this._parent !== undefined && this._parent !== this;
   }
 
   /**
@@ -242,7 +242,7 @@ export type NoticeEventType = "notice"
     | "notice.group_ban.lift_ban"
     | "notice.notify"
 export type RequestEventType = "request" | "request.friend" | "request.group.add" | "request.group.invite"
-export type SocketEventType = "socket" | "socket.open" | "socket.message" | "socket.error" | "socket.close"
+export type SocketEventType = "socket.open" | "socket.error" | "socket.close"
 export type APIEventType = "api" | "api.response" | "api.preSend"
 export type MetaEventType = "meta_event" | "meta_event.lifecycle" | "meta_event.heartbeat"
 export  type EventType =

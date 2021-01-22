@@ -1,9 +1,7 @@
+import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
-import {CQEvent, CQEventBus, EventType, MessageEventType} from "./event-bus";
+import {CQEventBus, EventType, MessageEventType} from "./event-bus";
 import {CQTag, parse} from "./tags";
-
-
-const shortid = require("shortid");
 
 export class WebSocketCQ {
   public messageSuccess: onSuccess<any>;
@@ -43,20 +41,17 @@ export class WebSocketCQ {
     this._responseHandlers = new Map();
     this._eventBus = new CQEventBus();
     if (reconnection) {
-      let reconnection = this.reconnection = {
+      this.reconnection = {
         times: 0,
         timesMax: reconnectionAttempts,
         delay: reconnectionDelay,
-        timeout: 0,
       };
       this._eventBus.on("socket.close", (code: number) => {
         if (code !== 1006) return;
-        // @ts-ignore
-        if (reconnection.times++ < this.reconnection.timesMax) {
-          // @ts-ignore
+        if (!this.reconnection || this.reconnection.timeout) return;
+        if (this.reconnection.times++ < this.reconnection.timesMax) {
           this.reconnection.timeout = setTimeout(() => {
             this.reconnect();
-            // @ts-ignore
           }, this.reconnection.delay);
         } else {
           console.error("Number of reconnections exceeded");
@@ -79,6 +74,7 @@ export class WebSocketCQ {
   }
 
   reconnect() {
+    this.disconnect();
     this.connect();
   }
 
@@ -100,19 +96,14 @@ export class WebSocketCQ {
   }
 
   public disconnect() {
-    if (this.reconnection) {
+    if (this.reconnection && this.reconnection.timeout) {
       clearTimeout(this.reconnection.timeout);
-      this.reconnection.timeout = 0;
+      this.reconnection.timeout = undefined;
     }
+    this._socketAPI.close(1000, "Normal connection closure");
     this._socketEVENT.close(1000, "Normal connection closure");
   }
 
-  /**
-   *
-   * @param method
-   * @param params
-   * @return
-   */
   send(method: string, params: any): Promise<APIResponse<any>> {
     return new Promise((resolve, reject) => {
       let reqId = shortid.generate();
@@ -142,40 +133,12 @@ export class WebSocketCQ {
     });
   }
 
-  /**
-   * | eventType | handler |
-   * |-|-|
-   * |"socket.open"| (type: string) => void |
-   * |"socket.close"|(code: number, reason: string, type: string) => void|
-   * |"api.preSend"|(message: APIRequest) => void|
-   * |`MessageEventType`|(event: CQEvent, message: any, CQTag: CQTag[]) => void|
-   * |`EventType`|(event: CQEvent, message: any) => void|
-   * @param eventType
-   * @param handler
-   * @return
-   * @see MessageEventType
-   * @see EventType
-   */
   public on(eventType: EventType, handler: (...args: any) => void): this {
     this._eventBus.on(eventType, handler);
     return this;
   }
 
-  /**
-   * | eventType | handler |
-   * |-|-|
-   * |"socket.open"| (type: string) => void |
-   * |"socket.close"|(code: number, reason: string, type: string) => void|
-   * |"api.preSend"|(message: APIRequest) => void|
-   * |`MessageEventType`|(event: CQEvent, message: any, CQTag: CQTag[]) => void|
-   * |`EventType`|(event: CQEvent, message: any) => void|
-   * @param eventType
-   * @param handler
-   * @return
-   * @see MessageEventType
-   * @see EventType
-   */
-  public once(eventType: EventType, handler: (evt: CQEvent, msg: any, tags: CQTag[]) => void): this {
+  public once(eventType: EventType, handler: (...args: any) => void): this {
     this._eventBus.once(eventType, handler);
     return this;
   }
@@ -194,7 +157,7 @@ export class WebSocketCQ {
    * @see MessageEventType
    * @see EventType
    */
-  public off(eventType: EventType, handler: (evt: CQEvent, msg: any, tags: CQTag[]) => void): this {
+  public off(eventType: EventType, handler: (...args: any) => void): this {
     this._eventBus.off(eventType, handler);
     return this;
   }
@@ -229,6 +192,7 @@ export class WebSocketCQ {
       return;
     }
     let json: APIResponse<any> = JSON.parse(evt.data);
+    console.log(json);
     return this._handleMSG(json);
   }
 
@@ -386,7 +350,7 @@ export interface Reconnection {
   times: number;
   delay: number;
   timesMax: number;
-  timeout: number
+  timeout?: NodeJS.Timeout
 }
 
 export interface options {
