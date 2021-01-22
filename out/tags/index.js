@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parse = exports.CQReply = exports.CQText = exports.CQShare = exports.CQShake = exports.CQSFace = exports.CQRPS = exports.CQRecord = exports.CQMusic = exports.CQImage = exports.CQFace = exports.CQEmoji = exports.CQDice = exports.CQCustomMusic = exports.CQBFace = exports.CQAt = exports.CQAnonymous = exports.CQTag = exports.unescape = exports.escape = exports.CQ = void 0;
+exports.parse = exports.CQNode = exports.CQForward = exports.CQReply = exports.CQText = exports.CQShare = exports.CQShake = exports.CQSFace = exports.CQRPS = exports.CQRecord = exports.CQMusic = exports.CQImage = exports.CQFace = exports.CQEmoji = exports.CQDice = exports.CQCustomMusic = exports.CQBFace = exports.CQAt = exports.CQAnonymous = exports.CQTag = exports.unescape = exports.escape = exports.CQ = void 0;
 const CQAnonymous_1 = __importDefault(require("./CQAnonymous"));
 exports.CQAnonymous = CQAnonymous_1.default;
 const CQAt_1 = __importDefault(require("./CQAt"));
@@ -18,12 +18,18 @@ const CQEmoji_1 = __importDefault(require("./CQEmoji"));
 exports.CQEmoji = CQEmoji_1.default;
 const CQFace_1 = __importDefault(require("./CQFace"));
 exports.CQFace = CQFace_1.default;
+const CQForward_1 = __importDefault(require("./CQForward"));
+exports.CQForward = CQForward_1.default;
 const CQImage_1 = __importDefault(require("./CQImage"));
 exports.CQImage = CQImage_1.default;
 const CQMusic_1 = __importDefault(require("./CQMusic"));
 exports.CQMusic = CQMusic_1.default;
+const CQNode_1 = __importDefault(require("./CQNode"));
+exports.CQNode = CQNode_1.default;
 const CQRecord_1 = __importDefault(require("./CQRecord"));
 exports.CQRecord = CQRecord_1.default;
+const CQReply_1 = __importDefault(require("./CQReply"));
+exports.CQReply = CQReply_1.default;
 const CQRPS_1 = __importDefault(require("./CQRPS"));
 exports.CQRPS = CQRPS_1.default;
 const CQSFace_1 = __importDefault(require("./CQSFace"));
@@ -32,17 +38,17 @@ const CQShake_1 = __importDefault(require("./CQShake"));
 exports.CQShake = CQShake_1.default;
 const CQShare_1 = __importDefault(require("./CQShare"));
 exports.CQShare = CQShare_1.default;
-const CQText_1 = __importDefault(require("./CQText"));
-exports.CQText = CQText_1.default;
 const CQTag_1 = __importDefault(require("./CQTag"));
 exports.CQTag = CQTag_1.default;
-const CQReply_1 = __importDefault(require("./CQReply"));
-exports.CQReply = CQReply_1.default;
+const CQText_1 = __importDefault(require("./CQText"));
+exports.CQText = CQText_1.default;
 exports.CQ = {
     at: (qq) => new CQAt_1.default(qq),
     text: (text) => new CQText_1.default(text),
     reply: (id) => new CQReply_1.default(id),
     image: (file) => new CQImage_1.default(file),
+    node: (name, uin, content) => new CQNode_1.default({ name, uin, content }),
+    nodeId: (id) => new CQNode_1.default({ id }),
 };
 const SPLIT = /[\[\]]/;
 const CQ_TAG_REGEXP = /^CQ:([a-z]+)(?:,(.+))?$/;
@@ -110,6 +116,12 @@ function parseCQ(tagStr) {
             break;
         case "reply":
             proto = CQReply_1.default.prototype;
+            break;
+        case "forward":
+            proto = CQForward_1.default.prototype;
+            break;
+        case "node":
+            proto = CQNode_1.default.prototype;
             break;
         default:
             proto = CQTag_1.default.prototype;

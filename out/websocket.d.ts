@@ -1,12 +1,12 @@
 import { CQEvent, EventType } from "./event-bus";
-import { CQTag } from "./tags";
-interface Reconnection {
+import { CQNode, CQTag } from "./tags";
+export interface Reconnection {
     times: number;
     delay: number;
     timesMax: number;
     timeout: number;
 }
-interface options {
+export interface options {
     accessToken?: string;
     baseUrl?: string;
     qq?: number;
@@ -14,7 +14,7 @@ interface options {
     reconnectionAttempts?: number;
     reconnectionDelay?: number;
 }
-interface APIResponse {
+export interface APIResponse {
     status: string;
     /**
      * |retcode|说明|
@@ -33,13 +33,19 @@ interface APIResponse {
     } | null;
     echo: any;
 }
-interface ErrorAPIResponse extends APIResponse {
+export interface ErrorAPIResponse extends APIResponse {
     mag: string;
     wording: string;
 }
-declare type onFailure = (reason: ErrorAPIResponse) => void;
+export declare type onSuccess = (json: APIResponse) => void;
+export declare type onFailure = (reason: ErrorAPIResponse) => void;
+export declare type SocketType = "api" | "event";
+export interface ResponseHandler {
+    onSuccess: onSuccess;
+    onFailure: onFailure;
+}
 export declare class CQWebSocket {
-    messageSuccess: (ret: any) => void;
+    messageSuccess: onSuccess;
     messageFail: onFailure;
     reconnection?: Reconnection;
     private _responseHandlers;
@@ -59,26 +65,32 @@ export declare class CQWebSocket {
      * @param params
      * @return
      */
-    send(method: string, params: any): Promise<unknown>;
+    send(method: string, params: any): Promise<APIResponse>;
     /**
      *
      * @param user_id  对方 QQ 号
      * @param message 要发送的内容
      * @param auto_escape=false  消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 `message` 字段是字符串时有效
      */
-    send_private_msg(user_id: number | string, message: CQTag[], auto_escape?: boolean): Promise<void>;
+    send_private_msg(user_id: number | string, message: CQTag[] | string, auto_escape?: boolean): Promise<void> | void;
     /**
      *
      * @param group_id 群号
      * @param message  要发送的内容
      * @param auto_escape=false 消息内容是否作为纯文本发送 ( 即不解析 CQ 码) , 只在 `message` 字段是字符串时有效
      */
-    send_group_msg(group_id: number | string, message: CQTag[], auto_escape?: boolean): Promise<void>;
+    send_group_msg(group_id: number | string, message: CQTag[] | string, auto_escape?: boolean): Promise<void> | void;
+    /**
+     *
+     * @param group_id 群号
+     * @param messages 自定义转发消息
+     */
+    send_group_forward_msg(group_id: number | string, messages: CQNode[]): Promise<void> | void;
     /**
      * | eventType | handler |
      * |-|-|
-     * |"socket.open"| () => void |
-     * |"socket.close"|(code: number, reason: string) => void|
+     * |"socket.open"| (type: string) => void |
+     * |"socket.close"|(code: number, reason: string, type: string) => void|
      * |`MessageEventType`|(event: CQEvent, message: any, CQTag: CQTag[]) => void|
      * |`EventType`|(event: CQEvent, message: any) => void|
      * @param eventType
@@ -91,8 +103,8 @@ export declare class CQWebSocket {
     /**
      * | eventType | handler |
      * |-|-|
-     * |"socket.open"| () => void |
-     * |"socket.close"|(code: number, reason: string) => void|
+     * |"socket.open"| (type: string) => void |
+     * |"socket.close"|(code: number, reason: string, type: string) => void|
      * |`MessageEventType`|(event: CQEvent, message: any, CQTag: CQTag[]) => void|
      * |`EventType`|(event: CQEvent, message: any) => void|
      * @param eventType
@@ -105,8 +117,8 @@ export declare class CQWebSocket {
     /**
      * | eventType | handler |
      * |-|-|
-     * |"socket.open"| () => void |
-     * |"socket.close"|(code: number, reason: string) => void|
+     * |"socket.open"| (type: string) => void |
+     * |"socket.close"|(code: number, reason: string, type: string) => void|
      * |`MessageEventType`|(event: CQEvent, message: any, CQTag: CQTag[]) => void|
      * |`EventType`|(event: CQEvent, message: any) => void|
      * @param eventType
@@ -131,4 +143,3 @@ export declare class CQWebSocket {
     get state(): number;
     get qq(): number;
 }
-export {};
