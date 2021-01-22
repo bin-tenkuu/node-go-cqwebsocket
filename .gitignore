@@ -104,6 +104,7 @@ dist
 .tern-port
 
 # IDEA
-/.idea/
-/out/*
-/go-cqwebsocket.iml
+.idea/
+out/
+go-cqwebsocket.iml
+test.ts

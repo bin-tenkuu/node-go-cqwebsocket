@@ -1,67 +1,12 @@
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {CQEvent, CQEventBus, EventType, MessageEventType} from "./event-bus";
-import {CQNode, CQTag, parse} from "./tags";
+import {CQTag, parse} from "./tags";
 
 
 const shortid = require("shortid");
 
-export interface Reconnection {
-  times: number;
-  delay: number;
-  timesMax: number;
-  timeout: number
-}
-
-export interface options {
-  accessToken?: string,
-  baseUrl?: string,
-  qq?: number,
-  reconnection?: boolean,
-  reconnectionAttempts?: number,
-  reconnectionDelay?: number,
-}
-
-export interface APIRequest {
-  action: string,
-  params: CQTag[] | string,
-  echo: any,
-}
-
-export interface APIResponse {
-  status: string,
-  /**
-   * |retcode|说明|
-   * |-|-|
-   * |0|同时 status 为 ok，表示操作成功|
-   * |1|同时 status 为 async，表示操作已进入异步执行，具体结果未知|
-   * |100|参数缺失或参数无效，通常是因为没有传入必要参数，某些接口中也可能因为参数明显无效（比如传入的 QQ 号小于等于 0，此时无需调用 酷Q 函数即可确定失败），此项和以下的 status 均为 failed|
-   * |102|酷Q 函数返回的数据无效，一般是因为传入参数有效但没有权限，比如试图获取没有加入的群组的成员列表|
-   * |103|操作失败，一般是因为用户权限不足，或文件系统异常、不符合预期|
-   * |104|由于 酷Q 提供的凭证（Cookie 和 CSRF Token）失效导致请求 QQ 相关接口失败，可尝试清除 酷Q 缓存来解决|
-   * |201|工作线程池未正确初始化（无法执行异步任务）|
-   */
-  retcode: number
-  data: { message_id: number } | null
-  echo: any
-}
-
-export interface ErrorAPIResponse extends APIResponse {
-  mag: string
-  wording: string
-}
-
-export type onSuccess = (json: APIResponse) => void;
-export type onFailure = (reason: ErrorAPIResponse) => void;
-export type SocketType = "api" | "event"
-
-export interface ResponseHandler {
-  onSuccess: onSuccess
-  onFailure: onFailure
-  message: APIRequest
-}
-
-export class CQWebSocket {
-  public messageSuccess: onSuccess;
+export class WebSocketCQ {
+  public messageSuccess: onSuccess<any>;
   public messageFail: onFailure;
 
   public reconnection?: Reconnection;
@@ -125,6 +70,7 @@ export class CQWebSocket {
 
     this.messageSuccess = (ret) => {
       console.log(`发送成功`, ret.data);
+      return ret.data;
     };
     this.messageFail = (reason) => {
       console.log(`发送失败`, reason);
@@ -167,17 +113,17 @@ export class CQWebSocket {
    * @param params
    * @return
    */
-  send(method: string, params: any): Promise<APIResponse> {
+  send(method: string, params: any): Promise<APIResponse<any>> {
     return new Promise((resolve, reject) => {
       let reqId = shortid.generate();
 
-      const onSuccess = (ctxt: APIResponse) => {
+      const onSuccess = (ctxt: APIResponse<any>) => {
         this._responseHandlers.delete(reqId);
         delete ctxt.echo;
         resolve(ctxt);
       };
 
-      const onFailure = (err: ErrorAPIResponse) => {
+      const onFailure: onFailure = (err) => {
         this._responseHandlers.delete(reqId);
         reject(err);
       };
@@ -197,38 +143,6 @@ export class CQWebSocket {
   }
 
   /**
-   *
-   * @param user_id  对方 QQ 号
-   * @param message 要发送的内容
-   * @param auto_escape=false  消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 `message` 字段是字符串时有效
-   */
-  public send_private_msg(user_id: number | string, message: CQTag[] | string, auto_escape = false): Promise<void> | void {
-    return this.send("send_private_msg", {user_id, message, auto_escape})
-        .then(this.messageSuccess, this.messageFail);
-  }
-
-  /**
-   *
-   * @param group_id 群号
-   * @param message  要发送的内容
-   * @param auto_escape=false 消息内容是否作为纯文本发送 ( 即不解析 CQ 码) , 只在 `message` 字段是字符串时有效
-   */
-  public send_group_msg(group_id: number | string, message: CQTag[] | string, auto_escape = false): Promise<void> | void {
-    return this.send("send_group_msg", {group_id, message, auto_escape})
-        .then(this.messageSuccess, this.messageFail);
-  }
-
-  /**
-   *
-   * @param group_id 群号
-   * @param messages 自定义转发消息
-   */
-  public send_group_forward_msg(group_id: number | string, messages: CQNode[]): Promise<void> | void {
-    return this.send("send_group_forward_msg", {group_id, messages})
-        .then(this.messageSuccess, this.messageFail);
-  }
-
-  /**
    * | eventType | handler |
    * |-|-|
    * |"socket.open"| (type: string) => void |
@@ -242,7 +156,7 @@ export class CQWebSocket {
    * @see MessageEventType
    * @see EventType
    */
-  public on(eventType: EventType, handler: (evt: CQEvent, msg: any, tags: CQTag[]) => void): this {
+  public on(eventType: EventType, handler: (...args: any) => void): this {
     this._eventBus.on(eventType, handler);
     return this;
   }
@@ -293,7 +207,7 @@ export class CQWebSocket {
     if (typeof evt.data !== "string") {
       return;
     }
-    let json: ErrorAPIResponse = JSON.parse(evt.data);
+    let json: ErrorAPIResponse<any> = JSON.parse(evt.data);
     if (json.echo) {
       let {onSuccess, onFailure} = this._responseHandlers.get(json.echo) || {};
       if (json.retcode < 100) {
@@ -314,7 +228,7 @@ export class CQWebSocket {
     if (typeof evt.data !== "string") {
       return;
     }
-    let json: APIResponse = JSON.parse(evt.data);
+    let json: APIResponse<any> = JSON.parse(evt.data);
     return this._handleMSG(json);
   }
 
@@ -464,3 +378,62 @@ export class CQWebSocket {
   }
 }
 
+export type onSuccess<T> = (json: APIResponse<T>) => T;
+export type onFailure = (reason: ErrorAPIResponse<any>) => void;
+export type SocketType = "api" | "event"
+
+export interface Reconnection {
+  times: number;
+  delay: number;
+  timesMax: number;
+  timeout: number
+}
+
+export interface options {
+  accessToken?: string,
+  baseUrl?: string,
+  qq?: number,
+  reconnection?: boolean,
+  reconnectionAttempts?: number,
+  reconnectionDelay?: number,
+}
+
+export interface APIRequest {
+  action: string,
+  params: CQTag[] | string,
+  echo: any,
+}
+
+export interface MessageId {
+  message_id: number
+}
+
+export interface APIResponse<T> {
+  status: string,
+  /**
+   * |retcode|说明|
+   * |-|-|
+   * |0|同时 status 为 ok，表示操作成功|
+   * |1|同时 status 为 async，表示操作已进入异步执行，具体结果未知|
+   * |100|参数缺失或参数无效，通常是因为没有传入必要参数，某些接口中也可能因为参数明显无效（比如传入的 QQ 号小于等于 0，此时无需调用 酷Q 函数即可确定失败），此项和以下的 status 均为 failed|
+   * |102|酷Q 函数返回的数据无效，一般是因为传入参数有效但没有权限，比如试图获取没有加入的群组的成员列表|
+   * |103|操作失败，一般是因为用户权限不足，或文件系统异常、不符合预期|
+   * |104|由于 酷Q 提供的凭证（Cookie 和 CSRF Token）失效导致请求 QQ 相关接口失败，可尝试清除 酷Q 缓存来解决|
+   * |201|工作线程池未正确初始化（无法执行异步任务）|
+   */
+  retcode: number
+  data: T | null
+  echo: any
+}
+
+export interface ErrorAPIResponse<T> extends APIResponse<T> {
+  data: null
+  mag: string
+  wording: string
+}
+
+export interface ResponseHandler {
+  onSuccess: (json: APIResponse<any>) => void;
+  onFailure: (reason: ErrorAPIResponse<any>) => void;
+  message: APIRequest
+}
