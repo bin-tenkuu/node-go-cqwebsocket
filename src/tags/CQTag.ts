@@ -42,6 +42,7 @@ export default class CQTag {
   }
 
   toJSON() {
+    this.coerce();
     const data = Object.assign({}, this.data, this.modifier);
     for (let key in data) {
       if (data.hasOwnProperty(key) && !data[key]) {
@@ -51,7 +52,7 @@ export default class CQTag {
 
     return {
       type: this.tagName,
-      data: data
+      data: data,
     };
   }
 

@@ -59,38 +59,6 @@ class Node {
   }
 }
 
-export type MessageEventType =
-    "message"
-    | "message.private"
-    | "message.group"
-    | "message.group.@me"
-    | "message.discuss"
-    | "message.discuss.@me"
-export type NoticeEventType = "notice"
-    | "notice.group_upload"
-    | "notice.group_admin.set"
-    | "notice.group_admin.unset"
-    | "notice.group_decrease.leave"
-    | "notice.group_decrease.kick"
-    | "notice.group_decrease.kick_me"
-    | "notice.group_increase.approve"
-    | "notice.group_increase.invite"
-    | "notice.friend_add"
-    | "notice.group_ban.ban"
-    | "notice.group_ban.lift_ban"
-    | "notice.notify"
-export type RequestEventType = "request" | "request.friend" | "request.group.add" | "request.group.invite"
-export type SocketEventType = "socket" | "socket.open" | "socket.message" | "socket.error" | "socket.close"
-export type APIEventType = "api" | "api.response" | "api.preSend"
-export type MetaEventType = "meta_event" | "meta_event.lifecycle" | "meta_event.heartbeat"
-export  type EventType =
-    MessageEventType
-    | NoticeEventType
-    | RequestEventType
-    | SocketEventType
-    | APIEventType
-    | MetaEventType
-
 export class CQEventBus {
   _EventMap: Node;
   _onceListeners: WeakMap<Function, Function>;
@@ -252,3 +220,35 @@ export class CQEvent {
   }
 
 }
+
+export type MessageEventType =
+    "message"
+    | "message.private"
+    | "message.group"
+    | "message.group.@me"
+    | "message.discuss"
+    | "message.discuss.@me"
+export type NoticeEventType = "notice"
+    | "notice.group_upload"
+    | "notice.group_admin.set"
+    | "notice.group_admin.unset"
+    | "notice.group_decrease.leave"
+    | "notice.group_decrease.kick"
+    | "notice.group_decrease.kick_me"
+    | "notice.group_increase.approve"
+    | "notice.group_increase.invite"
+    | "notice.friend_add"
+    | "notice.group_ban.ban"
+    | "notice.group_ban.lift_ban"
+    | "notice.notify"
+export type RequestEventType = "request" | "request.friend" | "request.group.add" | "request.group.invite"
+export type SocketEventType = "socket" | "socket.open" | "socket.message" | "socket.error" | "socket.close"
+export type APIEventType = "api" | "api.response" | "api.preSend"
+export type MetaEventType = "meta_event" | "meta_event.lifecycle" | "meta_event.heartbeat"
+export  type EventType =
+    MessageEventType
+    | NoticeEventType
+    | RequestEventType
+    | SocketEventType
+    | APIEventType
+    | MetaEventType

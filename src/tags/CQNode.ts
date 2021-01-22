@@ -27,8 +27,20 @@ export interface NodeCustom {
 }
 
 export default class CQNode extends CQTag {
-  constructor(data: NodeID | NodeCustom) {
-    super("node", data);
+  _data: NodeID | NodeCustom;
 
+  constructor(data: NodeID | NodeCustom) {
+    super("node");
+    this._data = data;
+  }
+
+  coerce() {
+    if ("id" in this._data) {
+      this._data.id = Number(this._data.id);
+    }else {
+      this._data.name=String(this._data.name)
+      this._data.name=String(this._data.name)
+    }
+    return this;
   }
 }
