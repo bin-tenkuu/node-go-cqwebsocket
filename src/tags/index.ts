@@ -5,23 +5,26 @@ import CQCustomMusic from "./CQCustomMusic";
 import CQDice from "./CQDice";
 import CQEmoji from "./CQEmoji";
 import CQFace from "./CQFace";
+import CQForward from "./CQForward";
 import CQImage from "./CQImage";
 import CQMusic from "./CQMusic";
+import CQNode from "./CQNode";
 import CQRecord from "./CQRecord";
+import CQReply from "./CQReply";
 import CQRPS from "./CQRPS";
 import CQSFace from "./CQSFace";
 import CQShake from "./CQShake";
 import CQShare from "./CQShare";
-import CQText from "./CQText";
 import CQTag from "./CQTag";
-import CQReply from "./CQReply";
-
+import CQText from "./CQText";
 
 export const CQ = {
   at: (qq: number | "all") => new CQAt(qq),
   text: (text: string) => new CQText(text),
   reply: (id: number) => new CQReply(id),
   image: (file: string) => new CQImage(file),
+  node: (name: string, uin: number | string, content: CQTag | string) => new CQNode({name, uin, content}),
+  nodeId: (id: number) => new CQNode({id}),
 };
 const SPLIT = /[\[\]]/;
 const CQ_TAG_REGEXP = /^CQ:([a-z]+)(?:,(.+))?$/;
@@ -90,6 +93,12 @@ function parseCQ(tagStr: string): CQTag {
     case "reply":
       proto = CQReply.prototype;
       break;
+    case "forward":
+      proto = CQForward.prototype;
+      break;
+    case "node":
+      proto = CQNode.prototype;
+      break;
     default:
       proto = CQTag.prototype;
       break;
@@ -144,6 +153,8 @@ export {
   CQShare,
   CQText,
   CQReply,
+  CQForward,
+  CQNode,
 };
 
 /**

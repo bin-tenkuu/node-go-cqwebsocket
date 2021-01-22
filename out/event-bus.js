@@ -141,9 +141,11 @@ class CQEventBus {
      * @return
      */
     get(eventType) {
-        let split = eventType.split(".");
+        if (typeof eventType === "string") {
+            eventType = eventType.split(".");
+        }
         let node = this._EventMap;
-        for (let key of split) {
+        for (let key of eventType) {
             let nodeP = node;
             node = node.child(key);
             if (node === undefined) {
@@ -160,6 +162,9 @@ class CQEventBus {
      * @return {Promise<void>}
      */
     async handle(eventType, ...args) {
+        if (typeof eventType === "string") {
+            eventType = eventType.split(".");
+        }
         for (let node = this.get(eventType); node.hasParent; node = node.parent) {
             let event = new CQEvent();
             for (let handle of node.handle) {

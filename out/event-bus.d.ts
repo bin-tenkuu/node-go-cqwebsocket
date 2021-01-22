@@ -48,20 +48,20 @@ export declare class CQEventBus {
      * @param eventType
      * @param handler
      */
-    off(eventType: EventType, handler: Function): void;
+    off(eventType: EventType | string[], handler: Function): void;
     /**
      * 有未受支持的消息类型时,将会放返回最近的受支持的消息类型
      * @param eventType
      * @return
      */
-    get(eventType: EventType): Node;
+    get(eventType: EventType | string[]): Node;
     /**
      *
      * @param eventType
      * @param args
      * @return {Promise<void>}
      */
-    handle(eventType: EventType, ...args: any[]): Promise<void>;
+    handle(eventType: EventType | string[], ...args: any[]): Promise<void>;
 }
 export declare class CQEvent {
     _isCanceled: boolean;
