@@ -4,9 +4,12 @@ node-cq-websocke 停止维护后的替代品
 
 # 关于此SDK
 
-依赖 go-cqhttp 的 websocket 接口, 为 NodeJs 开发者提供一个搭建 QQ 聊天机器人的 SDK。
+依赖 `go-cqhttp` 的 websocket 接口, 为 NodeJs 开发者提供一个搭建 QQ 聊天机器人的 SDK。
 
-关于 go-cqhttp，見 [Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
+关于 `go-cqhttp`，见 [Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
+
+关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/) 为准， 同时提供 `send()`
+方法以供未知接口的调用
 
 > 本 SDK 尚处于测试阶段，使用上仍有机会碰到 Bug，欢迎提交 PR 或 issue 回报。
 
@@ -14,7 +17,7 @@ node-cq-websocke 停止维护后的替代品
 
 本 SDK 尚未进行系统化测试, 全部交由实际使用环境中测试
 
-## 在项目中引用
+## 在自己项目中引用
 
 在项目根目录中运行 `npm install go-cqwebsocket`
 
