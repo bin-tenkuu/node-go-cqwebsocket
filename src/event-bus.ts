@@ -67,12 +67,8 @@ export class CQEventBus {
     this._EventMap = Node.parseNode({
       message: {
         private: [],
-        group: {
-          "@me": [],
-        },
-        discuss: {
-          "@me": [],
-        },
+        group: [],
+        discuss: [],
       },
       notice: {
         group_upload: [],
@@ -105,7 +101,6 @@ export class CQEventBus {
       },
       socket: {
         open: [],
-        message: [],
         error: [],
         close: [],
       },
@@ -243,7 +238,7 @@ export type NoticeEventType = "notice"
     | "notice.notify"
 export type RequestEventType = "request" | "request.friend" | "request.group.add" | "request.group.invite"
 export type SocketEventType = "socket.open" | "socket.error" | "socket.close"
-export type APIEventType = "api" | "api.response" | "api.preSend"
+export type APIEventType = "api.response" | "api.preSend"
 export type MetaEventType = "meta_event" | "meta_event.lifecycle" | "meta_event.heartbeat"
 export  type EventType =
     MessageEventType

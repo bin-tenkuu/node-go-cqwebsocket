@@ -1,6 +1,6 @@
 # go-cqwebsocket
 
-node-cq-websocke 停止维护后的替代品
+`node-cq-websocke` 停止维护后的替代品
 
 # 关于此SDK
 
@@ -20,6 +20,56 @@ node-cq-websocke 停止维护后的替代品
 ## 在自己项目中引用
 
 在项目根目录中运行 `npm install go-cqwebsocket`
+
+## API
+
+- javascript
+
+```javascript
+const {CQWebSocket, CQ} = require("go-cqwebsocket");
+```
+
+- typescript
+
+```typescript
+import {CQWebSocket, CQ} from "go-cqwebsocket"
+```
+
+------------------------------------
+
+#### `let bot = new CQWebSocket({some options})`
+
+- 参数 `options`
+
+  | 可选参数             | 类型    | 默认值                | 描述                                                         |
+  | :------------------- | :------ | :-------------------- | :----------------------------------------------------------- |
+  | accessToken          | string  | ""                    | 校验口令, config.hjson中配置<br/>[参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) |
+  | baseUrl              | string  | `ws://127.0.0.1:6700` | 完整链接                                                     |
+  | qq                   | number  | `-1`                  | qq号                                                         |
+  | reconnection         | boolean | `true`                | 是否自动重连                                                 |
+  | reconnectionAttempts | number  | `10`                  | 重连次数                                                     |
+  | reconnectionDelay    | number  | `1000`                | 重连延时                                                     |
+
+**注1：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 API,
+查找&调用请参考 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/)
+
+**注2：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 Event,
+查找请参考 [go-cqhttp 帮助中心 Event](https://ishkong.github.io/go-cqhttp-docs/event/) , 注册监听请使用 `bot.on(...)`, `bot.once(...)`
+, `bot.off(...)`
+
+------------------------------------
+
+#### `CQ`
+
+- `CQ.escape(str)` | `CQ.unescape(str)`：转义/反转义方法
+- `CQ.text()` | `CQ.at()`等：便捷构建 CQ码 的方法
+
+#### `Tags`
+
+- 包含 `parse()` 方法 ，用于将包含 **CQ码** 的字符串转换为 `CQTag[]`
+- 包含 `CQ` ,  参考 `CQ`
+- 包含所有 **CQ码** 的基类：`CQTag`
+- 包含所有 **CQ码** 的实现类 , 用于 CQ 中不能便捷构建的 **CQ码** ，以及供其他 SDK 的调用
 
 # 相关文档
 

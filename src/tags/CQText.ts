@@ -9,10 +9,6 @@ export default class CQText extends CQTag {
     return this.data.text;
   }
 
-  /**
-   * @override
-   * @return {module.CQText}
-   */
   coerce() {
     this.data.text = String(this.data.text);
     return this;

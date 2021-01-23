@@ -25,6 +25,39 @@ export const CQ = {
   image: (file: string) => new CQImage(file),
   node: (name: string, uin: number | string, content: CQTag | string) => new CQNode({name, uin, content}),
   nodeId: (id: number) => new CQNode({id}),
+  // TODO:更多的构建
+  /**
+   * 转义
+   *
+   * @param str 欲转义的字符串
+   * @param [insideCQ=false] 是否在CQ码内
+   * @returns 转义后的字符串
+   */
+  escape: (str: string, insideCQ = false) => {
+    let temp = str.replace(/&/g, "&amp;")
+        .replace(/\[/g, "&#91;")
+        .replace(/]/g, "&#93;");
+    if (insideCQ) {
+      temp = temp
+          .replace(/,/g, "&#44;")
+          .replace(/(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]/g, " ");
+    }
+    return temp;
+  },
+
+  /**
+   * 反转义
+   *
+   * @param str 欲反转义的字符串
+   * @returns 反转义后的字符串
+   */
+  unescape: (str: string) => {
+    return str.replace(/&#44;/g, ",")
+        .replace(/&#91;/g, "[")
+        .replace(/&#93;/g, "]")
+        .replace(/&amp;/g, "&");
+  },
+
 };
 const SPLIT = /[\[\]]/;
 const CQ_TAG_REGEXP = /^CQ:([a-z]+)(?:,(.+))?$/;
@@ -104,35 +137,6 @@ function parseCQ(tagStr: string): CQTag {
       break;
   }
   return Object.setPrototypeOf(tag, proto).coerce();
-}
-
-/**
- * 转义
- *
- * @param {string} str 欲转义的字符串
- * @param {boolean?} [insideCQ=false] 是否在CQ码内
- * @returns {string}转义后的字符串
- */
-export function escape(str: string, insideCQ = false) {
-  let temp = str.replace(/&/g, "&amp;")
-      .replace(/\[/g, "&#91;")
-      .replace(/]/g, "&#93;");
-  if (insideCQ) {
-    temp = temp
-        .replace(/,/g, "&#44;")
-        .replace(/(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]/g, " ");
-  }
-  return temp;
-}
-
-/**
- * 反转义
- *
- * @param {string} str 欲反转义的字符串
- * @returns {string}反转义后的字符串
- */
-export function unescape(str: string) {
-  return str.replace(/&#44;/g, ",").replace(/&#91;/g, "[").replace(/&#93;/g, "]").replace(/&amp;/g, "&");
 }
 
 export {
