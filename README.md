@@ -48,7 +48,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
   | qq                   | number  | `-1`                  | qq号                                                         |
   | reconnection         | boolean | `true`                | 是否自动重连                                                 |
   | reconnectionAttempts | number  | `10`                  | 重连次数                                                     |
-  | reconnectionDelay    | number  | `1000`                | 重连延时                                                     |
+  | reconnectionDelay    | number  | `1000`                | 重连延时(ms)                                                 |
 
 **注1：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 API,
 查找&调用请参考 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/)
