@@ -471,6 +471,16 @@ export type at = {
    */
   qq: number | "all"
 }
+export type video = {
+  /**
+   * 视频文件名
+   */
+  file: string
+  /**
+   * 视频 URL
+   */
+  url?: string
+}
 export type record = {
   /** 语音文件名 */
   file: string

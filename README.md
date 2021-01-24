@@ -62,14 +62,14 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 #### `CQ`
 
 - `CQ.escape(str)` | `CQ.unescape(str)`：转义/反转义方法
-- `CQ.text()` | `CQ.at()`等：便捷构建 CQ码 的方法
+- `CQ.text(...)` | `CQ.at(...)`等：便捷构建 CQ码 的方法
+- `CQ.parse(...)` ：将携带 CQ码 的字符串转换为 CQ码数组
 
 #### `Tags`
 
-- 包含 `parse()` 方法 ，用于将包含 **CQ码** 的字符串转换为 `CQTag[]`
-- 包含 `CQ` ,  参考 `CQ`
-- 包含所有 **CQ码** 的基类：`CQTag`
-- 包含所有 **CQ码** 的实现类 , 用于 CQ 中不能便捷构建的 **CQ码** ，以及供其他 SDK 的调用
+- 包含 `CQ` ,  参考 `CQ` 
+- 包含所有 CQ码 的基类：`CQTag<T>` 
+- 包含所有已标明的 CQ码类型约束  , `typescript` 中可见
 
 # 相关文档
 
