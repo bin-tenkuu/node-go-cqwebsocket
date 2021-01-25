@@ -304,6 +304,7 @@ export var CQ = {
    */
   tts: (text: string) => new CQTag<tts>("tts", {text}),
 };
+
 export type tts = {
   /**
    * 内容

@@ -65,11 +65,15 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 - `CQ.text(...)` | `CQ.at(...)`等：便捷构建 CQ码 的方法
 - `CQ.parse(...)` ：将携带 CQ码 的字符串转换为 CQ码数组
 
-#### `CQTag`
+#### `Tags`
 
 - 包含 `CQ` ,  参考 `CQ` 
 - 包含所有 CQ码 的基类：`CQTag<T>` 
 - 包含所有已标明的 CQ码类型约束  , `typescript` 中可见
+
+#### `Interfaces`
+
+- 仅在 `typescript` 环境下可用, 包含整个 SDK 中 **几乎全部** 的接口和类型约束
 
 # 相关文档
 

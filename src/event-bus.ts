@@ -116,36 +116,21 @@ export class CQEventBus {
     this._onceListeners = new WeakMap();
   }
 
-  /**
-   *
-   * @param eventType
-   * @param handler
-   */
   on(eventType: EventType, handler?: Function) {
     if (!handler) return;
     this.get(eventType).on(handler);
   }
 
-  /**
-   *
-   * @param eventType
-   * @param handler
-   */
   once(eventType: EventType, handler?: Function) {
     if (!handler) return;
-    const onceFunction = (...args: any[]) => {
+    const onceFunction = (...args: any) => {
       this.off(eventType, handler);
-      return handler(...args);
+      handler?.(...args);
     };
     this._onceListeners.set(handler, onceFunction);
     this.on(eventType, onceFunction);
   }
 
-  /**
-   *
-   * @param eventType
-   * @param handler
-   */
   off(eventType: EventType | string[], handler?: Function) {
     if (!handler) return;
     let node = this.get(eventType);
@@ -168,7 +153,7 @@ export class CQEventBus {
       let nodeP = node;
       node = node.child(key);
       if (node === undefined) {
-        console.warn(`未受支持的方法类型：${key}`);
+        console.warn(`未受支持的方法类型：${eventType.join(".")}`);
         return nodeP;
       }
     }
@@ -222,8 +207,7 @@ export class CQEvent {
 export type MessageEventType = "message.private"
   | "message.group"
   | "message.discuss"
-export type NoticeEventType = "notice"
-  | "notice.group_upload"
+export type NoticeEventType = "notice.group_upload"
   | "notice.group_admin.set"
   | "notice.group_admin.unset"
   | "notice.group_decrease.leave"

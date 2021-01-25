@@ -1,4 +1,4 @@
-import {CQEvent, EventType} from "./event-bus";
+import {CQEvent, NoticeEventType} from "./event-bus";
 import {CQTag} from "./tags";
 
 /**
@@ -225,6 +225,13 @@ export type HonorInfoList = Array<HonorInfo & {
   description: string
 }>
 
+export interface CanSend {
+  /**
+   * 是或否
+   */
+  yes: boolean
+}
+
 /**
  * @see get_version_info
  */
@@ -432,7 +439,12 @@ export interface GroupFolderInfo {
    */
   total_file_count: number
 }
-
+export interface FileUrl{
+  /**
+   * 文件下载链接
+   */
+  url:string
+}
 /**
  * @see get_status
  */
@@ -528,8 +540,8 @@ export type message = CQTag<any>[] | string
 export type int64 = number | string
 export type MessageEventHandler<T> = (event: CQEvent, message: T, CQTag: CQTag<any>[]) => void;
 export type EventHandler<T> = (event: CQEvent, message: T) => void;
-export type onSuccess<T> = (json: APIResponse<T>) => T;
-export type onFailure = (reason: ErrorAPIResponse<any>) => void;
+export type onSuccess<T> = (json: APIResponse<T>) => void;
+export type onFailure = (reason: ErrorAPIResponse) => void;
 export type SocketType = "api" | "event"
 
 export interface PostType {
@@ -655,23 +667,32 @@ export interface APIResponse<T> {
    * |201|工作线程池未正确初始化（无法执行异步任务）|
    */
   retcode: number
-  data: T | null
+  data: T
   echo: any
 }
 
-export interface ErrorAPIResponse<T> extends APIResponse<T> {
+export interface ErrorAPIResponse extends APIResponse<null> {
   data: null
   mag: string
   wording: string
 }
 
 export interface ResponseHandler {
-  onSuccess: (json: APIResponse<any>) => void;
-  onFailure: (reason: ErrorAPIResponse<any>) => void;
+  onSuccess: onSuccess<any>;
+  onFailure: onFailure;
   message: APIRequest
 }
 
 export type SocketHandle = {
+  "message.private"?: MessageEventHandler<PrivateMessage>
+  "message.group"?: MessageEventHandler<GroupMessage>
+  "message.discuss"?: MessageEventHandler<any>
+
+  "request.friend"?: EventHandler<RequestFriend>
+  "request.group"?: EventHandler<RequestGroup>
+  "request.group.add"?: EventHandler<RequestGroup>
+  "request.group.invite"?: EventHandler<RequestGroup>
+
   "socket.open"?: EventHandler<SocketType>;
   "socket.close"?: (event: CQEvent, code: number, reason: string, type: SocketType) => void;
   "socket.error"?: (event: CQEvent, code: number, reason: string, type: SocketType) => void;
@@ -679,17 +700,18 @@ export type SocketHandle = {
   "api.preSend"?: EventHandler<APIRequest>;
   "api.response"?: EventHandler<APIResponse<any>>;
 
-  "message.private"?: MessageEventHandler<PrivateMessage>
-  "message.group"?: MessageEventHandler<GroupMessage>
-  "message.discuss"?: MessageEventHandler<any>
-
   "meta_event.lifecycle"?: EventHandler<lifecycle>
   "meta_event.heartbeat"?: EventHandler<heartbeat>
-
-  "request.friend"?: EventHandler<RequestFriend>
-  "request.group"?: EventHandler<RequestGroup>
-  "request.group.add"?: EventHandler<RequestGroup>
-  "request.group.invite"?: EventHandler<RequestGroup>
 } & {
-  [key in EventType]?: Function;
+  [key in NoticeEventType]?: Function;
+}
+
+
+export interface PromiseRes<T> extends Promise<T> {
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+    onrejected?: ((reason: ErrorAPIResponse) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+  ): Promise<TResult1 | TResult2>;
+
+  catch<TResult = never>(onrejected?: ((reason: ErrorAPIResponse) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
 }

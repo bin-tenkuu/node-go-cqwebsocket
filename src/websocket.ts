@@ -2,8 +2,8 @@ import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {CQEventBus, EventType} from "./event-bus";
 import {
-  APIRequest, APIResponse, ErrorAPIResponse, heartbeat, lifecycle, onFailure, onSuccess, options, Reconnection,
-  ResponseHandler, SocketHandle, SocketType,
+  APIRequest, APIResponse, ErrorAPIResponse, onFailure, onSuccess, options, PromiseRes, Reconnection, ResponseHandler,
+  SocketHandle, SocketType,
 } from "./Interfaces";
 import {CQ} from "./tags";
 
@@ -108,14 +108,14 @@ export class WebSocketCQ {
     this._socketEVENT.close(1000, "Normal connection closure");
   }
 
-  send(method: string, params: any): Promise<APIResponse<any>> {
-    return new Promise((resolve, reject) => {
+  public send<T = any>(method: string, params: any): PromiseRes<T> {
+    return new Promise<T>((resolve, reject) => {
       let reqId = shortid.generate();
 
-      const onSuccess = (ctxt: APIResponse<any>) => {
+      const onSuccess = (ctxt: APIResponse<T>) => {
         this._responseHandlers.delete(reqId);
         delete ctxt.echo;
-        resolve(ctxt);
+        resolve(ctxt.data);
       };
 
       const onFailure: onFailure = (err) => {
@@ -137,25 +137,61 @@ export class WebSocketCQ {
     });
   }
 
-  public on(event: SocketHandle): this {
+  /**
+   * 注册监听方法，解除监听调用 [off]{@link off} 方法
+   * @param event 对应方法的键值对
+   * @return 用于当作参数调用 [off]{@link off} 解除监听
+   */
+  public on(event: SocketHandle): SocketHandle {
     Object.entries(event).forEach(([k, v]) => {
       this._eventBus.on(<EventType>k, v);
     });
-    return this;
+    return event;
   }
 
-  public once(event: SocketHandle): this {
+  /**
+   * 只执行一次，执行后仅删除 event 中**对应**键的方法<br/>
+   * 若要方法执行后删除 event 中所有键的方法，请自行保存返回值并调用 [off]{@link off} 方法<br/>
+   * 或调用 [onceAll]{@link onceAll} 方法
+   * @param event
+   * @return 用于当作参数调用 [off]{@link off} 解除监听
+   */
+  public once(event: SocketHandle): SocketHandle {
     Object.entries(event).forEach(([k, v]) => {
-      this._eventBus.on(<EventType>k, v);
+      this._eventBus.once(<EventType>k, v);
     });
-    return this;
+    return event;
   }
 
-  public off(event: SocketHandle): this {
-    Object.entries(event).forEach(([k, v]) => {
+  /**
+   * 只执行一次，执行后删除本次 event 中所有键的方法<br/>
+   * 注意：即使对应键的方法为 `undefined` 当有对应键的事件时依然会计算执行次数并解除绑定
+   * 若要 event 中每一个方法都执行一次，请调用 [once]{@link once} 方法
+   * @param event
+   * @return 用于当作参数提前调用 [off]{@link off} 解除监听
+   */
+  public onceAll(event: SocketHandle): SocketHandle {
+    let map = Object.entries(event).map<[string, Function]>(([k, v]) => [
+      k, (...args: any) => {
+        this.off(Object.fromEntries(map));
+        // @ts-ignore
+        v?.(...args);
+      },
+    ]);
+    map.forEach(([k, v]) => {
       this._eventBus.on(<EventType>k, v);
     });
-    return this;
+    return Object.fromEntries(map);
+  }
+
+  /**
+   * 解除监听方法,注册监听调用 [on]{@link on} 方法
+   * @param event
+   */
+  public off(event: SocketHandle) {
+    Object.entries(event).forEach(([k, v]) => {
+      this._eventBus.off(<EventType>k, v);
+    });
   }
 
   private _open(data: SocketType) {
@@ -166,7 +202,7 @@ export class WebSocketCQ {
     if (typeof evt.data !== "string") {
       return;
     }
-    let json: ErrorAPIResponse<any> = JSON.parse(evt.data);
+    let json: ErrorAPIResponse = JSON.parse(evt.data);
     if (json.echo) {
       let {onSuccess, onFailure} = this._responseHandlers.get(json.echo) || {};
       if (json.retcode < 100) {
