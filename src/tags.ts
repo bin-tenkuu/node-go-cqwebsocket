@@ -20,13 +20,15 @@ export class CQTag<T extends Data> implements Tags<T> {
     Object.defineProperties(this, Object.fromEntries(Object.entries(this.data).map<[
       string,
       PropertyDescriptor
-    ]>(([key]) => [key, {
-      configurable: true,
-      enumerable: false,
-      get: () => this.data[key],
-      // @ts-ignore
-      set: v => this.data[key] = v
-    }])));
+    ]>(([key]) => [
+      key, {
+        configurable: true,
+        enumerable: false,
+        get: () => this.data[key],
+        // @ts-ignore
+        set: v => this.data[key] = v,
+      },
+    ])));
   }
 
   public get tagName() {
@@ -39,7 +41,7 @@ export class CQTag<T extends Data> implements Tags<T> {
    * @param key
    */
   public get(key: keyof T) {
-    return this.data[key]
+    return this.data[key];
   }
 
   public toJSON(): Tags<T> {
@@ -48,9 +50,9 @@ export class CQTag<T extends Data> implements Tags<T> {
 
     Object.entries(data).forEach(([k, v]) => {
       if (v == null) {
-        delete data[k]
+        delete data[k];
       }
-    })
+    });
 
     return {
       type: this.tagName,
@@ -65,15 +67,15 @@ export class CQTag<T extends Data> implements Tags<T> {
       if (v !== undefined) {
         ret += `,${k}=${v}`;
       }
-    })
+    });
 
     ret += "]";
     return ret;
   }
 
   public static send<T extends Data>(type: string, send: T): CQTag<T> {
-    let code = new CQTag<T>(type, <T>{})
-    code.send = send
+    let code = new CQTag<T>(type, <T>{});
+    code.send = send;
     return code;
   }
 
@@ -93,7 +95,7 @@ class CQText extends CQTag<text> {
   }
 
   toString(): string {
-    return this.data.text
+    return this.data.text;
   }
 }
 
@@ -132,11 +134,11 @@ export var CQ = {
    */
   escape: (str: string, insideCQ = false) => {
     let temp = str.replace(/&/g, "&amp;")
-        .replace(/\[/g, "&#91;")
-        .replace(/]/g, "&#93;");
+      .replace(/\[/g, "&#91;")
+      .replace(/]/g, "&#93;");
     if (insideCQ) {
       temp = temp
-          .replace(/,/g, "&#44;")
+        .replace(/,/g, "&#44;");
     }
     return temp;
   },
@@ -148,9 +150,9 @@ export var CQ = {
    */
   unescape: (str: string) => {
     return str.replace(/&#44;/g, ",")
-        .replace(/&#91;/g, "[")
-        .replace(/&#93;/g, "]")
-        .replace(/&amp;/g, "&");
+      .replace(/&#91;/g, "[")
+      .replace(/&#93;/g, "]")
+      .replace(/&amp;/g, "&");
   },
   /**
    * 纯文本
@@ -173,8 +175,8 @@ export var CQ = {
    */
   record: (file: string, magic?: boolean, cache?: boolean, proxy?: boolean, timeout?: number) => {
     return new CQTag<_record>("record", {
-      file, magic, cache, proxy, timeout
-    })
+      file, magic, cache, proxy, timeout,
+    });
   },
   /**
    * .@某人
@@ -192,7 +194,7 @@ export var CQ = {
     url,
     title,
     content,
-    image
+    image,
   }),
   /**
    * 音乐分享
@@ -208,14 +210,15 @@ export var CQ = {
    * @param content 发送时可选, 内容描述
    * @param image 发送时可选, 图片 URL
    */
-  musicCustom: (url: string, audio: string, title: string, content?: string, image?: string) => new CQTag<musicCustom>("music", {
-    type: "custom",
-    url,
-    audio,
-    title,
-    content,
-    image
-  }),
+  musicCustom: (url: string, audio: string, title: string, content?: string, image?: string) => new CQTag<musicCustom>(
+    "music", {
+      type: "custom",
+      url,
+      audio,
+      title,
+      content,
+      image,
+    }),
   /**
    * 图片
    * @param file 图片文件名
@@ -226,9 +229,10 @@ export var CQ = {
    * @param c 通过网络下载图片时的线程数, 默认单线程. (在资源不支持并发时会自动处理)
    * @see https://ishkong.github.io/go-cqhttp-docs/cqcode/#%E5%9B%BE%E7%89%87
    */
-  image: (file: string, type?: string, url?: string, cache?: number, id?: number, c?: number) => new CQTag<image>("image", {
-    file, type, url, cache, id, c
-  }),
+  image: (file: string, type?: string, url?: string, cache?: number, id?: number, c?: number) => new CQTag<image>(
+    "image", {
+      file, type, url, cache, id, c,
+    }),
   /**
    * 回复
    * @param id 回复时所引用的消息id, 必须为本群消息.
@@ -259,7 +263,7 @@ export var CQ = {
   node: (name: string, uin: number | string, content: CQTag<any>[] | string) => new CQTag<node>("node", {
     name,
     uin,
-    content
+    content,
   }),
   /**
    * XML 消息
@@ -283,21 +287,23 @@ export var CQ = {
    * @param source 分享来源的名称, 可以留空
    * @param icon 分享来源的icon图标url, 可以留空
    */
-  cardimage: (file: string, minwidth?: number, minheight?: number, maxwidth?: number, maxheight?: number, source ?: string, icon?: string) => new CQTag("cardimage", {
+  cardimage: (file: string, minwidth?: number, minheight?: number, maxwidth?: number, maxheight?: number,
+    source ?: string, icon?: string,
+  ) => new CQTag("cardimage", {
     file,
     minwidth,
     minheight,
     maxwidth,
     maxheight,
     source,
-    icon
+    icon,
   }),
   /**
    * 文本转语音
    * @param text 内容
    */
-  tts: (text: string) => new CQTag<tts>("tts", {text})
-}
+  tts: (text: string) => new CQTag<tts>("tts", {text}),
+};
 export type tts = {
   /**
    * 内容

@@ -121,7 +121,8 @@ export class CQEventBus {
    * @param eventType
    * @param handler
    */
-  on(eventType: EventType, handler: Function) {
+  on(eventType: EventType, handler?: Function) {
+    if (!handler) return;
     this.get(eventType).on(handler);
   }
 
@@ -130,7 +131,8 @@ export class CQEventBus {
    * @param eventType
    * @param handler
    */
-  once(eventType: EventType, handler: Function) {
+  once(eventType: EventType, handler?: Function) {
+    if (!handler) return;
     const onceFunction = (...args: any[]) => {
       this.off(eventType, handler);
       return handler(...args);
@@ -144,7 +146,8 @@ export class CQEventBus {
    * @param eventType
    * @param handler
    */
-  off(eventType: EventType | string[], handler: Function) {
+  off(eventType: EventType | string[], handler?: Function) {
+    if (!handler) return;
     let node = this.get(eventType);
     let fun = <Function>this._onceListeners.get(handler);
     fun = this._onceListeners.delete(handler) ? fun : handler;
@@ -216,34 +219,30 @@ export class CQEvent {
 
 }
 
-export type MessageEventType =
-    "message"
-    | "message.private"
-    | "message.group"
-    | "message.group.@me"
-    | "message.discuss"
-    | "message.discuss.@me"
+export type MessageEventType = "message.private"
+  | "message.group"
+  | "message.discuss"
 export type NoticeEventType = "notice"
-    | "notice.group_upload"
-    | "notice.group_admin.set"
-    | "notice.group_admin.unset"
-    | "notice.group_decrease.leave"
-    | "notice.group_decrease.kick"
-    | "notice.group_decrease.kick_me"
-    | "notice.group_increase.approve"
-    | "notice.group_increase.invite"
-    | "notice.friend_add"
-    | "notice.group_ban.ban"
-    | "notice.group_ban.lift_ban"
-    | "notice.notify"
-export type RequestEventType = "request" | "request.friend" | "request.group.add" | "request.group.invite"
+  | "notice.group_upload"
+  | "notice.group_admin.set"
+  | "notice.group_admin.unset"
+  | "notice.group_decrease.leave"
+  | "notice.group_decrease.kick"
+  | "notice.group_decrease.kick_me"
+  | "notice.group_increase.approve"
+  | "notice.group_increase.invite"
+  | "notice.friend_add"
+  | "notice.group_ban.ban"
+  | "notice.group_ban.lift_ban"
+  | "notice.notify"
+export type RequestEventType = "request.friend" | "request.group.add" | "request.group.invite"
 export type SocketEventType = "socket.open" | "socket.error" | "socket.close"
 export type APIEventType = "api.response" | "api.preSend"
-export type MetaEventType = "meta_event" | "meta_event.lifecycle" | "meta_event.heartbeat"
+export type MetaEventType = "meta_event.lifecycle" | "meta_event.heartbeat"
 export  type EventType =
-    MessageEventType
-    | NoticeEventType
-    | RequestEventType
-    | SocketEventType
-    | APIEventType
-    | MetaEventType
+  MessageEventType
+  | NoticeEventType
+  | RequestEventType
+  | SocketEventType
+  | APIEventType
+  | MetaEventType

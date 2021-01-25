@@ -1,7 +1,11 @@
 import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {CQEventBus, EventType} from "./event-bus";
-import {CQ, CQTag} from "./tags";
+import {
+  APIRequest, APIResponse, ErrorAPIResponse, heartbeat, lifecycle, onFailure, onSuccess, options, Reconnection,
+  ResponseHandler, SocketHandle, SocketType,
+} from "./Interfaces";
+import {CQ} from "./tags";
 
 export class WebSocketCQ {
   public messageSuccess: onSuccess<any>;
@@ -21,18 +25,18 @@ export class WebSocketCQ {
   private _socketEVENT: w3cwebsocket;
 
   constructor({
-                // connectivity configs
-                accessToken = "",
-                baseUrl = "ws://127.0.0.1:6700",
+    // connectivity configs
+    accessToken = "",
+    baseUrl = "ws://127.0.0.1:6700",
 
-                // application aware configs
-                qq = -1,
+    // application aware configs
+    qq = -1,
 
-                // Reconnection configs
-                reconnection = true,
-                reconnectionAttempts = 10,
-                reconnectionDelay = 1000,
-              }: options = {}) {
+    // Reconnection configs
+    reconnection = true,
+    reconnectionAttempts = 10,
+    reconnectionDelay = 1000,
+  }: options = {}) {
     /**
      *
      * @type {Map<string, {onSuccess:onSuccess,onFailure:onFailure}>}
@@ -133,18 +137,24 @@ export class WebSocketCQ {
     });
   }
 
-  public on(eventType: EventType, handler: Function): this {
-    this._eventBus.on(eventType, handler);
+  public on(event: SocketHandle): this {
+    Object.entries(event).forEach(([k, v]) => {
+      this._eventBus.on(<EventType>k, v);
+    });
     return this;
   }
 
-  public once(eventType: EventType, handler: Function): this {
-    this._eventBus.once(eventType, handler);
+  public once(event: SocketHandle): this {
+    Object.entries(event).forEach(([k, v]) => {
+      this._eventBus.on(<EventType>k, v);
+    });
     return this;
   }
 
-  public off(eventType: EventType, handler: Function): this {
-    this._eventBus.off(eventType, handler);
+  public off(event: SocketHandle): this {
+    Object.entries(event).forEach(([k, v]) => {
+      this._eventBus.on(<EventType>k, v);
+    });
     return this;
   }
 
@@ -328,62 +338,4 @@ export class WebSocketCQ {
   }
 }
 
-export type onSuccess<T> = (json: APIResponse<T>) => T;
-export type onFailure = (reason: ErrorAPIResponse<any>) => void;
-export type SocketType = "api" | "event"
 
-export interface Reconnection {
-  times: number;
-  delay: number;
-  timesMax: number;
-  timeout?: NodeJS.Timeout
-}
-
-export interface options {
-  accessToken?: string,
-  baseUrl?: string,
-  qq?: number,
-  reconnection?: boolean,
-  reconnectionAttempts?: number,
-  reconnectionDelay?: number,
-}
-
-export interface APIRequest {
-  action: string,
-  params: CQTag<any>[] | string,
-  echo: any,
-}
-
-export interface MessageId {
-  message_id: number
-}
-
-export interface APIResponse<T> {
-  status: string,
-  /**
-   * |retcode|说明|
-   * |-|-|
-   * |0|同时 status 为 ok，表示操作成功|
-   * |1|同时 status 为 async，表示操作已进入异步执行，具体结果未知|
-   * |100|参数缺失或参数无效，通常是因为没有传入必要参数，某些接口中也可能因为参数明显无效（比如传入的 QQ 号小于等于 0，此时无需调用 酷Q 函数即可确定失败），此项和以下的 status 均为 failed|
-   * |102|酷Q 函数返回的数据无效，一般是因为传入参数有效但没有权限，比如试图获取没有加入的群组的成员列表|
-   * |103|操作失败，一般是因为用户权限不足，或文件系统异常、不符合预期|
-   * |104|由于 酷Q 提供的凭证（Cookie 和 CSRF Token）失效导致请求 QQ 相关接口失败，可尝试清除 酷Q 缓存来解决|
-   * |201|工作线程池未正确初始化（无法执行异步任务）|
-   */
-  retcode: number
-  data: T | null
-  echo: any
-}
-
-export interface ErrorAPIResponse<T> extends APIResponse<T> {
-  data: null
-  mag: string
-  wording: string
-}
-
-export interface ResponseHandler {
-  onSuccess: (json: APIResponse<any>) => void;
-  onFailure: (reason: ErrorAPIResponse<any>) => void;
-  message: APIRequest
-}

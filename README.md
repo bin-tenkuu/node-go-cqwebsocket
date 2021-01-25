@@ -65,7 +65,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 - `CQ.text(...)` | `CQ.at(...)`等：便捷构建 CQ码 的方法
 - `CQ.parse(...)` ：将携带 CQ码 的字符串转换为 CQ码数组
 
-#### `Tags`
+#### `CQTag`
 
 - 包含 `CQ` ,  参考 `CQ` 
 - 包含所有 CQ码 的基类：`CQTag<T>` 
