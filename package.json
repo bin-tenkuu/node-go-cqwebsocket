@@ -1,9 +1,9 @@
 {
   "name": "go-cqwebsocket",
-  "version": "1.1.1",
+  "version": "1.4.0",
   "description": "cq-websocket停止维护后的替代品",
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "main": "./out/index.js",
   "types": "./out/index.d.ts",
@@ -12,8 +12,7 @@
     "out/**/*.d.ts"
   ],
   "scripts": {
-    "build": "tsc",
-    "publish": "npm publish"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -21,9 +20,11 @@
   },
   "keywords": [
     "go-cqhttp",
-    "websocket"
+    "websocket",
+    "qq-robot",
+    "cq-websocket"
   ],
-  "author": "bin",
+  "author": "src_bin",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/2938137849/go-cqwebsocket/issues"
