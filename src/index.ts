@@ -170,23 +170,17 @@ export class CQWebSocket extends WebSocketCQ {
     return this.send("set_group_add_request", {flag, sub_type, type: sub_type, approve, reason});
   }
 
-  /**
-   * 获取登录号信息
-   */
+  /** 获取登录号信息 */
   public get_login_info(): PromiseRes<LoginInfo> {
     return this.send("get_login_info", {});
   }
 
-  /**
-   * 获取陌生人信息
-   */
+  /** 获取陌生人信息 */
   public get_stranger_info(): PromiseRes<StrangerInfo> {
     return this.send("get_stranger_info", {});
   }
 
-  /**
-   * 获取好友列表
-   */
+  /** 获取好友列表 */
   public get_friend_list(): PromiseRes<FriendInfo[]> {
     return this.send("get_friend_list", {});
   }
@@ -200,9 +194,7 @@ export class CQWebSocket extends WebSocketCQ {
     return this.send("get_group_info", {group_id, no_cache});
   }
 
-  /**
-   * 获取群列表
-   */
+  /** 获取群列表 */
   public get_group_list(): PromiseRes<GroupInfo[]> {
     return this.send("get_group_list", {});
   }
@@ -240,23 +232,17 @@ export class CQWebSocket extends WebSocketCQ {
     return this.send("get_group_honor_info", {group_id, type});
   }
 
-  /**
-   * 检查是否可以发送图片
-   */
+  /** 检查是否可以发送图片 */
   public can_send_image(): PromiseRes<CanSend> {
     return this.send("can_send_image", {});
   }
 
-  /**
-   * 检查是否可以发送语音
-   */
+  /** 检查是否可以发送语音 */
   public can_send_record(): PromiseRes<CanSend> {
     return this.send("can_send_record", {});
   }
 
-  /**
-   * 获取版本信息
-   */
+  /** 获取版本信息 */
   public get_version_info(): PromiseRes<VersionInfo> {
     return this.send("get_version_info", {});
   }
@@ -281,9 +267,7 @@ export class CQWebSocket extends WebSocketCQ {
     return this.send("set_group_portrait", {group_id, file, cache});
   }
 
-  /**
-   * 获取群系统消息
-   */
+  /** 获取群系统消息 */
   public get_group_system_msg(): PromiseRes<GroupSystemMSG> {
     return this.send("get_group_system_msg", {});
   }
@@ -359,9 +343,7 @@ export class CQWebSocket extends WebSocketCQ {
     return this.send("_send_group_notice", {group_id});
   }
 
-  /**
-   * 重载事件过滤器
-   */
+  /** 重载事件过滤器 */
   public reload_event_filter(): PromiseRes<any> {
     return this.send("reload_event_filter", {});
   }

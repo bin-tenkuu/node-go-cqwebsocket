@@ -55,7 +55,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 **注2：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 Event,
 查找请参考 [go-cqhttp 帮助中心 Event](https://ishkong.github.io/go-cqhttp-docs/event/) , 注册监听请使用 `bot.on(...)`, `bot.once(...)`
-, `bot.off(...)`
+, `bot.off(...)`, `bot.bind(...)`, `bot.unbind(...)`
 
 ------------------------------------
 

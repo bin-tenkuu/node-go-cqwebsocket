@@ -11,7 +11,7 @@ export class CQTag<T extends Data> implements Tags<T> {
   public readonly type: string;
   public readonly data: T;
   public send: T;
-
+  
   public constructor(type: string, data: T) {
     this.type = type;
     this.data = data;
@@ -30,11 +30,11 @@ export class CQTag<T extends Data> implements Tags<T> {
       },
     ])));
   }
-
+  
   public get tagName() {
     return this.type;
   }
-
+  
   /**
    * 原本应该是每一个 data 里的属性都在外面给一个 getter 的，奈何我不会写约束文件里的索引器。
    * 于是我在实现了 getter 的同时写了这个方法，用于强类型代码（比如 typescript ）的编写时自动提示
@@ -43,42 +43,42 @@ export class CQTag<T extends Data> implements Tags<T> {
   public get(key: keyof T) {
     return this.data[key];
   }
-
+  
   public toJSON(): Tags<T> {
     this.coerce();
     const data = Object.assign({}, this.data, this.send);
-
+    
     Object.entries(data).forEach(([k, v]) => {
       if (v == null) {
         delete data[k];
       }
     });
-
+    
     return {
       type: this.tagName,
       data: data,
     };
   }
-
+  
   public toString(): string {
     let ret = `[CQ:${this.type}`;
-
+    
     Object.entries(Object.assign({}, this.data, this.send)).forEach(([k, v]) => {
       if (v !== undefined) {
         ret += `,${k}=${v}`;
       }
     });
-
+    
     ret += "]";
     return ret;
   }
-
+  
   public static send<T extends Data>(type: string, send: T): CQTag<T> {
     let code = new CQTag<T>(type, <T>{});
     code.send = send;
     return code;
   }
-
+  
   /**
    * 强制将属性转换为对应类型
    * @abstract
@@ -93,7 +93,7 @@ class CQText extends CQTag<text> {
   constructor(text: string) {
     super("text", {text});
   }
-
+  
   toString(): string {
     return this.data.text;
   }
@@ -103,10 +103,7 @@ const SPLIT = /[\[\]]/;
 const CQ_TAG_REGEXP = /^CQ:([a-z]+)(?:,(.+))?$/;
 
 export var CQ = {
-  /**
-   * 将携带 CQ码 的字符串转换为 CQ码数组
-   * @param msg 消息
-   */
+  /** 将携带 CQ码 的字符串转换为 CQ码数组 */
   parse: (msg: string): CQTag<any>[] => {
     return msg.split(SPLIT).filter(str => str !== "").map(tagStr => {
       let match = CQ_TAG_REGEXP.exec(tagStr);
@@ -306,70 +303,42 @@ export var CQ = {
 };
 
 export type tts = {
-  /**
-   * 内容
-   */
+  /** 内容 */
   text: string
 }
 export type cardimage = {
-  /**
-   * 和image的file字段对齐, 支持也是一样的
-   */
+  /** 和image的file字段对齐, 支持也是一样的 */
   file: string
-  /**
-   * 默认不填为400, 最小width
-   */
+  /** 默认不填为400, 最小width */
   minwidth?: number
-  /**
-   * 默认不填为400, 最小height
-   */
+  /** 默认不填为400, 最小height */
   minheight?: number
-  /**
-   * 默认不填为500, 最大width
-   */
+  /** 默认不填为500, 最大width */
   maxwidth?: number
-  /**
-   * 默认不填为1000, 最大height
-   */
+  /** 默认不填为1000, 最大height */
   maxheight?: number
-  /**
-   * 分享来源的名称, 可以留空
-   */
+  /** 分享来源的名称, 可以留空 */
   source?: string
-  /**
-   * 分享来源的icon图标url, 可以留空
-   */
+  /** 分享来源的icon图标url, 可以留空 */
   icon?: string
-
+  
 }
 export type json = {
-  /**
-   * json内容, json的所有字符串记得实体化处理
-   */
+  /** json内容, json的所有字符串记得实体化处理 */
   data: string
-  /**
-   * 默认不填为0, 走小程序通道, 填了走富文本通道发送
-   */
+  /** 默认不填为0, 走小程序通道, 填了走富文本通道发送 */
   resid?: number
 }
 export type xml = {
-  /**
-   * xml内容, xml中的value部分, 记得实体化处理
-   */
+  /** xml内容, xml中的value部分, 记得实体化处理 */
   data: string
-  /**
-   * 可以不填
-   */
+  /** 可以不填 */
   resid?: number
 }
 export type node = {
-  /**
-   * 发送者显示名字
-   */
+  /** 发送者显示名字 */
   name: string
-  /**
-   * 发送者QQ号
-   */
+  /** 发送者QQ号 */
   uin: number | string
   /**
    * 具体消息
@@ -379,87 +348,53 @@ export type node = {
   content: CQTag<any>[] | string
 }
 export type nodeID = {
-  /**
-   * 转发消息id, 直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序
-   */
+  /** 转发消息id, 直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序 */
   id: number
 }
 export type gift = {
-  /**
-   * 接收礼物的成员
-   */
+  /** 接收礼物的成员 */
   qq: number
-  /**
-   * 礼物的类型
-   */
+  /** 礼物的类型 */
   id: number
 }
 export type poke = {
-  /**
-   * 需要戳的成员
-   */
+  /** 需要戳的成员 */
   qq: number
 }
 export type reply = {
   id: number
 }
 export type image = {
-  /**
-   * 图片文件名
-   */
+  /** 图片文件名 */
   file: string
-  /**
-   * 图片类型, flash 表示闪照, show 表示秀图, 默认普通图片
-   */
+  /** 图片类型, flash 表示闪照, show 表示秀图, 默认普通图片 */
   type?: string
-  /**
-   * 图片 URL
-   */
+  /** 图片 URL */
   url?: string
-  /**
-   * 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1
-   */
+  /** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
   cache?: number
-  /**
-   * 发送秀图时的特效id, 默认为40000
-   */
+  /** 发送秀图时的特效id, 默认为40000 */
   id?: number
-  /**
-   * 通过网络下载图片时的线程数, 默认单线程. (在资源不支持并发时会自动处理)
-   */
+  /** 通过网络下载图片时的线程数, 默认单线程. (在资源不支持并发时会自动处理) */
   c?: number
 }
 export type musicCustom = {
   type: "custom"
-  /**
-   * 点击后跳转目标 URL
-   */
+  /** 点击后跳转目标 URL */
   url: string
-  /**
-   * 音乐 URL
-   */
+  /** 音乐 URL */
   audio: string
-  /**
-   * 标题
-   */
+  /** 标题 */
   title: string
-  /**
-   * 发送时可选, 内容描述
-   */
+  /** 发送时可选, 内容描述 */
   content?: string
-  /**
-   * 发送时可选, 图片 URL
-   */
+  /** 发送时可选, 图片 URL */
   image?: string
 }
 export type music = {
-  /**
-   * 分别表示使用 QQ 音乐、网易云音乐、虾米音乐
-   */
+  /** 分别表示使用 QQ 音乐、网易云音乐、虾米音乐 */
   type: "qq" | "163" | "xm"
-  /**
-   * 歌曲 ID
-   */
+  /** 歌曲 ID */
   id: number
 }
 export type share = {
@@ -473,19 +408,13 @@ export type share = {
   image?: string
 }
 export type at = {
-  /**
-   * .@的 QQ 号, `all` 表示全体成员
-   */
+  /** .@的 QQ 号, `all` 表示全体成员 */
   qq: number | "all"
 }
 export type video = {
-  /**
-   * 视频文件名
-   */
+  /** 视频文件名 */
   file: string
-  /**
-   * 视频 URL
-   */
+  /** 视频 URL */
   url?: string
 }
 export type record = {
@@ -501,28 +430,18 @@ type _record = {
   file: string
   /** 表示变声 */
   magic?: boolean
-  /**
-   * 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1
-   */
+  /** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
   cache?: boolean
-  /**
-   * 只在通过网络 URL 发送时有效, 表示是否通过代理下载文件 ( 需通过环境变量或配置文件配置代理 ) , 默认 1
-   */
+  /** 只在通过网络 URL 发送时有效, 表示是否通过代理下载文件 ( 需通过环境变量或配置文件配置代理 ) , 默认 1 */
   proxy?: boolean
-  /**
-   * 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时
-   */
+  /** 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时 */
   timeout?: number
 }
 export type text = {
-  /**
-   * 纯文本内容
-   */
+  /** 纯文本内容 */
   text: string
 }
 export type face = {
-  /**
-   * QQ 表情 ID,处于 [0,221] 区间
-   */
+  /** QQ 表情 ID,处于 [0,221] 区间 */
   id: number
 }
