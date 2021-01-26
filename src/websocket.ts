@@ -251,9 +251,9 @@ export class WebSocketCQ {
   
   private _close(evt: ICloseEvent, type: SocketType) {
     if (evt.code === 1000) {
-      return this._eventBus.handle("socket.close", evt.code, evt.reason, type);
+      return this._eventBus.handle("socket.close", type, evt.code, evt.reason);
     } else {
-      return this._eventBus.handle("socket.error", evt.code, evt.reason, type);
+      return this._eventBus.handle("socket.error", type, evt.code, evt.reason);
     }
   }
   
