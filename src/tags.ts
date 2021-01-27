@@ -12,7 +12,7 @@ export class CQTag<T extends Data> implements Tags<T> {
   public readonly data: T;
   public send: T;
   
-  public constructor(type: string, data: T) {
+  public constructor(type: tagName | string, data: T) {
     this.type = type;
     this.data = data;
     this.send = <T>{};
@@ -31,7 +31,7 @@ export class CQTag<T extends Data> implements Tags<T> {
     ])));
   }
   
-  public get tagName() {
+  public get tagName(): tagName | string {
     return this.type;
   }
   
@@ -451,3 +451,6 @@ export type face = {
   /** QQ 表情 ID,处于 [0,221] 区间 */
   id: number
 }
+export type tagName = "text" | "face" | "record" | "video" | "at" | "rps" | "dice" | "shake" | "anonymous" | "share"
+  | "contact" | "location" | "music" | "image" | "reply" | "redbag" | "poke" | "gift" | "forward" | "node" | "xml"
+  | "json" | "cardimage" | "tts"
