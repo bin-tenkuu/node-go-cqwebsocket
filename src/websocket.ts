@@ -168,7 +168,8 @@ export class WebSocketCQ {
   }
   
   /**
-   * 同时注册多种监听方法,解除监听调用 [unbind]{@link unbind} 方法
+   * 同时注册多种监听方法,解除监听调用 [unbind]{@link unbind} 方法<br/>
+   * 当 `option` 参数为 `onceAll` 时, 也可以手动调用返回值中任意一个方法来解除监听
    * @param option -
    *  - `on` : 相当于为每个方法调用一次 [on]{@link on}<br/>
    *  - `once` : 相当于为每个方法调用一次 [once]{@link once}<br/>
@@ -190,16 +191,11 @@ export class WebSocketCQ {
       event = Object.fromEntries(entries);
     }
     if (option == "once") {
-      entries.forEach(([k, v]) => {
-        this._eventBus.once(<EventType>k, v);
-      });
-      return event;
+      entries.forEach(([k, v]) => this._eventBus.once(<EventType>k, v));
     } else {
-      entries.forEach(([k, v]) => {
-        this._eventBus.on(<EventType>k, v);
-      });
-      return event;
+      entries.forEach(([k, v]) => this._eventBus.on(<EventType>k, v));
     }
+    return event;
   }
   
   /**
