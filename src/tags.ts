@@ -3,11 +3,11 @@ export interface Data {
 }
 
 export interface Tags<T extends Data> {
-  _type: string,
-  _data: T
+  type: string,
+  data: T
 }
 
-export class CQTag<T extends Data> implements Tags<T> {
+export class CQTag<T extends Data> {
   public readonly _type: string;
   public readonly _data: T;
   public _modifier: Data;
@@ -55,8 +55,8 @@ export class CQTag<T extends Data> implements Tags<T> {
     });
     
     return {
-      _type: this.tagName,
-      _data: data,
+      type: this.tagName,
+      data: data,
     };
   }
   

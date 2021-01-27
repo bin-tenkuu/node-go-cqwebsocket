@@ -8,7 +8,7 @@ import {
 import {CQ} from "./tags";
 
 export class WebSocketCQ {
-  public messageSuccess: onSuccess<any>;
+  public messageSuccess: <T>(json: T) => void;
   public messageFail: onFailure;
   
   public reconnection?: Reconnection;
@@ -66,15 +66,8 @@ export class WebSocketCQ {
     this._qq = qq;
     this._accessToken = accessToken;
     this._baseUrl = baseUrl;
-    
-    this.messageSuccess = (ret) => {
-      console.log(`发送成功`, ret.data);
-      return ret.data;
-    };
-    this.messageFail = (reason) => {
-      console.log(`发送失败`, reason);
-    };
-    
+    this.messageSuccess = (ret) => console.log(`发送成功`, ret);
+    this.messageFail = (reason) => console.log(`发送失败`, reason);
   }
   
   public reconnect() {
