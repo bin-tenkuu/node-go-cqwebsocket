@@ -1,10 +1,9 @@
 import {
   CanSend, FileUrl, FriendInfo, GroupAtAllRemain, GroupData, GroupFileSystemInfo, GroupHonorInfo, GroupInfo,
-  GroupMemberInfo,
-  GroupRootFileSystemInfo, GroupSystemMSG, int64, LoginInfo, message, MessageId, MessageInfo, PrivateData, PromiseRes,
-  Status, StrangerInfo, VersionInfo, VipInfo,
+  GroupMemberInfo, GroupRootFileSystemInfo, GroupSystemMSG, int64, LoginInfo, message, MessageId, MessageInfo,
+  PrivateData, PromiseRes, Status, StrangerInfo, VersionInfo, VipInfo,
 } from "./Interfaces";
-import {CQTag, node} from "./tags";
+import {CQTag, node, nodeID} from "./tags";
 import {WebSocketCQ} from "./websocket";
 
 export * as Tags from "./tags";
@@ -23,7 +22,7 @@ export class CQWebSocket extends WebSocketCQ {
   public send_private_msg(user_id: int64, message: message, auto_escape = false): PromiseRes<MessageId> {
     return this.send("send_private_msg", {user_id, message, auto_escape});
   }
-
+  
   /**
    * 发送群消息
    * @param group_id 群号
@@ -33,16 +32,18 @@ export class CQWebSocket extends WebSocketCQ {
   public send_group_msg(group_id: int64, message: message, auto_escape = false): PromiseRes<MessageId> {
     return this.send("send_group_msg", {group_id, message, auto_escape});
   }
-
+  
   /**
    * 发送合并转发 ( 群 )
    * @param group_id 群号
    * @param messages 自定义转发消息
    */
-  public send_group_forward_msg(group_id: number | string, messages: CQTag<node>[]): PromiseRes<MessageId> {
+  public send_group_forward_msg(group_id: number | string,
+    messages: CQTag<node | nodeID>[] | string,
+  ): PromiseRes<MessageId> {
     return this.send("send_group_forward_msg", {group_id, messages});
   }
-
+  
   /**
    * 发送消息
    * @param data
@@ -50,7 +51,7 @@ export class CQWebSocket extends WebSocketCQ {
   public send_msg(data: PrivateData | GroupData): PromiseRes<MessageId> {
     return this.send("send_msg", data);
   }
-
+  
   /**
    * 撤回消息
    * @param message_id 消息 ID
@@ -58,7 +59,7 @@ export class CQWebSocket extends WebSocketCQ {
   public delete_msg(message_id: number): PromiseRes<any> {
     return this.send("delete_msg", {message_id});
   }
-
+  
   /**
    * 获取消息
    * @param message_id 消息 ID
@@ -66,7 +67,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_msg(message_id: number): PromiseRes<MessageInfo> {
     return this.send("get_msg", {message_id});
   }
-
+  
   /**
    * 群组踢人
    * @param group_id 群号
@@ -76,7 +77,7 @@ export class CQWebSocket extends WebSocketCQ {
   public set_group_kick(group_id: int64, user_id: int64, reject_add_request = false): PromiseRes<any> {
     return this.send("set_group_kick", {group_id, user_id, reject_add_request});
   }
-
+  
   /**
    * 群组单人禁言
    * @param group_id 群号
@@ -86,7 +87,7 @@ export class CQWebSocket extends WebSocketCQ {
   public set_group_ban(group_id: int64, user_id: int64, duration = 30 * 60): PromiseRes<any> {
     return this.send("set_group_ban", {group_id, user_id, duration});
   }
-
+  
   /**
    * 群组全员禁言
    * @param group_id 群号
@@ -95,7 +96,7 @@ export class CQWebSocket extends WebSocketCQ {
   public set_group_whole_ban(group_id: int64, enable = true): PromiseRes<any> {
     return this.send("set_group_whole_ban", {group_id, enable});
   }
-
+  
   /**
    * 群组设置管理员
    * @param group_id 群号
@@ -105,7 +106,7 @@ export class CQWebSocket extends WebSocketCQ {
   public set_group_admin(group_id: int64, user_id: int64, enable = true): PromiseRes<any> {
     return this.send("set_group_admin", {group_id, user_id, enable});
   }
-
+  
   /**
    * 设置群名片 ( 群备注 )
    * @param group_id 群号
@@ -115,7 +116,7 @@ export class CQWebSocket extends WebSocketCQ {
   public set_group_card(group_id: int64, user_id: int64, card = ""): PromiseRes<any> {
     return this.send("set_group_card", {group_id, user_id, card});
   }
-
+  
   /**
    * 设置群名
    * @param group_id 群号
@@ -124,7 +125,7 @@ export class CQWebSocket extends WebSocketCQ {
   public set_group_name(group_id: int64, group_name = ""): PromiseRes<any> {
     return this.send("set_group_name", {group_id, group_name});
   }
-
+  
   /**
    * 退出群组
    * @param group_id 群号
@@ -133,7 +134,7 @@ export class CQWebSocket extends WebSocketCQ {
   public set_group_leave(group_id: int64, is_dismiss = false): PromiseRes<any> {
     return this.send("set_group_leave", {group_id, is_dismiss});
   }
-
+  
   /**
    * 设置群组专属头衔
    * @param group_id 群号
@@ -146,7 +147,7 @@ export class CQWebSocket extends WebSocketCQ {
   ): PromiseRes<any> {
     return this.send("set_group_special_title", {group_id, user_id, special_title, duration});
   }
-
+  
   /**
    * 处理加好友请求
    * @param flag 加好友请求的 flag（需从上报的数据中获得）
@@ -156,7 +157,7 @@ export class CQWebSocket extends WebSocketCQ {
   public set_friend_add_request(flag: string, approve = true, remark = ""): PromiseRes<any> {
     return this.send("set_friend_add_request", {flag, approve, remark});
   }
-
+  
   /**
    * 处理加群请求／邀请
    * @param flag 加好友请求的 flag（需从上报的数据中获得）
@@ -165,26 +166,26 @@ export class CQWebSocket extends WebSocketCQ {
    * @param reason 添加后的好友备注（仅在同意时有效）
    */
   public set_group_add_request(flag: string, sub_type: string, approve = true,
-    reason = "",
+    reason                                                             = "",
   ): PromiseRes<any> {
     return this.send("set_group_add_request", {flag, sub_type, type: sub_type, approve, reason});
   }
-
+  
   /** 获取登录号信息 */
   public get_login_info(): PromiseRes<LoginInfo> {
     return this.send("get_login_info", {});
   }
-
+  
   /** 获取陌生人信息 */
   public get_stranger_info(): PromiseRes<StrangerInfo> {
     return this.send("get_stranger_info", {});
   }
-
+  
   /** 获取好友列表 */
   public get_friend_list(): PromiseRes<FriendInfo[]> {
     return this.send("get_friend_list", {});
   }
-
+  
   /**
    * 获取群信息
    * @param group_id 群号
@@ -193,12 +194,12 @@ export class CQWebSocket extends WebSocketCQ {
   public get_group_info(group_id: int64, no_cache = false): PromiseRes<GroupInfo> {
     return this.send("get_group_info", {group_id, no_cache});
   }
-
+  
   /** 获取群列表 */
   public get_group_list(): PromiseRes<GroupInfo[]> {
     return this.send("get_group_list", {});
   }
-
+  
   /**
    * 获取群成员信息
    * @param group_id 群号
@@ -208,7 +209,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_group_member_info(group_id: int64, user_id: int64, no_cache = false): PromiseRes<GroupMemberInfo> {
     return this.send("get_group_member_info", {group_id, user_id, no_cache});
   }
-
+  
   /**
    * 获取群成员列表
    *
@@ -221,7 +222,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_group_member_list(group_id: int64): PromiseRes<GroupMemberInfo[]> {
     return this.send("get_group_member_list", {group_id});
   }
-
+  
   /**
    * 获取群荣誉信息
    * @param group_id 群号
@@ -231,22 +232,22 @@ export class CQWebSocket extends WebSocketCQ {
   public get_group_honor_info(group_id: int64, type: string): PromiseRes<GroupHonorInfo> {
     return this.send("get_group_honor_info", {group_id, type});
   }
-
+  
   /** 检查是否可以发送图片 */
   public can_send_image(): PromiseRes<CanSend> {
     return this.send("can_send_image", {});
   }
-
+  
   /** 检查是否可以发送语音 */
   public can_send_record(): PromiseRes<CanSend> {
     return this.send("can_send_record", {});
   }
-
+  
   /** 获取版本信息 */
   public get_version_info(): PromiseRes<VersionInfo> {
     return this.send("get_version_info", {});
   }
-
+  
   /**
    * 设置群头像
    *
@@ -266,12 +267,12 @@ export class CQWebSocket extends WebSocketCQ {
   public set_group_portrait(group_id: int64, file: string, cache = 1): PromiseRes<VersionInfo> {
     return this.send("set_group_portrait", {group_id, file, cache});
   }
-
+  
   /** 获取群系统消息 */
   public get_group_system_msg(): PromiseRes<GroupSystemMSG> {
     return this.send("get_group_system_msg", {});
   }
-
+  
   /**
    * 获取群文件系统信息
    * @param group_id 群号
@@ -279,7 +280,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_group_file_system_info(group_id: int64): PromiseRes<GroupFileSystemInfo> {
     return this.send("get_group_file_system_info", {group_id});
   }
-
+  
   /**
    * 获取群根目录文件列表
    * @param group_id 群号
@@ -287,7 +288,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_group_root_files(group_id: int64): PromiseRes<GroupRootFileSystemInfo> {
     return this.send("get_group_root_files", {group_id});
   }
-
+  
   /**
    * 获取群子目录文件列表
    * @param group_id 群号
@@ -296,7 +297,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_group_files_by_folder(group_id: int64, folder_id: string): PromiseRes<GroupRootFileSystemInfo> {
     return this.send("get_group_files_by_folder", {group_id, folder_id});
   }
-
+  
   /**
    * 获取群文件资源链接
    * @param group_id 群号
@@ -307,7 +308,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_group_file_url(group_id: int64, file_id: string, busid: number): PromiseRes<FileUrl> {
     return this.send("get_group_file_url", {group_id, file_id});
   }
-
+  
   /**
    * 获取状态
    *
@@ -317,7 +318,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_status(): PromiseRes<Status> {
     return this.send("get_status", {});
   }
-
+  
   /**
    * 获取群 @全体成员 剩余次数
    * @param group_id 群号
@@ -325,7 +326,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_group_at_all_remain(group_id: int64): PromiseRes<GroupAtAllRemain> {
     return this.send("get_group_at_all_remain", {group_id});
   }
-
+  
   /**
    * 获取VIP信息
    * @param user_id QQ 号
@@ -333,7 +334,7 @@ export class CQWebSocket extends WebSocketCQ {
   public get_vip_info(user_id: int64): PromiseRes<VipInfo> {
     return this.send("_get_vip_info", {user_id});
   }
-
+  
   /**
    * 发送群公告
    * @param group_id QQ 号
@@ -342,7 +343,7 @@ export class CQWebSocket extends WebSocketCQ {
   public send_group_notice(group_id: int64, content: string): PromiseRes<any> {
     return this.send("_send_group_notice", {group_id});
   }
-
+  
   /** 重载事件过滤器 */
   public reload_event_filter(): PromiseRes<any> {
     return this.send("reload_event_filter", {});

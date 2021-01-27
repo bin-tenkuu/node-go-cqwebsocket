@@ -257,7 +257,7 @@ export var CQ = {
    */
   node: (name: string, uin: number | string, content: CQTag<any>[] | string) => new CQTag<node>("node", {
     name,
-    uin,
+    uin: String(uin),
     content,
   }),
   /**
