@@ -172,36 +172,33 @@ export class WebSocketCQ {
    * @param option -
    *  - `on` : 相当于为每个方法调用一次 [on]{@link on}<br/>
    *  - `once` : 相当于为每个方法调用一次 [once]{@link once}<br/>
-   *  - `onceAll` : 只执行一次，执行后删除本次 `event` 中所有键对应的方法
+   *  - `onceAll` : 只执行一次，执行后删除本次 `event` 中所有键对应的方法<br/>
+   *  - 其他 : 相当于 `on`
    * @param [event={}]
    * @return 用于当作参数调用 [unbind]{@link unbind} 解除监听
    */
   public bind(option: "on" | "once" | "onceAll", event: SocketHandle = {}): SocketHandle {
-    switch (option) {
-      case "on":
-        Object.entries(event).forEach(([k, v]) => {
-          this._eventBus.on(<EventType>k, v);
-        });
-        return event;
-      case "once":
-        Object.entries(event).forEach(([k, v]) => {
-          this._eventBus.once(<EventType>k, v);
-        });
-        return event;
-      case "onceAll":
-        let map = Object.entries(event).map<[string, Function]>(([k, v]) => [
-          k, (...args: any) => {
-            this.unbind(Object.fromEntries(map));
-            // @ts-ignore
-            v?.(...args);
-          },
-        ]);
-        map.forEach(([k, v]) => {
-          this._eventBus.on(<EventType>k, v);
-        });
-        return Object.fromEntries(map);
-      default:
-        throw new Error(`Parameter "option" Not For ${option}`);
+    let entries = Object.entries(event);
+    if (option === "onceAll") {
+      entries = entries.map(([k, v]) => [
+        k, (...args: any) => {
+          this.unbind(event);
+          // @ts-ignore
+          v?.(...args);
+        },
+      ]);
+      event = Object.fromEntries(entries);
+    }
+    if (option == "once") {
+      entries.forEach(([k, v]) => {
+        this._eventBus.once(<EventType>k, v);
+      });
+      return event;
+    } else {
+      entries.forEach(([k, v]) => {
+        this._eventBus.on(<EventType>k, v);
+      });
+      return event;
     }
   }
   
