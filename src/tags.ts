@@ -3,36 +3,36 @@ export interface Data {
 }
 
 export interface Tags<T extends Data> {
-  type: string,
-  data: T
+  _type: string,
+  _data: T
 }
 
 export class CQTag<T extends Data> implements Tags<T> {
-  public readonly type: string;
-  public readonly data: T;
-  public send: T;
+  public readonly _type: string;
+  public readonly _data: T;
+  public _modifier: Data;
   
   public constructor(type: tagName | string, data: T) {
-    this.type = type;
-    this.data = data;
-    this.send = <T>{};
+    this._type = type;
+    this._data = data;
+    this._modifier = {};
     // 将 data 中全部属性在 this 中注册 getter
-    Object.defineProperties(this, Object.fromEntries(Object.entries(this.data).map<[
+    Object.defineProperties(this, Object.fromEntries(Object.entries(this._data).map<[
       string,
       PropertyDescriptor
     ]>(([key]) => [
       key, {
         configurable: true,
         enumerable: false,
-        get: () => this.data[key],
+        get: () => this._data[key],
         // @ts-ignore
-        set: v => this.data[key] = v,
+        set: v => this._data[key] = v,
       },
     ])));
   }
   
   public get tagName(): tagName | string {
-    return this.type;
+    return this._type;
   }
   
   /**
@@ -41,12 +41,12 @@ export class CQTag<T extends Data> implements Tags<T> {
    * @param key
    */
   public get(key: keyof T) {
-    return this.data[key];
+    return this._data[key];
   }
   
   public toJSON(): Tags<T> {
     this.coerce();
-    const data = Object.assign({}, this.data, this.send);
+    const data = Object.assign({}, this._data, this._modifier);
     
     Object.entries(data).forEach(([k, v]) => {
       if (v == null) {
@@ -55,15 +55,15 @@ export class CQTag<T extends Data> implements Tags<T> {
     });
     
     return {
-      type: this.tagName,
-      data: data,
+      _type: this.tagName,
+      _data: data,
     };
   }
   
   public toString(): string {
-    let ret = `[CQ:${this.type}`;
+    let ret = `[CQ:${this._type}`;
     
-    Object.entries(Object.assign({}, this.data, this.send)).forEach(([k, v]) => {
+    Object.entries(Object.assign({}, this._data, this._modifier)).forEach(([k, v]) => {
       if (v !== undefined) {
         ret += `,${k}=${v}`;
       }
@@ -73,10 +73,9 @@ export class CQTag<T extends Data> implements Tags<T> {
     return ret;
   }
   
-  public static send<T extends Data>(type: string, send: T): CQTag<T> {
-    let code = new CQTag<T>(type, <T>{});
-    code.send = send;
-    return code;
+  public modifier(modifier: T): CQTag<T> {
+    this._modifier = modifier;
+    return this;
   }
   
   /**
@@ -95,7 +94,7 @@ class CQText extends CQTag<text> {
   }
   
   toString(): string {
-    return this.data.text;
+    return this._data.text;
   }
 }
 
