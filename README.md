@@ -63,6 +63,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 - `CQ.escape(str)` | `CQ.unescape(str)`：转义/反转义方法
 - `CQ.text(...)` | `CQ.at(...)`等：便捷构建 CQ码 的方法
+- `CQ.custom(...)` ：自定义 CQ码, 有不被识别的风险, 谨慎使用
 - `CQ.parse(...)` ：将携带 CQ码 的字符串转换为 CQ码数组
 
 #### `Tags`

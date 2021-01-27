@@ -286,7 +286,7 @@ export var CQ = {
    */
   cardimage: (file: string, minwidth?: number, minheight?: number, maxwidth?: number, maxheight?: number,
     source ?: string, icon?: string,
-  ) => new CQTag("cardimage", {
+  ) => new CQTag<cardimage>("cardimage", {
     file,
     minwidth,
     minheight,
@@ -300,6 +300,12 @@ export var CQ = {
    * @param text 内容
    */
   tts: (text: string) => new CQTag<tts>("tts", {text}),
+  /**
+   * 自定义 CQ码
+   * @param type CQ码类型
+   * @param data CQ码参数
+   */
+  custom: <T extends Data>(type: string, data: T = <T>{}) => new CQTag<T>(type, data),
 };
 
 export type tts = {
