@@ -99,28 +99,27 @@ class CQText extends CQTag<text> {
   }
 }
 
-const SPLIT = /[\[\]]/;
-const CQ_TAG_REGEXP = /^CQ:([a-z]+)(?:,(.+))?$/;
+const SPLIT = /(?=\[CQ:)|(?<=])/;
+const CQ_TAG_REGEXP = /^\[CQ:([a-z]+)(?:,([^\]]+))?]$/;
+
 
 export var CQ = {
   /** 将携带 CQ码 的字符串转换为 CQ码数组 */
   parse: (msg: string): CQTag<any>[] => {
-    return msg.split(SPLIT).filter(str => str !== "").map(tagStr => {
+    return msg.split(SPLIT).map(tagStr => {
       let match = CQ_TAG_REGEXP.exec(tagStr);
-      if (match == null) {
+      if (match === null) {
         return new CQText(tagStr);
-      } else {
-        // `CQ:share,title=震惊&#44;小伙睡觉前居然...,url=http://baidu.com/?a=1&amp;b=2`
-        let [, tagName, value] = match;
-        if (value) {
-          let data = Object.fromEntries(value.split(",").map((v) => {
-            return v.split("=");
-          }));
-          return new CQTag(tagName, data);
-        } else {
-          return new CQTag(tagName, {});
-        }
       }
+      // `[CQ:share,title=震惊&#44;小伙睡觉前居然...,url=http://baidu.com/?a=1&amp;b=2]`
+      let [, tagName, value] = match;
+      if (value === undefined) {
+        return new CQTag(tagName, {});
+      }
+      let data = Object.fromEntries(value.split(",").map((v) => {
+        return v.split("=");
+      }));
+      return new CQTag(tagName, data);
     });
   },
   /**
