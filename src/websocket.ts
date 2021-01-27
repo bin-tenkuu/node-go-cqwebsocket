@@ -238,7 +238,6 @@ export class WebSocketCQ {
       return;
     }
     let json: APIResponse<any> = JSON.parse(evt.data);
-    console.log(json);
     return this._handleMSG(json);
   }
   
