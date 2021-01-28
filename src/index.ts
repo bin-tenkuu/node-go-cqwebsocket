@@ -4,7 +4,7 @@ import {
   PrivateData, PromiseRes, Status, StrangerInfo, VersionInfo, VipInfo,
 } from "./Interfaces";
 import {CQTag, node, nodeID} from "./tags";
-import {WebSocketCQ} from "./websocket";
+import {WebSocketCQPack} from "./websocket";
 
 export * as Tags from "./tags";
 export * as Interfaces from "./Interfaces";
@@ -12,7 +12,7 @@ export {
   CQ,
 } from "./tags";
 
-export class CQWebSocket extends WebSocketCQ {
+export class CQWebSocket extends WebSocketCQPack {
   /**
    * 发送私聊消息
    * @param user_id  对方 QQ 号

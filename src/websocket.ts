@@ -7,7 +7,7 @@ import {
 } from "./Interfaces";
 import {CQ} from "./tags";
 
-export class WebSocketCQ {
+export class WebSocketCQPack {
   public messageSuccess: <T>(json: T) => void;
   public messageFail: onFailure;
   
