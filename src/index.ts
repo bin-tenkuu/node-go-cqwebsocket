@@ -39,7 +39,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param messages 自定义转发消息
    */
   public send_group_forward_msg(group_id: number | string,
-    messages: CQTag<node | nodeID>[] | string,
+    messages: (CQTag<node> | CQTag<nodeID>)[] | string,
   ): PromiseRes<MessageId> {
     return this.send("send_group_forward_msg", {group_id, messages});
   }
@@ -166,7 +166,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param reason 添加后的好友备注（仅在同意时有效）
    */
   public set_group_add_request(flag: string, sub_type: string, approve = true,
-    reason                                                             = "",
+    reason = "",
   ): PromiseRes<any> {
     return this.send("set_group_add_request", {flag, sub_type, type: sub_type, approve, reason});
   }

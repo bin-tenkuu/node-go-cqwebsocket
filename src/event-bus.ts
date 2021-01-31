@@ -168,7 +168,7 @@ export class CQEventBus {
     }
     return node;
   }
-
+  
   async handle(eventType: EventType | string[], ...args: any[]): Promise<void> {
     if (typeof eventType === "string") {
       eventType = eventType.split(".");
@@ -204,5 +204,4 @@ export class CQEvent {
   stopPropagation() {
     this._isCanceled = true;
   }
-  
 }

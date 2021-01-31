@@ -96,8 +96,8 @@ class CQText extends CQTag<text> {
   }
 }
 
-const SPLIT = /(?=\[CQ:)|(?<=])/;
-const CQ_TAG_REGEXP = /^\[CQ:([a-z]+)(?:,([^\]]+))?]$/;
+export const SPLIT = /(?=\[CQ:)|(?<=])/;
+export const CQ_TAG_REGEXP = /^\[CQ:([a-z]+)(?:,([^\]]+))?]$/;
 
 
 export var CQ = {
