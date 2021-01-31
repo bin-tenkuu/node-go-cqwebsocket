@@ -4,7 +4,7 @@ import {
   PrivateData, PromiseRes, Status, StrangerInfo, VersionInfo, VipInfo,
 } from "./Interfaces";
 import {CQTag, node, nodeID} from "./tags";
-import {WebSocketCQPack} from "./websocket";
+import {WebSocketCQPack} from "./websocketCQPack";
 
 export * as Tags from "./tags";
 export * as Interfaces from "./Interfaces";
