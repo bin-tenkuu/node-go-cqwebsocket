@@ -102,6 +102,7 @@ export class WebSocketCQPack {
   }
   
   public send<T = any>(method: string, params: any): PromiseRes<T> {
+    if (this.state === w3cwebsocket.CLOSED) { return Promise.reject("连接已关闭"); }
     return new Promise<T>((resolve, reject) => {
       let reqId = shortid.generate();
       
@@ -372,7 +373,7 @@ export class WebSocketCQPack {
    * @return {number}
    */
   public get state() {
-    return this._socketEVENT.readyState;
+    return this._socketAPI.readyState;
   }
   
   public get qq() {
