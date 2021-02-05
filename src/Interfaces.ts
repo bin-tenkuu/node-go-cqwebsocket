@@ -589,7 +589,7 @@ export interface OfflineFile extends NoticeType, UserId {
 
 export type message = CQTag<any>[] | string
 export type int64 = number | string
-export type MessageEventHandler<T> = (event: CQEvent, message: T, CQTag: CQTag<any>[]) => void
+export type MessageEventHandler<T> = (event: CQEvent, message: T, tags: CQTag<any>[]) => void
 export type EventHandler<T> = (event: CQEvent, message: T) => void
 export type ResponseHandle = (event: CQEvent, response: APIResponse<any>, sourceMSG: APIRequest) => void
 export type onSuccess<T> = (json: APIResponse<T>) => void
