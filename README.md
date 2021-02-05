@@ -11,7 +11,9 @@
 关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/) 为准， 同时提供 `send()`
 方法以供未知接口的调用
 
-> 本 SDK 尚处于测试阶段，使用上仍有机会碰到 Bug，欢迎提交 PR 或 issue 回报。
+> 本 SDK 已趋于稳定, 项目中引用请使用 `1.4.10` 以上版本, 后续 API 将尽可能减少变化
+
+> 使用上仍有机会碰到 Bug，欢迎提交 PR 或 issue 回报。
 
 # 开发者看板
 
@@ -63,6 +65,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 - `CQ.escape(str)` | `CQ.unescape(str)`：转义/反转义方法
 - `CQ.text(...)` | `CQ.at(...)`等：便捷构建 CQ码 的方法
+- `CQ.custom(...)` ：自定义 CQ码, 有不被识别的风险, 谨慎使用
 - `CQ.parse(...)` ：将携带 CQ码 的字符串转换为 CQ码数组
 
 #### `Tags`

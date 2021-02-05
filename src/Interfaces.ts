@@ -299,14 +299,6 @@ export interface VipInfo extends LoginInfo {
   vip_growth_total: number
 }
 
-export type message = CQTag<any>[] | string
-export type int64 = number | string
-export type MessageEventHandler<T> = (event: CQEvent, message: T, CQTag: CQTag<any>[]) => void
-export type EventHandler<T> = (event: CQEvent, message: T) => void
-export type onSuccess<T> = (json: APIResponse<T>) => void
-export type onFailure = (reason: ErrorAPIResponse) => void
-export type SocketType = "api" | "event"
-
 /** 上报事件 */
 export interface PostType {
   /** 事件发生的时间戳 */
@@ -462,9 +454,6 @@ export interface ErrorAPIResponse extends APIResponse<null> {
   wording: string
 }
 
-export type RequestGroupType = "request.group" | "request.group.add" | "request.group.invite"
-export type SocketClose = "socket.close" | "socket.error"
-
 /** 通知类型 */
 export interface NoticeType extends PostType {
   post_type: "notice"
@@ -487,17 +476,12 @@ export interface GroupUpload extends NoticeType, GroupId, UserId {
   }
 }
 
-export type GroupAdminType = "notice.group_admin" | "notice.group_admin.set" | "notice.group_admin.unset"
-
 /** 群管理员变动 */
 export interface GroupAdmin extends NoticeType, SubType, GroupId, UserId {
   notice_type: "group_admin"
   /** set、unset  事件子类型, 分别表示设置和取消管理员 */
   sub_type: "set" | "unset"
 }
-
-export type GroupDecreaseType = "notice.group_decrease" | "notice.group_decrease.leave" | "notice.group_decrease.kick"
-  | "notice.group_decrease.kick_me"
 
 /** 群成员减少 */
 export interface GroupDecrease extends NoticeType, SubType, GroupId, UserId {
@@ -508,9 +492,6 @@ export interface GroupDecrease extends NoticeType, SubType, GroupId, UserId {
   operator_id: number
 }
 
-export type GroupIncreaseType = "notice.group_increase" | "notice.group_increase.approve"
-  | "notice.group_increase.invite"
-
 /** 群成员增加 */
 export interface GroupIncrease extends NoticeType, SubType, GroupId, UserId {
   notice_type: "group_increase"
@@ -519,8 +500,6 @@ export interface GroupIncrease extends NoticeType, SubType, GroupId, UserId {
   /** 操作者 QQ 号 */
   operator_id: number
 }
-
-export type GroupBanType = "notice.group_ban" | "notice.group_ban.ban" | "notice.group_ban.lift_ban"
 
 /** 群禁言 */
 export interface GroupBan extends NoticeType, SubType, GroupId, UserId {
@@ -608,8 +587,23 @@ export interface OfflineFile extends NoticeType, UserId {
   }
 }
 
-export type EventType = keyof SocketHandle
-export type SocketHandleValue<T extends EventType> = SocketHandle[T]
+export type message = CQTag<any>[] | string
+export type int64 = number | string
+export type MessageEventHandler<T> = (event: CQEvent, message: T, tags: CQTag<any>[]) => void
+export type EventHandler<T> = (event: CQEvent, message: T) => void
+export type ResponseHandle = (event: CQEvent, response: APIResponse<any>, sourceMSG: APIRequest) => void
+export type onSuccess<T> = (json: APIResponse<T>) => void
+export type onFailure = (reason: ErrorAPIResponse) => void
+export type SocketType = "api" | "event"
+export type HandleEventType = keyof SocketHandle
+export type RequestGroupType = "request.group" | "request.group.add" | "request.group.invite"
+export type SocketClose = "socket.close" | "socket.error"
+export type GroupAdminType = "notice.group_admin" | "notice.group_admin.set" | "notice.group_admin.unset"
+export type GroupDecreaseType = "notice.group_decrease" | "notice.group_decrease.leave" | "notice.group_decrease.kick"
+  | "notice.group_decrease.kick_me"
+export type GroupIncreaseType = "notice.group_increase" | "notice.group_increase.approve"
+  | "notice.group_increase.invite"
+export type GroupBanType = "notice.group_ban" | "notice.group_ban.ban" | "notice.group_ban.lift_ban"
 export type SocketHandle = {
   "message.private"?: MessageEventHandler<PrivateMessage>
   "message.group"?: MessageEventHandler<GroupMessage>
@@ -617,10 +611,11 @@ export type SocketHandle = {
   
   "request.friend"?: EventHandler<RequestFriend>
   
+  "socket"?: EventHandler<SocketType>
   "socket.open"?: EventHandler<SocketType>
   
   "api.preSend"?: EventHandler<APIRequest>
-  "api.response"?: EventHandler<APIResponse<any>>
+  "api.response"?: ResponseHandle
   
   "meta_event.lifecycle"?: EventHandler<LifeCycle>
   "meta_event.heartbeat"?: EventHandler<HeartBeat>
@@ -636,7 +631,7 @@ export type SocketHandle = {
   "notice.group_card"?: EventHandler<GroupCard>
   "notice.offline_file"?: EventHandler<OfflineFile>
 } & {
-  [key in SocketClose]?: (event: CQEvent, code: number, reason: string, type: SocketType) => void
+  [key in SocketClose]?: (event: CQEvent, type: SocketType, code: number, reason: string) => void
 } & {
   [key in RequestGroupType]?: EventHandler<RequestGroup>
 } & {

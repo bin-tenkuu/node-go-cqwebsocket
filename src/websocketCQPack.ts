@@ -2,13 +2,13 @@ import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {CQEventBus} from "./event-bus";
 import {
-  APIRequest, APIResponse, CQWebSocketOptions, ErrorAPIResponse, EventType, onFailure, onSuccess, PromiseRes,
-  SocketHandle, SocketHandleValue, SocketType,
+  APIRequest, APIResponse, CQWebSocketOptions, ErrorAPIResponse, HandleEventType, onFailure, onSuccess, PromiseRes,
+  SocketHandle, SocketType,
 } from "./Interfaces";
 import {CQ} from "./tags";
 
-export class WebSocketCQ {
-  public messageSuccess: onSuccess<any>;
+export class WebSocketCQPack {
+  public messageSuccess: <T>(json: T) => void;
   public messageFail: onFailure;
   
   public reconnection?: Reconnection;
@@ -19,10 +19,8 @@ export class WebSocketCQ {
   private readonly _qq: number;
   private readonly _accessToken: string;
   private readonly _baseUrl: string;
-  // @ts-ignore
-  private _socketAPI: w3cwebsocket;
-  // @ts-ignore
-  private _socketEVENT: w3cwebsocket;
+  private _socketAPI?: w3cwebsocket;
+  private _socketEVENT?: w3cwebsocket;
   
   constructor({
     // connectivity configs
@@ -66,15 +64,8 @@ export class WebSocketCQ {
     this._qq = qq;
     this._accessToken = accessToken;
     this._baseUrl = baseUrl;
-    
-    this.messageSuccess = (ret) => {
-      console.log(`发送成功`, ret.data);
-      return ret.data;
-    };
-    this.messageFail = (reason) => {
-      console.log(`发送失败`, reason);
-    };
-    
+    this.messageSuccess = (ret) => console.log(`发送成功`, ret);
+    this.messageFail = (reason) => console.log(`发送失败`, reason);
   }
   
   public reconnect() {
@@ -104,11 +95,37 @@ export class WebSocketCQ {
       clearTimeout(this.reconnection.timeout);
       this.reconnection.timeout = undefined;
     }
-    this._socketAPI.close(1000, "Normal connection closure");
-    this._socketEVENT.close(1000, "Normal connection closure");
+    if (this._socketAPI) {
+      this._socketAPI.close(1000, "Normal connection closure");
+      this._socketAPI = undefined;
+    }
+    if (this._socketEVENT) {
+      this._socketEVENT.close(1000, "Normal connection closure");
+      this._socketEVENT = undefined;
+    }
   }
   
   public send<T = any>(method: string, params: any): PromiseRes<T> {
+    if (this._socketAPI == undefined) {
+      return Promise.reject(<ErrorAPIResponse>{
+        data: null,
+        echo: undefined,
+        msg: "",
+        retcode: 500,
+        status: "NO CONNECTED",
+        wording: "无连接",
+      });
+    }
+    if (this.state === w3cwebsocket.CLOSING) {
+      return Promise.reject(<ErrorAPIResponse>{
+        data: null,
+        echo: undefined,
+        msg: "",
+        retcode: 501,
+        status: "CONNECT CLOSING",
+        wording: "连接关闭",
+      });
+    }
     return new Promise<T>((resolve, reject) => {
       let reqId = shortid.generate();
       
@@ -131,7 +148,18 @@ export class WebSocketCQ {
       this._responseHandlers.set(reqId, {message, onSuccess, onFailure});
       
       this._eventBus.handle("api.preSend", message).then(() => {
-        this._socketAPI.send(JSON.stringify(message));
+        if (this._socketAPI == undefined) {
+          onFailure({
+            data: null,
+            echo: undefined,
+            msg: "",
+            retcode: 500,
+            status: "NO CONNECTED",
+            wording: "无连接",
+          });
+        } else {
+          this._socketAPI.send(JSON.stringify(message));
+        }
       });
       
     });
@@ -144,7 +172,7 @@ export class WebSocketCQ {
    * @param handle
    * @return 用于当作参数调用 [off]{@link off} 解除监听
    */
-  public on<T extends EventType>(event: T, handle: SocketHandleValue<T>): Function | undefined {
+  public on<T extends HandleEventType>(event: T, handle: SocketHandle[T]): Function | undefined {
     return this._eventBus.on(event, handle);
   }
   
@@ -154,7 +182,7 @@ export class WebSocketCQ {
    * @param handle
    * @return 用于当作参数调用 [off]{@link off} 解除监听
    */
-  public once<T extends EventType>(event: T, handle: SocketHandleValue<T>): Function | undefined {
+  public once<T extends HandleEventType>(event: T, handle: SocketHandle[T]): Function | undefined {
     return this._eventBus.once(event, handle);
   }
   
@@ -163,46 +191,39 @@ export class WebSocketCQ {
    * @param event
    * @param handle
    */
-  public off<T extends EventType>(event: T, handle: SocketHandleValue<T>) {
+  public off<T extends HandleEventType>(event: T, handle: SocketHandle[T]) {
     this._eventBus.off(event, handle);
   }
   
   /**
-   * 同时注册多种监听方法,解除监听调用 [unbind]{@link unbind} 方法
+   * 同时注册多种监听方法,解除监听调用 [unbind]{@link unbind} 方法<br/>
+   * 当 `option` 参数为 `onceAll` 时, 也可以手动调用返回值中任意一个方法来解除监听
    * @param option -
    *  - `on` : 相当于为每个方法调用一次 [on]{@link on}<br/>
    *  - `once` : 相当于为每个方法调用一次 [once]{@link once}<br/>
-   *  - `onceAll` : 只执行一次，执行后删除本次 `event` 中所有键对应的方法
+   *  - `onceAll` : 只执行一次，执行后删除本次 `event` 中所有键对应的方法<br/>
+   *  - 其他 : 相当于 `on`
    * @param [event={}]
    * @return 用于当作参数调用 [unbind]{@link unbind} 解除监听
    */
   public bind(option: "on" | "once" | "onceAll", event: SocketHandle = {}): SocketHandle {
-    switch (option) {
-      case "on":
-        Object.entries(event).forEach(([k, v]) => {
-          this._eventBus.on(<EventType>k, v);
-        });
-        return event;
-      case "once":
-        Object.entries(event).forEach(([k, v]) => {
-          this._eventBus.once(<EventType>k, v);
-        });
-        return event;
-      case "onceAll":
-        let map = Object.entries(event).map<[string, Function]>(([k, v]) => [
-          k, (...args: any) => {
-            this.unbind(Object.fromEntries(map));
-            // @ts-ignore
-            v?.(...args);
-          },
-        ]);
-        map.forEach(([k, v]) => {
-          this._eventBus.on(<EventType>k, v);
-        });
-        return Object.fromEntries(map);
-      default:
-        throw new Error(`Parameter "option" Not For ${option}`);
+    let entries = Object.entries(event);
+    if (option === "onceAll") {
+      entries = entries.map(([k, v]) => [
+        k, (...args: any) => {
+          this.unbind(event);
+          // @ts-ignore
+          v?.(...args);
+        },
+      ]);
+      event = Object.fromEntries(entries);
     }
+    if (option == "once") {
+      entries.forEach(([k, v]) => this._eventBus.once(<HandleEventType>k, v));
+    } else {
+      entries.forEach(([k, v]) => this._eventBus.on(<HandleEventType>k, v));
+    }
+    return event;
   }
   
   /**
@@ -211,7 +232,7 @@ export class WebSocketCQ {
    */
   public unbind(event: SocketHandle = {}) {
     Object.entries(event).forEach(([k, v]) => {
-      this._eventBus.off(<EventType>k, v);
+      this._eventBus.off(<HandleEventType>k, v);
     });
   }
   
@@ -225,8 +246,8 @@ export class WebSocketCQ {
     }
     let json: ErrorAPIResponse = JSON.parse(evt.data);
     if (json.echo) {
-      let {onSuccess, onFailure} = this._responseHandlers.get(json.echo) || {};
-      if (json.retcode < 100) {
+      let {onSuccess, onFailure, message} = this._responseHandlers.get(json.echo) || {};
+      if (json.retcode === 0) {
         if (typeof onSuccess === "function") {
           onSuccess(json);
         }
@@ -235,7 +256,7 @@ export class WebSocketCQ {
           onFailure(json);
         }
       }
-      this._eventBus.handle("api.response", json).then();
+      this._eventBus.handle("api.response", json, message).then();
       return;
     }
   }
@@ -245,16 +266,14 @@ export class WebSocketCQ {
       return;
     }
     let json: APIResponse<any> = JSON.parse(evt.data);
-    console.log(json);
     return this._handleMSG(json);
   }
   
   private _close(evt: ICloseEvent, type: SocketType) {
     if (evt.code === 1000) {
-      return this._eventBus.handle("socket.close", evt.code, evt.reason, type);
-    } else {
-      return this._eventBus.handle("socket.error", evt.code, evt.reason, type);
+      return this._eventBus.handle("socket.close", type, evt.code, evt.reason);
     }
+    return this._eventBus.handle("socket.error", type, evt.code, evt.reason);
   }
   
   private _handleMSG(json: any) {
@@ -384,13 +403,15 @@ export class WebSocketCQ {
    * - OPEN = 1 已连接
    * - CLOSING = 2 关闭中
    * - CLOSED = 3 已关闭
-   * @return {number}
    */
-  public get state() {
-    return this._socketEVENT.readyState;
+  public get state(): number {
+    if (this._socketAPI == undefined) {
+      return w3cwebsocket.CLOSED;
+    }
+    return this._socketAPI.readyState;
   }
   
-  public get qq() {
+  public get qq(): number {
     return this._qq;
   }
 }
