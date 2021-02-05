@@ -595,8 +595,7 @@ export type ResponseHandle = (event: CQEvent, response: APIResponse<any>, source
 export type onSuccess<T> = (json: APIResponse<T>) => void
 export type onFailure = (reason: ErrorAPIResponse) => void
 export type SocketType = "api" | "event"
-export type EventType = keyof SocketHandle
-export type SocketHandleValue<T extends EventType> = SocketHandle[T]
+export type HandleEventType = keyof SocketHandle
 export type RequestGroupType = "request.group" | "request.group.add" | "request.group.invite"
 export type SocketClose = "socket.close" | "socket.error"
 export type GroupAdminType = "notice.group_admin" | "notice.group_admin.set" | "notice.group_admin.unset"

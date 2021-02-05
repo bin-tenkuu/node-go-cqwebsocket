@@ -2,8 +2,8 @@ import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {CQEventBus} from "./event-bus";
 import {
-  APIRequest, APIResponse, CQWebSocketOptions, ErrorAPIResponse, EventType, onFailure, onSuccess, PromiseRes,
-  SocketHandle, SocketHandleValue, SocketType,
+  APIRequest, APIResponse, CQWebSocketOptions, ErrorAPIResponse, HandleEventType, onFailure, onSuccess, PromiseRes,
+  SocketHandle, SocketType,
 } from "./Interfaces";
 import {CQ} from "./tags";
 
@@ -172,7 +172,7 @@ export class WebSocketCQPack {
    * @param handle
    * @return 用于当作参数调用 [off]{@link off} 解除监听
    */
-  public on<T extends EventType>(event: T, handle: SocketHandleValue<T>): Function | undefined {
+  public on<T extends HandleEventType>(event: T, handle: SocketHandle[T]): Function | undefined {
     return this._eventBus.on(event, handle);
   }
   
@@ -182,7 +182,7 @@ export class WebSocketCQPack {
    * @param handle
    * @return 用于当作参数调用 [off]{@link off} 解除监听
    */
-  public once<T extends EventType>(event: T, handle: SocketHandleValue<T>): Function | undefined {
+  public once<T extends HandleEventType>(event: T, handle: SocketHandle[T]): Function | undefined {
     return this._eventBus.once(event, handle);
   }
   
@@ -191,7 +191,7 @@ export class WebSocketCQPack {
    * @param event
    * @param handle
    */
-  public off<T extends EventType>(event: T, handle: SocketHandleValue<T>) {
+  public off<T extends HandleEventType>(event: T, handle: SocketHandle[T]) {
     this._eventBus.off(event, handle);
   }
   
@@ -219,9 +219,9 @@ export class WebSocketCQPack {
       event = Object.fromEntries(entries);
     }
     if (option == "once") {
-      entries.forEach(([k, v]) => this._eventBus.once(<EventType>k, v));
+      entries.forEach(([k, v]) => this._eventBus.once(<HandleEventType>k, v));
     } else {
-      entries.forEach(([k, v]) => this._eventBus.on(<EventType>k, v));
+      entries.forEach(([k, v]) => this._eventBus.on(<HandleEventType>k, v));
     }
     return event;
   }
@@ -232,7 +232,7 @@ export class WebSocketCQPack {
    */
   public unbind(event: SocketHandle = {}) {
     Object.entries(event).forEach(([k, v]) => {
-      this._eventBus.off(<EventType>k, v);
+      this._eventBus.off(<HandleEventType>k, v);
     });
   }
   

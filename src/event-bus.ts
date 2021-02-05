@@ -1,6 +1,6 @@
-import {EventType} from "./Interfaces";
+import {HandleEventType} from "./Interfaces";
 
-declare interface dom {
+interface dom {
   [key: string]: [] | dom
 }
 
@@ -127,13 +127,13 @@ export class CQEventBus {
     this._onceListeners = new WeakMap();
   }
   
-  on(eventType: EventType, handler?: Function) {
+  on(eventType: HandleEventType, handler?: Function) {
     if (typeof handler !== "function") return;
     this.get(eventType).on(handler);
     return handler;
   }
   
-  once(eventType: EventType, handler?: Function) {
+  once(eventType: HandleEventType, handler?: Function) {
     if (typeof handler !== "function") return;
     const onceFunction = (...args: any) => {
       this.off(eventType, handler);
@@ -144,7 +144,7 @@ export class CQEventBus {
     return handler;
   }
   
-  off(eventType: EventType | string[], handler?: Function) {
+  off(eventType: HandleEventType | string[], handler?: Function) {
     if (typeof handler !== "function") return;
     let node = this.get(eventType);
     let fun = <Function>this._onceListeners.get(handler);
@@ -153,7 +153,7 @@ export class CQEventBus {
   }
   
   /** 有未受支持的消息类型时,将会返回最近的受支持的消息类型 */
-  get(eventType: EventType | string[]): Node {
+  get(eventType: HandleEventType | string[]): Node {
     if (typeof eventType === "string") {
       eventType = eventType.split(".");
     }
@@ -169,7 +169,7 @@ export class CQEventBus {
     return node;
   }
   
-  async handle(eventType: EventType | string[], ...args: any[]): Promise<void> {
+  async handle(eventType: HandleEventType | string[], ...args: any[]): Promise<void> {
     if (typeof eventType === "string") {
       eventType = eventType.split(".");
     }
