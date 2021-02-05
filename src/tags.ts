@@ -114,7 +114,8 @@ export var CQ = {
         return new CQTag(tagName, {});
       }
       let data = Object.fromEntries(value.split(",").map((v) => {
-        return v.split("=");
+        let index = v.indexOf("=");
+        return [v.substr(0, index), v.substr(index + 1)];
       }));
       return new CQTag(tagName, data);
     });
