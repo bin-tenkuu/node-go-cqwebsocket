@@ -19,10 +19,8 @@ export class WebSocketCQPack {
   private readonly _qq: number;
   private readonly _accessToken: string;
   private readonly _baseUrl: string;
-  // @ts-ignore
-  private _socketAPI: w3cwebsocket;
-  // @ts-ignore
-  private _socketEVENT: w3cwebsocket;
+  private _socketAPI?: w3cwebsocket;
+  private _socketEVENT?: w3cwebsocket;
   
   constructor({
     // connectivity configs
@@ -97,12 +95,37 @@ export class WebSocketCQPack {
       clearTimeout(this.reconnection.timeout);
       this.reconnection.timeout = undefined;
     }
-    this._socketAPI.close(1000, "Normal connection closure");
-    this._socketEVENT.close(1000, "Normal connection closure");
+    if (this._socketAPI) {
+      this._socketAPI.close(1000, "Normal connection closure");
+      this._socketAPI = undefined;
+    }
+    if (this._socketEVENT) {
+      this._socketEVENT.close(1000, "Normal connection closure");
+      this._socketEVENT = undefined;
+    }
   }
   
   public send<T = any>(method: string, params: any): PromiseRes<T> {
-    if (this.state === w3cwebsocket.CLOSED) { return Promise.reject("连接已关闭"); }
+    if (this._socketAPI == undefined) {
+      return Promise.reject(<ErrorAPIResponse>{
+        data: null,
+        echo: undefined,
+        msg: "",
+        retcode: 500,
+        status: "NO CONNECTED",
+        wording: "无连接",
+      });
+    }
+    if (this.state === w3cwebsocket.CLOSING) {
+      return Promise.reject(<ErrorAPIResponse>{
+        data: null,
+        echo: undefined,
+        msg: "",
+        retcode: 501,
+        status: "CONNECT CLOSING",
+        wording: "连接关闭",
+      });
+    }
     return new Promise<T>((resolve, reject) => {
       let reqId = shortid.generate();
       
@@ -125,7 +148,18 @@ export class WebSocketCQPack {
       this._responseHandlers.set(reqId, {message, onSuccess, onFailure});
       
       this._eventBus.handle("api.preSend", message).then(() => {
-        this._socketAPI.send(JSON.stringify(message));
+        if (this._socketAPI == undefined) {
+          onFailure({
+            data: null,
+            echo: undefined,
+            msg: "",
+            retcode: 500,
+            status: "NO CONNECTED",
+            wording: "无连接",
+          });
+        } else {
+          this._socketAPI.send(JSON.stringify(message));
+        }
       });
       
     });
@@ -212,8 +246,8 @@ export class WebSocketCQPack {
     }
     let json: ErrorAPIResponse = JSON.parse(evt.data);
     if (json.echo) {
-      let {onSuccess, onFailure} = this._responseHandlers.get(json.echo) || {};
-      if (json.retcode < 100) {
+      let {onSuccess, onFailure, message} = this._responseHandlers.get(json.echo) || {};
+      if (json.retcode === 0) {
         if (typeof onSuccess === "function") {
           onSuccess(json);
         }
@@ -222,7 +256,7 @@ export class WebSocketCQPack {
           onFailure(json);
         }
       }
-      this._eventBus.handle("api.response", json).then();
+      this._eventBus.handle("api.response", json, message).then();
       return;
     }
   }
@@ -238,9 +272,8 @@ export class WebSocketCQPack {
   private _close(evt: ICloseEvent, type: SocketType) {
     if (evt.code === 1000) {
       return this._eventBus.handle("socket.close", type, evt.code, evt.reason);
-    } else {
-      return this._eventBus.handle("socket.error", type, evt.code, evt.reason);
     }
+    return this._eventBus.handle("socket.error", type, evt.code, evt.reason);
   }
   
   private _handleMSG(json: any) {
@@ -370,13 +403,15 @@ export class WebSocketCQPack {
    * - OPEN = 1 已连接
    * - CLOSING = 2 关闭中
    * - CLOSED = 3 已关闭
-   * @return {number}
    */
-  public get state() {
+  public get state(): number {
+    if (this._socketAPI == undefined) {
+      return w3cwebsocket.CLOSED;
+    }
     return this._socketAPI.readyState;
   }
   
-  public get qq() {
+  public get qq(): number {
     return this._qq;
   }
 }

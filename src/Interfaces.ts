@@ -591,6 +591,7 @@ export type message = CQTag<any>[] | string
 export type int64 = number | string
 export type MessageEventHandler<T> = (event: CQEvent, message: T, CQTag: CQTag<any>[]) => void
 export type EventHandler<T> = (event: CQEvent, message: T) => void
+export type ResponseHandle = (event: CQEvent, response: APIResponse<any>, sourceMSG: APIRequest) => void
 export type onSuccess<T> = (json: APIResponse<T>) => void
 export type onFailure = (reason: ErrorAPIResponse) => void
 export type SocketType = "api" | "event"
@@ -615,7 +616,7 @@ export type SocketHandle = {
   "socket.open"?: EventHandler<SocketType>
   
   "api.preSend"?: EventHandler<APIRequest>
-  "api.response"?: EventHandler<APIResponse<any>>
+  "api.response"?: ResponseHandle
   
   "meta_event.lifecycle"?: EventHandler<LifeCycle>
   "meta_event.heartbeat"?: EventHandler<HeartBeat>
