@@ -1,5 +1,5 @@
 import {CQEvent} from "./event-bus";
-import {CQTag} from "./tags";
+import {CQTag, node, nodeID} from "./tags";
 
 /** @see send_msg */
 export interface PrivateData {
@@ -588,6 +588,7 @@ export interface OfflineFile extends NoticeType, UserId {
 }
 
 export type message = CQTag<any>[] | string
+export type messageNode = CQTag<node> | CQTag<nodeID>
 export type int64 = number | string
 export type MessageEventHandler<T> = (event: CQEvent, message: T, tags: CQTag<any>[]) => void
 export type EventHandler<T> = (event: CQEvent, message: T) => void

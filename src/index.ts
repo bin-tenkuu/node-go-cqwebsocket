@@ -1,9 +1,8 @@
 import {
   CanSend, FileUrl, FriendInfo, GroupAtAllRemain, GroupData, GroupFileSystemInfo, GroupHonorInfo, GroupInfo,
   GroupMemberInfo, GroupRootFileSystemInfo, GroupSystemMSG, int64, LoginInfo, message, MessageId, MessageInfo,
-  PrivateData, PromiseRes, Status, StrangerInfo, VersionInfo, VipInfo,
+  messageNode, PrivateData, PromiseRes, Status, StrangerInfo, VersionInfo, VipInfo,
 } from "./Interfaces";
-import {CQTag, node, nodeID} from "./tags";
 import {WebSocketCQPack} from "./websocketCQPack";
 
 export * as Tags from "./tags";
@@ -38,9 +37,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id 群号
    * @param messages 自定义转发消息
    */
-  public send_group_forward_msg(group_id: number | string,
-    messages: (CQTag<node> | CQTag<nodeID>)[] | string,
-  ): PromiseRes<MessageId> {
+  public send_group_forward_msg(group_id: int64, messages: messageNode[]): PromiseRes<MessageId> {
     return this.send("send_group_forward_msg", {group_id, messages});
   }
   

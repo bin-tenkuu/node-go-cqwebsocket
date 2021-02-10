@@ -99,7 +99,6 @@ class CQText extends CQTag<text> {
 export const SPLIT = /(?=\[CQ:)|(?<=])/;
 export const CQ_TAG_REGEXP = /^\[CQ:([a-z]+)(?:,([^\]]+))?]$/;
 
-
 export var CQ = {
   /** 将携带 CQ码 的字符串转换为 CQ码数组 */
   parse(msg: string): CQTag<any>[] {
@@ -315,11 +314,12 @@ export var CQ = {
   custom<T extends Data>(type: string, data: T = <T>{}) { return new CQTag<T>(type, data); },
 };
 
-export type tts = {
+export interface tts extends Data {
   /** 内容 */
   text: string
 }
-export type cardimage = {
+
+export interface cardimage extends Data {
   /** 和image的file字段对齐, 支持也是一样的 */
   file: string
   /** 默认不填为400, 最小width */
@@ -336,19 +336,22 @@ export type cardimage = {
   icon?: string
   
 }
-export type json = {
+
+export interface json extends Data {
   /** json内容, json的所有字符串记得实体化处理 */
   data: string
   /** 默认不填为0, 走小程序通道, 填了走富文本通道发送 */
   resid?: number
 }
-export type xml = {
+
+export interface xml extends Data {
   /** xml内容, xml中的value部分, 记得实体化处理 */
   data: string
   /** 可以不填 */
   resid?: number
 }
-export type node = {
+
+export interface node extends Data {
   /** 发送者显示名字 */
   name: string
   /** 发送者QQ号 */
@@ -360,24 +363,29 @@ export type node = {
    */
   content: CQTag<any>[] | string
 }
-export type nodeID = {
+
+export interface nodeID extends Data {
   /** 转发消息id, 直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序 */
   id: number
 }
-export type gift = {
+
+export interface gift extends Data {
   /** 接收礼物的成员 */
   qq: number
   /** 礼物的类型 */
   id: number
 }
-export type poke = {
+
+export interface poke extends Data {
   /** 需要戳的成员 */
   qq: number
 }
-export type reply = {
+
+export interface reply extends Data {
   id: number
 }
-export type image = {
+
+export interface image extends Data {
   /** 图片文件名 */
   file: string
   /** 图片类型, flash 表示闪照, show 表示秀图, 默认普通图片 */
@@ -391,7 +399,8 @@ export type image = {
   /** 通过网络下载图片时的线程数, 默认单线程. (在资源不支持并发时会自动处理) */
   c?: number
 }
-export type musicCustom = {
+
+export interface musicCustom extends Data {
   type: "custom"
   /** 点击后跳转目标 URL */
   url: string
@@ -404,13 +413,15 @@ export type musicCustom = {
   /** 发送时可选, 图片 URL */
   image?: string
 }
-export type music = {
+
+export interface music extends Data {
   /** 分别表示使用 QQ 音乐、网易云音乐、虾米音乐 */
   type: "qq" | "163" | "xm"
   /** 歌曲 ID */
   id: number
 }
-export type share = {
+
+export interface share extends Data {
   /** URL */
   url: string
   /** 标题 */
@@ -420,17 +431,20 @@ export type share = {
   /** 图片 URL */
   image?: string
 }
-export type at = {
+
+export interface at extends Data {
   /** .@的 QQ 号, `all` 表示全体成员 */
   qq: number | "all"
 }
-export type video = {
+
+export interface video extends Data {
   /** 视频文件名 */
   file: string
   /** 视频 URL */
   url?: string
 }
-export type record = {
+
+export interface record extends Data {
   /** 语音文件名 */
   file: string
   /** 语音 URL */
@@ -438,7 +452,8 @@ export type record = {
   /** 表示变声 */
   magic?: boolean
 }
-type _record = {
+
+interface _record extends Data {
   /** 语音文件名 */
   file: string
   /** 表示变声 */
@@ -450,14 +465,17 @@ type _record = {
   /** 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时 */
   timeout?: number
 }
-export type text = {
+
+export interface text extends Data {
   /** 纯文本内容 */
   text: string
 }
-export type face = {
+
+export interface face extends Data {
   /** QQ 表情 ID,处于 [0,221] 区间 */
   id: number
 }
+
 export type tagName = "text" | "face" | "record" | "video" | "at" | "rps" | "dice" | "shake" | "anonymous" | "share"
   | "contact" | "location" | "music" | "image" | "reply" | "redbag" | "poke" | "gift" | "forward" | "node" | "xml"
   | "json" | "cardimage" | "tts"
