@@ -595,8 +595,6 @@ export type EventHandler<T> = (this: void, event: CQEvent, message: T) => void
 export type ResponseHandle = (this: void, event: CQEvent, response: APIResponse<any>,
   sourceMSG: APIRequest,
 ) => void
-export type onSuccess<T> = (this: void, json: APIResponse<T>) => void
-export type onFailure = (this: void, reason: ErrorAPIResponse) => void
 export type SocketType = "api" | "event"
 export type HandleEventType = keyof SocketHandle
 export type RequestGroupType = "request.group" | "request.group.add" | "request.group.invite"
@@ -647,12 +645,11 @@ export type SocketHandle = {
   [key in GroupBanType]?: EventHandler<GroupBan>
 }
 
-
 export interface PromiseRes<T> extends Promise<T> {
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    onrejected?: ((reason: ErrorAPIResponse) => TResult2 | PromiseLike<TResult2>) | undefined | null,
-  ): Promise<TResult1 | TResult2>
+  then<S = T, F = never>(
+    onfulfilled?: ((value: T) => S | Promise<S>) | undefined | null,
+    onrejected?: ((reason: ErrorAPIResponse) => F | Promise<F>) | undefined | null,
+  ): Promise<S | F>
   
-  catch<TResult = never>(onrejected?: ((reason: ErrorAPIResponse) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>
+  catch<S = never>(onrejected?: ((reason: ErrorAPIResponse) => S | Promise<S>) | undefined | null): Promise<T | S>
 }

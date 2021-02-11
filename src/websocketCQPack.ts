@@ -2,8 +2,7 @@ import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {CQEventBus} from "./event-bus";
 import {
-  APIRequest, APIResponse, CQWebSocketOptions, ErrorAPIResponse, HandleEventType, onFailure, onSuccess, PromiseRes,
-  SocketHandle, SocketType,
+  APIRequest, APIResponse, CQWebSocketOptions, ErrorAPIResponse, HandleEventType, PromiseRes, SocketHandle, SocketType,
 } from "./Interfaces";
 import {CQ} from "./tags";
 
@@ -35,11 +34,6 @@ export class WebSocketCQPack {
     reconnectionAttempts = 10,
     reconnectionDelay = 1000,
   }: CQWebSocketOptions = {}) {
-    /**
-     *
-     * @type {Map<string, {onSuccess:onSuccess,onFailure:onFailure}>}
-     * @private
-     */
     this._responseHandlers = new Map();
     this._eventBus = new CQEventBus();
     if (reconnection) {
@@ -68,12 +62,12 @@ export class WebSocketCQPack {
     this.messageFail = (reason) => console.log(`发送失败`, reason);
   }
   
-  public reconnect() {
+  public reconnect(): void {
     this.disconnect();
     this.connect();
   }
   
-  public connect() {
+  public connect(): void {
     {
       let urlAPI = `${this._baseUrl}/api/?access_token=${this._accessToken}`;
       this._socketAPI = new w3cwebsocket(urlAPI);
@@ -90,7 +84,7 @@ export class WebSocketCQPack {
     }
   }
   
-  public disconnect() {
+  public disconnect(): void {
     if (this.reconnection && this.reconnection.timeout) {
       clearTimeout(this.reconnection.timeout);
       this.reconnection.timeout = undefined;
@@ -191,7 +185,7 @@ export class WebSocketCQPack {
    * @param event
    * @param handle
    */
-  public off<T extends HandleEventType>(event: T, handle: SocketHandle[T]) {
+  public off<T extends HandleEventType>(event: T, handle: SocketHandle[T]): void {
     this._eventBus.off(event, handle);
   }
   
@@ -230,17 +224,17 @@ export class WebSocketCQPack {
    * 同时解除多种监听方法,注册监听调用 [bind]{@link bind} 方法
    * @param [event={}]
    */
-  public unbind(event: SocketHandle = {}) {
+  public unbind(event: SocketHandle = {}): void {
     Object.entries(event).forEach(([k, v]) => {
       this._eventBus.off(<HandleEventType>k, v);
     });
   }
   
-  private _open(data: SocketType) {
+  private _open(data: SocketType): Promise<void> {
     return this._eventBus.handle("socket.open", data);
   }
   
-  private _onmessageAPI(evt: IMessageEvent) {
+  private _onmessageAPI(evt: IMessageEvent): void {
     if (typeof evt.data !== "string") {
       return;
     }
@@ -261,7 +255,7 @@ export class WebSocketCQPack {
     }
   }
   
-  private _onmessage(evt: IMessageEvent) {
+  private _onmessage(evt: IMessageEvent): void | Promise<void> {
     if (typeof evt.data !== "string") {
       return;
     }
@@ -269,14 +263,14 @@ export class WebSocketCQPack {
     return this._handleMSG(json);
   }
   
-  private _close(evt: ICloseEvent, type: SocketType) {
+  private _close(evt: ICloseEvent, type: SocketType): Promise<void> {
     if (evt.code === 1000) {
       return this._eventBus.handle("socket.close", type, evt.code, evt.reason);
     }
     return this._eventBus.handle("socket.error", type, evt.code, evt.reason);
   }
   
-  private _handleMSG(json: any) {
+  private _handleMSG(json: any): void | Promise<void> {
     let post_type = json["post_type"];
     switch (post_type) {
       case "message": {
@@ -428,3 +422,6 @@ interface ResponseHandler {
   onFailure: onFailure
   message: APIRequest
 }
+
+type onSuccess<T> = (this: void, json: APIResponse<T>) => void
+type onFailure = (this: void, reason: ErrorAPIResponse) => void

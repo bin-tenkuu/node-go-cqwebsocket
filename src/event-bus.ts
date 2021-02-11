@@ -20,31 +20,31 @@ export class Node {
     }
   }
   
-  get hasParent() {
+  get hasParent(): boolean {
     return this._parent !== undefined && this._parent !== this;
   }
   
   /** 当没有父节点时,将会返回自身 */
-  get parent() {
+  get parent(): Node {
     return this._parent || this;
   }
   
-  child(key: string) {
+  child(key: string): Node | undefined {
     return this._child[key];
   }
   
-  on(handle: Function) {
+  on(handle: Function): void {
     this._handle.push(handle);
   }
   
-  off(handle: Function) {
+  off(handle: Function): void {
     let indexOf = this._handle.indexOf(handle);
     if (indexOf >= 0) {
       this._handle.splice(indexOf, 1);
     }
   }
   
-  get handle() {
+  get handle(): Function[] {
     return this._handle;
   }
   
@@ -144,7 +144,7 @@ export class CQEventBus {
     return handler;
   }
   
-  off(eventType: HandleEventType | string[], handler?: Function) {
+  off(eventType: HandleEventType | string[], handler?: Function): void {
     if (typeof handler !== "function") return;
     let node = this.get(eventType);
     let fun = <Function>this._onceListeners.get(handler);
@@ -157,7 +157,7 @@ export class CQEventBus {
     if (typeof eventType === "string") {
       eventType = eventType.split(".");
     }
-    let node = this._EventMap;
+    let node: Node | undefined = this._EventMap;
     for (let key of eventType) {
       let nodeP = node;
       node = node.child(key);
@@ -197,11 +197,11 @@ export class CQEvent {
     this._isCanceled = false;
   }
   
-  get isCanceled() {
+  get isCanceled(): boolean {
     return this._isCanceled;
   }
   
-  stopPropagation() {
+  stopPropagation(): void {
     this._isCanceled = true;
   }
 }
