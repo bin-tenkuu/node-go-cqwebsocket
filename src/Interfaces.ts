@@ -647,8 +647,8 @@ export type SocketHandle = {
 
 export interface PromiseRes<T> extends Promise<T> {
   then<S = T, F = never>(
-    onfulfilled?: ((value: T) => S | Promise<S>) | undefined | null,
-    onrejected?: ((reason: ErrorAPIResponse) => F | Promise<F>) | undefined | null,
+    onFulfilled?: ((value: T) => S | Promise<S>) | null,
+    onRejected?: ((reason: ErrorAPIResponse) => F | Promise<F>) | null,
   ): Promise<S | F>
   
   catch<S = never>(onrejected?: ((reason: ErrorAPIResponse) => S | Promise<S>) | undefined | null): Promise<T | S>
