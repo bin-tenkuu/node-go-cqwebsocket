@@ -1,8 +1,8 @@
-export interface Data {
+interface Data {
   [key: string]: any
 }
 
-export interface Tags<T extends Data> {
+interface Tag<T extends Data> {
   type: string,
   data: T
 }
@@ -42,20 +42,14 @@ export class CQTag<T extends Data> {
     return this._data[key];
   }
   
-  public toJSON(): Tags<T> {
-    this.coerce();
-    const data = Object.assign({}, this._data, this._modifier);
-    
-    Object.entries(data).forEach(([k, v]) => {
-      if (v == null) {
-        delete data[k];
-      }
+  public toJSON(): string {
+    let tag = this.toTag();
+    let data = "{";
+    Object.entries(tag.data).forEach(([k, v]) => {
+      data += `"${k}":${JSON.stringify(v)}`;
     });
-    
-    return {
-      type: this.tagName,
-      data: data,
-    };
+    data += "}";
+    return `{"type":"${tag.type}","data":${data}}`;
   }
   
   public toString(): string {
@@ -76,13 +70,18 @@ export class CQTag<T extends Data> {
     return this;
   }
   
-  /**
-   * 强制将属性转换为对应类型
-   * @abstract
-   * @deprecated
-   */
-  public coerce(): this {
-    return this;
+  /** 转换为纯消息段 */
+  public toTag(): Tag<T> {
+    const data = Object.assign({}, this._data, this._modifier);
+    Object.entries(data).forEach(([k, v]) => {
+      if (v == null) {
+        delete data[k];
+      }
+    });
+    return {
+      type: this.tagName,
+      data: data,
+    };
   }
 }
 
