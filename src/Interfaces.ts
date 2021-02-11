@@ -590,11 +590,13 @@ export interface OfflineFile extends NoticeType, UserId {
 export type message = CQTag<any>[] | string
 export type messageNode = CQTag<node> | CQTag<nodeID>
 export type int64 = number | string
-export type MessageEventHandler<T> = (event: CQEvent, message: T, tags: CQTag<any>[]) => void
-export type EventHandler<T> = (event: CQEvent, message: T) => void
-export type ResponseHandle = (event: CQEvent, response: APIResponse<any>, sourceMSG: APIRequest) => void
-export type onSuccess<T> = (json: APIResponse<T>) => void
-export type onFailure = (reason: ErrorAPIResponse) => void
+export type MessageEventHandler<T> = (this: void, event: CQEvent, message: T, tags: CQTag<any>[]) => void
+export type EventHandler<T> = (this: void, event: CQEvent, message: T) => void
+export type ResponseHandle = (this: void, event: CQEvent, response: APIResponse<any>,
+  sourceMSG: APIRequest,
+) => void
+export type onSuccess<T> = (this: void, json: APIResponse<T>) => void
+export type onFailure = (this: void, reason: ErrorAPIResponse) => void
 export type SocketType = "api" | "event"
 export type HandleEventType = keyof SocketHandle
 export type RequestGroupType = "request.group" | "request.group.add" | "request.group.invite"
@@ -632,7 +634,7 @@ export type SocketHandle = {
   "notice.group_card"?: EventHandler<GroupCard>
   "notice.offline_file"?: EventHandler<OfflineFile>
 } & {
-  [key in SocketClose]?: (event: CQEvent, type: SocketType, code: number, reason: string) => void
+  [key in SocketClose]?: (this: void, event: CQEvent, type: SocketType, code: number, reason: string) => void
 } & {
   [key in RequestGroupType]?: EventHandler<RequestGroup>
 } & {
