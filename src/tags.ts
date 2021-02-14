@@ -2,7 +2,7 @@ interface Data {
   [key: string]: any
 }
 
-interface Tag<T extends Data> {
+type Tag<T extends Data> = {
   type: string,
   data: T
 }
@@ -42,14 +42,8 @@ export class CQTag<T extends Data> {
     return this._data[key];
   }
   
-  public toJSON(): string {
-    let tag = this.toTag();
-    let data = "{";
-    Object.entries(tag.data).forEach(([k, v]) => {
-      data += `"${k}":${JSON.stringify(v)}`;
-    });
-    data += "}";
-    return `{"type":"${tag.type}","data":${data}}`;
+  public toJSON(): Tag<T> {
+    return this.toTag();
   }
   
   public toString(): string {
