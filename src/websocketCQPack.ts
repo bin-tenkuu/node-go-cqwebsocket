@@ -18,6 +18,7 @@ export class WebSocketCQPack {
   private readonly _qq: number;
   private readonly _accessToken: string;
   private readonly _baseUrl: string;
+  private readonly _debug: boolean;
   private _socketAPI?: w3cwebsocket;
   private _socketEVENT?: w3cwebsocket;
   
@@ -30,10 +31,11 @@ export class WebSocketCQPack {
     qq = -1,
     
     // Reconnection configs
-    reconnection = true,
+    reconnection = false,
     reconnectionAttempts = 10,
     reconnectionDelay = 1000,
-  }: CQWebSocketOptions = {}) {
+  }: CQWebSocketOptions = {}, debug?: true) {
+    this._debug = Boolean(debug);
     this._responseHandlers = new Map();
     this._eventBus = new CQEventBus();
     if (reconnection) {
@@ -54,7 +56,6 @@ export class WebSocketCQPack {
         }
       });
     }
-    
     this._qq = qq;
     this._accessToken = accessToken;
     this._baseUrl = baseUrl;
@@ -81,6 +82,16 @@ export class WebSocketCQPack {
       this._socketEVENT.onopen = () => this._open("event");
       this._socketEVENT.onclose = evt => this._close(evt, "event");
       this._socketEVENT.onmessage = evt => this._onmessage(evt);
+    }
+    if (this._debug) {
+      this._socketAPI.onmessage = evt => {
+        console.log(evt);
+        this._onmessageAPI(evt);
+      };
+      this._socketEVENT.onmessage = evt => {
+        console.log(evt);
+        this._onmessage(evt);
+      };
     }
   }
   
@@ -120,27 +131,26 @@ export class WebSocketCQPack {
         wording: "连接关闭",
       });
     }
+    let echo = shortid.generate();
+    let message: APIRequest = {
+      action: method,
+      params: params,
+      echo: echo,
+    };
+    if (this._debug) {
+      console.log(message);
+    }
     return new Promise<T>((resolve, reject) => {
-      let reqId = shortid.generate();
-      
-      const onSuccess = (ctxt: APIResponse<T>) => {
-        this._responseHandlers.delete(reqId);
-        delete ctxt.echo;
-        resolve(ctxt.data);
+      let onSuccess = (resp: APIResponse<T>) => {
+        this._responseHandlers.delete(echo);
+        delete resp.echo;
+        resolve(resp.data);
       };
-      
-      const onFailure: onFailure = (err) => {
-        this._responseHandlers.delete(reqId);
+      let onFailure: onFailure = (err) => {
+        this._responseHandlers.delete(echo);
         reject(err);
       };
-      
-      const message: APIRequest = {
-        action: method,
-        params: params,
-        echo: reqId,
-      };
-      this._responseHandlers.set(reqId, {message, onSuccess, onFailure});
-      
+      this._responseHandlers.set(echo, {message, onSuccess, onFailure});
       this._eventBus.handle("api.preSend", message).then(() => {
         if (this._socketAPI == undefined) {
           onFailure({
