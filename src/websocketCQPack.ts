@@ -73,14 +73,18 @@ export class WebSocketCQPack {
       let urlAPI = `${this._baseUrl}/api/?access_token=${this._accessToken}`;
       this._socketAPI = new w3cwebsocket(urlAPI);
       this._socketAPI.onopen = () => this._open("api");
-      this._socketAPI.onclose = evt => this._close(evt, "api");
+      this._socketAPI.onclose = evt => this._close(evt, "api").then(() => {
+        this._socketAPI = undefined;
+      });
       this._socketAPI.onmessage = evt => this._onmessageAPI(evt);
     }
     {
       let urlEVENT = `${this._baseUrl}/event/?access_token=${this._accessToken}`;
       this._socketEVENT = new w3cwebsocket(urlEVENT);
       this._socketEVENT.onopen = () => this._open("event");
-      this._socketEVENT.onclose = evt => this._close(evt, "event");
+      this._socketEVENT.onclose = evt => this._close(evt, "event").then(() => {
+        this._socketEVENT = undefined;
+      });
       this._socketEVENT.onmessage = evt => this._onmessage(evt);
     }
     if (this._debug) {
@@ -100,11 +104,11 @@ export class WebSocketCQPack {
       clearTimeout(this.reconnection.timeout);
       this.reconnection.timeout = undefined;
     }
-    if (this._socketAPI) {
+    if (this._socketAPI !== undefined) {
       this._socketAPI.close(1000, "Normal connection closure");
       this._socketAPI = undefined;
     }
-    if (this._socketEVENT) {
+    if (this._socketEVENT !== undefined) {
       this._socketEVENT.close(1000, "Normal connection closure");
       this._socketEVENT = undefined;
     }
