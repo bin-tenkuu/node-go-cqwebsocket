@@ -59,7 +59,7 @@ export class CQTag<T extends Data> {
     return ret;
   }
   
-  public modifier(modifier: T): CQTag<T> {
+  public modifier<U extends Data>(modifier: U): this {
     this._modifier = modifier;
     return this;
   }
@@ -67,11 +67,6 @@ export class CQTag<T extends Data> {
   /** 转换为纯消息段 */
   public toTag(): Tag<T> {
     const data = Object.assign({}, this._data, this._modifier);
-    Object.entries(data).forEach(([k, v]) => {
-      if (v == null) {
-        delete data[k];
-      }
-    });
     return {
       type: this.tagName,
       data: data,
@@ -120,11 +115,11 @@ export var CQ = {
    */
   escape(str: string, insideCQ = false): string {
     let temp = str.replace(/&/g, "&amp;")
-      .replace(/\[/g, "&#91;")
-      .replace(/]/g, "&#93;");
+        .replace(/\[/g, "&#91;")
+        .replace(/]/g, "&#93;");
     if (insideCQ) {
       temp = temp
-        .replace(/,/g, "&#44;");
+          .replace(/,/g, "&#44;");
     }
     return temp;
   },
@@ -136,9 +131,9 @@ export var CQ = {
    */
   unescape(str: string): string {
     return str.replace(/&#44;/g, ",")
-      .replace(/&#91;/g, "[")
-      .replace(/&#93;/g, "]")
-      .replace(/&amp;/g, "&");
+        .replace(/&#91;/g, "[")
+        .replace(/&#93;/g, "]")
+        .replace(/&amp;/g, "&");
   },
   /**
    * 纯文本
@@ -200,14 +195,14 @@ export var CQ = {
    */
   musicCustom(url: string, audio: string, title: string, content?: string, image?: string) {
     return new CQTag<musicCustom>(
-      "music", {
-        type: "custom",
-        url,
-        audio,
-        title,
-        content,
-        image,
-      });
+        "music", {
+          type: "custom",
+          url,
+          audio,
+          title,
+          content,
+          image,
+        });
   },
   /**
    * 图片
@@ -221,9 +216,9 @@ export var CQ = {
    */
   image(file: string, type?: string, url?: string, cache?: number, id?: number, c?: number) {
     return new CQTag<image>(
-      "image", {
-        file, type, url, cache, id, c,
-      });
+        "image", {
+          file, type, url, cache, id, c,
+        });
   },
   /**
    * 回复
@@ -282,7 +277,7 @@ export var CQ = {
    * @param icon 分享来源的icon图标url, 可以留空
    */
   cardimage(file: string, minwidth?: number, minheight?: number, maxwidth?: number, maxheight?: number,
-    source ?: string, icon?: string,
+            source ?: string, icon?: string,
   ) {
     return new CQTag<cardimage>("cardimage", {
       file,
@@ -470,5 +465,5 @@ export interface face extends Data {
 }
 
 export type tagName = "text" | "face" | "record" | "video" | "at" | "rps" | "dice" | "shake" | "anonymous" | "share"
-  | "contact" | "location" | "music" | "image" | "reply" | "redbag" | "poke" | "gift" | "forward" | "node" | "xml"
-  | "json" | "cardimage" | "tts"
+    | "contact" | "location" | "music" | "image" | "reply" | "redbag" | "poke" | "gift" | "forward" | "node" | "xml"
+    | "json" | "cardimage" | "tts"

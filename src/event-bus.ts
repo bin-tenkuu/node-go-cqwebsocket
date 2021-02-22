@@ -128,13 +128,13 @@ export class CQEventBus {
   }
   
   on(eventType: HandleEventType, handler?: Function) {
-    if (typeof handler !== "function") return;
+    if (typeof handler !== "function") return handler;
     this.get(eventType).on(handler);
     return handler;
   }
   
   once(eventType: HandleEventType, handler?: Function) {
-    if (typeof handler !== "function") return;
+    if (typeof handler !== "function") return handler;
     const onceFunction = (...args: any) => {
       this.off(eventType, handler);
       handler?.(...args);

@@ -23,18 +23,18 @@ export class WebSocketCQPack {
   private _socketEVENT?: w3cwebsocket;
   
   constructor({
-    // connectivity configs
-    accessToken = "",
-    baseUrl = "ws://127.0.0.1:6700",
+                // connectivity configs
+                accessToken = "",
+                baseUrl = "ws://127.0.0.1:6700",
     
-    // application aware configs
-    qq = -1,
+                // application aware configs
+                qq = -1,
     
-    // Reconnection configs
-    reconnection = false,
-    reconnectionAttempts = 10,
-    reconnectionDelay = 1000,
-  }: CQWebSocketOptions = {}, debug?: true) {
+                // Reconnection configs
+                reconnection = false,
+                reconnectionAttempts = 10,
+                reconnectionDelay = 1000,
+              }: CQWebSocketOptions = {}, debug?: true) {
     this._debug = Boolean(debug);
     this._responseHandlers = new Map();
     this._eventBus = new CQEventBus();
@@ -195,7 +195,7 @@ export class WebSocketCQPack {
    * @param event
    * @param handle
    */
-  public off<T extends HandleEventType>(event: T, handle: SocketHandle[T]): void {
+  public off(event: HandleEventType, handle?: Function): void {
     this._eventBus.off(event, handle);
   }
   
