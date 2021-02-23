@@ -7,7 +7,7 @@ import {
 import {CQ} from "./tags";
 
 export class WebSocketCQPack {
-  public messageSuccess: <T>(json: T) => void;
+  public messageSuccess: onSuccess<any>;
   public messageFail: onFailure;
   
   public reconnection?: Reconnection;
@@ -59,8 +59,8 @@ export class WebSocketCQPack {
     this._qq = qq;
     this._accessToken = accessToken;
     this._baseUrl = baseUrl;
-    this.messageSuccess = (ret) => console.log(`发送成功`, ret);
-    this.messageFail = (reason) => console.log(`发送失败`, reason);
+    this.messageSuccess = (ret) => console.log(`发送成功:${JSON.stringify(ret.data)}`);
+    this.messageFail = (reason) => console.log(`发送失败[${reason.retcode}]:${reason.wording}`);
   }
   
   public reconnect(): void {
@@ -145,16 +145,14 @@ export class WebSocketCQPack {
       console.log(message);
     }
     return new Promise<T>((resolve, reject) => {
-      let onSuccess = (resp: APIResponse<T>) => {
+      let onSuccess: onSuccess<T> = (resp: APIResponse<T>) => {
         this._responseHandlers.delete(echo);
         delete resp.echo;
-        this.messageSuccess(resp.data);
-        resolve(resp.data);
+        return resolve(resp.data);
       };
       let onFailure: onFailure = (err) => {
         this._responseHandlers.delete(echo);
-        this.messageFail(err);
-        reject(err);
+        return reject(err);
       };
       this._responseHandlers.set(echo, {message, onSuccess, onFailure});
       this._eventBus.handle("api.preSend", message).then(() => {
@@ -166,7 +164,7 @@ export class WebSocketCQPack {
             retcode: 500,
             status: "NO CONNECTED",
             wording: "无连接",
-          });
+          }, message);
         } else {
           this._socketAPI.send(JSON.stringify(message));
         }
@@ -256,17 +254,19 @@ export class WebSocketCQPack {
     }
     let json: ErrorAPIResponse = JSON.parse(evt.data);
     if (json.echo) {
-      let {onSuccess, onFailure, message} = this._responseHandlers.get(json.echo) || {};
+      let handler: ResponseHandler = this._responseHandlers.get(json.echo) || <ResponseHandler>{};
       if (json.retcode === 0) {
-        if (typeof onSuccess === "function") {
-          onSuccess(json);
+        if (typeof handler.onSuccess === "function") {
+          handler.onSuccess(json, handler.message);
+          this.messageSuccess(json, handler.message);
         }
       } else {
-        if (typeof onFailure === "function") {
-          onFailure(json);
+        if (typeof handler.onFailure === "function") {
+          handler.onFailure(json, handler.message);
+          this.messageFail(json, handler.message);
         }
       }
-      this._eventBus.handle("api.response", json, message).then();
+      this._eventBus.handle("api.response", json, handler.message).then();
       return;
     }
   }
@@ -457,5 +457,5 @@ interface ResponseHandler {
   message: APIRequest
 }
 
-type onSuccess<T> = (this: void, json: APIResponse<T>) => void
-type onFailure = (this: void, reason: ErrorAPIResponse) => void
+type onSuccess<T> = (this: void, json: APIResponse<T>, message: APIRequest) => void
+type onFailure = (this: void, reason: ErrorAPIResponse, message: APIRequest) => void
