@@ -1,6 +1,6 @@
 # go-cqwebsocket
 
-`node-cq-websocke` 停止维护后的替代品
+<del>`node-cq-websocke` 停止维护后的替代品</del>
 
 # 关于此SDK
 
@@ -11,9 +11,9 @@
 关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/) 为准， 同时提供 `send()`
 方法以供未知接口的调用
 
-> 本 SDK 已趋于稳定, 项目中引用请使用 `1.4.10` 以上版本, 后续 API 将尽可能减少变化
+> 本 SDK API 已趋于稳定, 项目中引用请使用 `1.4.10` 以上版本, 后续 API 将尽可能减少变化
 
-> 使用上仍有机会碰到 Bug，欢迎提交 PR 或 issue 回报。
+> 本 SDK 未经系统测试，仅为代码提示与方便调用，使用上有机会碰到 Bug，欢迎提交 PR 或 issue 回报。
 
 # 开发者看板
 

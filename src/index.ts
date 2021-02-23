@@ -1,7 +1,7 @@
 import {
-  CanSend, FileUrl, FriendInfo, GroupAtAllRemain, GroupData, GroupFileSystemInfo, GroupHonorInfo, GroupInfo,
-  GroupMemberInfo, GroupRootFileSystemInfo, GroupSystemMSG, int64, LoginInfo, message, MessageId, MessageInfo,
-  messageNode, PrivateData, PromiseRes, Status, StrangerInfo, VersionInfo, VipInfo,
+  CanSend, Device, DownloadFile, EssenceMessage, FileUrl, FriendInfo, GroupAtAllRemain, GroupData, GroupFileSystemInfo,
+  GroupHonorInfo, GroupInfo, GroupMemberInfo, GroupRootFileSystemInfo, GroupSystemMSG, int64, LoginInfo, message,
+  MessageId, MessageInfo, messageNode, OCRImage, PrivateData, PromiseRes, Status, StrangerInfo, VersionInfo, VipInfo,
 } from "./Interfaces";
 import {WebSocketCQPack} from "./websocketCQPack";
 
@@ -53,7 +53,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * 撤回消息
    * @param message_id 消息 ID
    */
-  public delete_msg(message_id: number): PromiseRes<any> {
+  public delete_msg(message_id: number): PromiseRes<unknown> {
     return this.send("delete_msg", {message_id});
   }
   
@@ -71,7 +71,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param user_id 要踢的 QQ 号
    * @param reject_add_request 拒绝此人的加群请求
    */
-  public set_group_kick(group_id: int64, user_id: int64, reject_add_request = false): PromiseRes<any> {
+  public set_group_kick(group_id: int64, user_id: int64, reject_add_request = false): PromiseRes<unknown> {
     return this.send("set_group_kick", {group_id, user_id, reject_add_request});
   }
   
@@ -81,7 +81,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param user_id 要禁言的 QQ 号
    * @param duration 禁言时长, 单位秒, 0 表示取消禁言
    */
-  public set_group_ban(group_id: int64, user_id: int64, duration = 30 * 60): PromiseRes<any> {
+  public set_group_ban(group_id: int64, user_id: int64, duration = 30 * 60): PromiseRes<unknown> {
     return this.send("set_group_ban", {group_id, user_id, duration});
   }
   
@@ -90,7 +90,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id 群号
    * @param enable 是否禁言
    */
-  public set_group_whole_ban(group_id: int64, enable = true): PromiseRes<any> {
+  public set_group_whole_ban(group_id: int64, enable = true): PromiseRes<unknown> {
     return this.send("set_group_whole_ban", {group_id, enable});
   }
   
@@ -100,7 +100,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param user_id 要设置管理员的 QQ 号
    * @param enable true 为设置, false 为取消
    */
-  public set_group_admin(group_id: int64, user_id: int64, enable = true): PromiseRes<any> {
+  public set_group_admin(group_id: int64, user_id: int64, enable = true): PromiseRes<unknown> {
     return this.send("set_group_admin", {group_id, user_id, enable});
   }
   
@@ -110,7 +110,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param user_id 要设置的 QQ 号
    * @param card 群名片内容, 不填或空字符串表示删除群名片
    */
-  public set_group_card(group_id: int64, user_id: int64, card = ""): PromiseRes<any> {
+  public set_group_card(group_id: int64, user_id: int64, card = ""): PromiseRes<unknown> {
     return this.send("set_group_card", {group_id, user_id, card});
   }
   
@@ -119,7 +119,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id 群号
    * @param group_name 新群名
    */
-  public set_group_name(group_id: int64, group_name = ""): PromiseRes<any> {
+  public set_group_name(group_id: int64, group_name = ""): PromiseRes<unknown> {
     return this.send("set_group_name", {group_id, group_name});
   }
   
@@ -128,7 +128,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id 群号
    * @param is_dismiss 是否解散, 如果登录号是群主, 则仅在此项为 true 时能够解散
    */
-  public set_group_leave(group_id: int64, is_dismiss = false): PromiseRes<any> {
+  public set_group_leave(group_id: int64, is_dismiss = false): PromiseRes<unknown> {
     return this.send("set_group_leave", {group_id, is_dismiss});
   }
   
@@ -140,8 +140,8 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param duration 专属头衔有效期, 单位秒, -1 表示永久, 不过此项似乎没有效果, 可能是只有某些特殊的时间长度有效, 有待测试
    */
   public set_group_special_title(group_id: int64, user_id: int64, special_title: string,
-    duration: int64,
-  ): PromiseRes<any> {
+                                 duration: int64,
+  ): PromiseRes<unknown> {
     return this.send("set_group_special_title", {group_id, user_id, special_title, duration});
   }
   
@@ -151,7 +151,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param approve 是否同意请求
    * @param remark 添加后的好友备注（仅在同意时有效）
    */
-  public set_friend_add_request(flag: string, approve = true, remark = ""): PromiseRes<any> {
+  public set_friend_add_request(flag: string, approve = true, remark = ""): PromiseRes<unknown> {
     return this.send("set_friend_add_request", {flag, approve, remark});
   }
   
@@ -163,8 +163,8 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param reason 添加后的好友备注（仅在同意时有效）
    */
   public set_group_add_request(flag: string, sub_type: string, approve = true,
-    reason = "",
-  ): PromiseRes<any> {
+                               reason = "",
+  ): PromiseRes<unknown> {
     return this.send("set_group_add_request", {flag, sub_type, type: sub_type, approve, reason});
   }
   
@@ -251,7 +251,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * **[1]** `file` 参数支持以下几种格式：
    *
    * - 绝对路径, 例如 `file:///C:\\Users\Richard\Pictures\1.png`, 格式使用 [`file` URI]{@link
-    * https://tools.ietf.org/html/rfc8089}
+      * https://tools.ietf.org/html/rfc8089}
    * - 网络 URL, 例如 `http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg`
    * - Base64 编码, 例如
    * `base64://iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAIAAADJt1n/AAAAKElEQVQ4EWPk5+RmIBcwkasRpG9UM4mhNxpgowFGMARGEwnBIEJVAAAdBgBNAZf+QAAAAABJRU5ErkJggg==`
@@ -337,12 +337,96 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id QQ 号
    * @param content 公告内容
    */
-  public send_group_notice(group_id: int64, content: string): PromiseRes<any> {
+  public send_group_notice(group_id: int64, content: string): PromiseRes<unknown> {
     return this.send("_send_group_notice", {group_id});
   }
   
   /** 重载事件过滤器 */
-  public reload_event_filter(): PromiseRes<any> {
+  public reload_event_filter(): PromiseRes<unknown> {
     return this.send("reload_event_filter", {});
+  }
+  
+  /**
+   * 获取当前账号在线客户端列表
+   * @param no_cache 是否无视缓存
+   */
+  public get_online_clients(no_cache?: boolean): PromiseRes<Device[]> {
+    return this.send("get_online_clients", {no_cache});
+  }
+  
+  /**
+   * 获取群消息历史记录
+   * @param message_seq 起始消息序号, 可通过 `get_msg` 获得, 不提供起始序号将默认获取最新的消息
+   * @param group_id 群号
+   * @return 从起始序号开始的前19条消息
+   */
+  public get_group_msg_history(group_id: int64, message_seq?: int64): PromiseRes<any> {
+    return this.send("get_group_msg_history", {message_seq, group_id});
+  }
+  
+  /**
+   * 设置精华消息
+   * @param message_id 消息ID
+   */
+  public set_essence_msg(message_id: int64): PromiseRes<unknown> {
+    return this.send("set_essence_msg", {message_id});
+  }
+  
+  /**
+   * 移出精华消息
+   * @param message_id 消息ID
+   */
+  public delete_essence_msg(message_id: int64): PromiseRes<unknown> {
+    return this.send("delete_essence_msg", {message_id});
+  }
+  
+  /**
+   * 获取精华消息列表
+   * @param group_id 群号
+   */
+  public get_essence_msg_list(group_id: int64): PromiseRes<EssenceMessage[]> {
+    return this.send("get_essence_msg_list", {group_id});
+  }
+  
+  /**
+   * 图片OCR
+   * @param image 图片ID
+   */
+  public ocr_image(image: string): PromiseRes<OCRImage> {
+    return this.send("ocr_image", {image});
+  }
+  
+  /**
+   * 上传群文件<br/>
+   * 在不提供 folder 参数的情况下默认上传到根目录 只能上传本地文件, 需要上传 http 文件的话请先调用 download_file API下载
+   * @param group_id 群号
+   * @param file 本地文件路径
+   * @param name 储存名称
+   * @param folder 父目录ID
+   */
+  public upload_group_file(group_id: int64, file: string, name: string, folder?: string): PromiseRes<unknown> {
+    return this.send("upload_group_file", {group_id, file, name, folder});
+  }
+  
+  /**
+   * 下载文件到缓存目录<br/>
+   * 通过这个API下载的文件能直接放入CQ码作为图片或语音发送 调用后会阻塞直到下载完成后才会返回数据，请注意下载大文件时的超时
+   * @param url 链接地址
+   * @param thread_count 下载线程数
+   * @param headers 自定义请求头
+   * 格式：<br/>* 字符串:`User-Agent=YOUR_UA[\r\n]Referer=https://www.baidu.com`</br>
+   * * JSON数组:`["User-Agent=YOUR_UA","Referer=https://www.baidu.com"]`
+   */
+  public download_file(url: string, thread_count: number, headers: string | string[]): PromiseRes<DownloadFile> {
+    return this.send("download_file", {url, thread_count, headers});
+  }
+  
+  /**
+   * 检查链接安全性
+   * @param url 需要检查的链接
+ 
+   */
+  public check_url_safely(url: string) {
+    return this.send("check_url_safely", {url});
   }
 }

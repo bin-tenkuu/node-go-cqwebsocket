@@ -574,6 +574,7 @@ export interface GroupCard extends NoticeType, GroupId, UserId {
   card_old: number
 }
 
+/** 接收到离线文件 */
 export interface OfflineFile extends NoticeType, UserId {
   notice_type: "offline_file"
   /** 文件数据 */
@@ -587,13 +588,77 @@ export interface OfflineFile extends NoticeType, UserId {
   }
 }
 
+/** 设备信息 */
+export interface Device {
+  /**客户端ID*/
+  app_id: number
+  /**设备名称*/
+  device_name: string
+  /**设备类型*/
+  device_kind: string
+}
+
+/** 其他客户端在线状态 */
+export interface Client_status extends NoticeType {
+  notice_type: "client_status"
+  /** 客户端信息 */
+  client: Device
+  /** 当前是否在线 */
+  online: boolean
+}
+
+/** 精华消息 */
+export interface EssenceMessage {
+  /**发送者QQ 号*/
+  sender_id: number
+  /**发送者昵称*/
+  sender_nick: string
+  /**消息发送时间*/
+  sender_time: number
+  /**操作者QQ 号*/
+  operator_id: number
+  /**操作者昵称*/
+  operator_nick: string
+  /**精华设置时间*/
+  operator_time: number
+  /**消息ID*/
+  message_id: number
+}
+
+/**图片OCR*/
+export interface OCRImage {
+  /**OCR结果*/
+  texts: {
+    /**文本*/
+    text: string
+    /**置信度*/
+    confidence: number
+    /**坐标*/
+    coordinates: [number, number]
+  }[]
+  /**语言*/
+  language: string
+}
+
+/**下载文件到缓存目录*/
+export interface DownloadFile {
+  /**下载文件的绝对路径*/
+  file: string
+}
+
+/**链接安全性*/
+export interface UrlSafely {
+  /**安全等级, 1: 安全 2: 未知 3: 危险*/
+  level: number
+}
+
 export type message = CQTag<any>[] | string
 export type messageNode = CQTag<node> | CQTag<nodeID>
 export type int64 = number | string
 export type MessageEventHandler<T> = (this: void, event: CQEvent, message: T, tags: CQTag<any>[]) => void
 export type EventHandler<T> = (this: void, event: CQEvent, message: T) => void
 export type ResponseHandle = (this: void, event: CQEvent, response: APIResponse<any>,
-  sourceMSG: APIRequest,
+                              sourceMSG: APIRequest,
 ) => void
 export type SocketType = "api" | "event"
 export type HandleEventType = keyof SocketHandle
@@ -601,9 +666,9 @@ export type RequestGroupType = "request.group" | "request.group.add" | "request.
 export type SocketClose = "socket.close" | "socket.error"
 export type GroupAdminType = "notice.group_admin" | "notice.group_admin.set" | "notice.group_admin.unset"
 export type GroupDecreaseType = "notice.group_decrease" | "notice.group_decrease.leave" | "notice.group_decrease.kick"
-  | "notice.group_decrease.kick_me"
+    | "notice.group_decrease.kick_me"
 export type GroupIncreaseType = "notice.group_increase" | "notice.group_increase.approve"
-  | "notice.group_increase.invite"
+    | "notice.group_increase.invite"
 export type GroupBanType = "notice.group_ban" | "notice.group_ban.ban" | "notice.group_ban.lift_ban"
 export type SocketHandle = {
   "message.private"?: MessageEventHandler<PrivateMessage>
@@ -631,6 +696,7 @@ export type SocketHandle = {
   "notice.notify.honor"?: EventHandler<NotifyHonor>
   "notice.group_card"?: EventHandler<GroupCard>
   "notice.offline_file"?: EventHandler<OfflineFile>
+  "notice.client_status"?: EventHandler<Client_status>
 } & {
   [key in SocketClose]?: (this: void, event: CQEvent, type: SocketType, code: number, reason: string) => void
 } & {
@@ -647,8 +713,8 @@ export type SocketHandle = {
 
 export interface PromiseRes<T> extends Promise<T> {
   then<S = T, F = never>(
-    onFulfilled?: ((value: T) => S | Promise<S>) | null,
-    onRejected?: ((reason: ErrorAPIResponse) => F | Promise<F>) | null,
+      onFulfilled?: ((value: T) => S | Promise<S>) | null,
+      onRejected?: ((reason: ErrorAPIResponse) => F | Promise<F>) | null,
   ): Promise<S | F>
   
   catch<S = never>(onrejected?: ((reason: ErrorAPIResponse) => S | Promise<S>) | undefined | null): Promise<T | S>

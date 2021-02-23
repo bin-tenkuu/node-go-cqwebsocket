@@ -102,6 +102,11 @@ export class CQEventBus {
         },
         group_card: [],
         offline_file: [],
+        client_status: [],
+        essence: {
+          add: [],
+          delete: [],
+        },
       },
       request: {
         friend: [],

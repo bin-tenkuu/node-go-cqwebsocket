@@ -367,7 +367,18 @@ export class WebSocketCQPack {
           }
           case "group_card":
           case "offline_file":
+          case "client_status":
             return this._eventBus.handle([post_type, notice_type], json);
+          case "essence": {
+            let subType = json["sub_type"];
+            switch (subType) {
+              case "add":
+              case "delete":
+                return this._eventBus.handle([post_type, notice_type, subType], json);
+              default:
+                return console.warn(`未知的 notice.essence 类型: ${subType}`);
+            }
+          }
           default:
             return console.warn(`未知的 notice 类型: ${notice_type}`);
         }
