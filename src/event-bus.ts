@@ -128,6 +128,7 @@ export class CQEventBus {
         lifecycle: [],
         heartbeat: [],
       },
+      message_sent: [],
     });
     this._onceListeners = new WeakMap();
   }

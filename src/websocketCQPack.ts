@@ -286,9 +286,7 @@ export class WebSocketCQPack {
     return this._eventBus.handle("socket.error", type, evt.code, evt.reason);
   }
   
-  /**
-   * js中 Date.now()不可能重复，直接拿来做不可重复字符串
-   */
+  /** js中 Date.now()不可能重复，直接拿来做不可重复字符串 */
   public static RandomECHO(): string {
     return Date.now().toString(36);
   }
@@ -420,6 +418,9 @@ export class WebSocketCQPack {
           default:
             return console.warn(`未知的 meta_event 类型: ${meta_event_type}`);
         }
+      }
+      case "message_sent": {
+        return this._eventBus.handle([post_type], json);
       }
       default:
         return console.warn(`未知的上报类型: ${post_type}`);
