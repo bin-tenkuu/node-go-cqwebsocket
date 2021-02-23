@@ -148,10 +148,12 @@ export class WebSocketCQPack {
       let onSuccess = (resp: APIResponse<T>) => {
         this._responseHandlers.delete(echo);
         delete resp.echo;
+        this.messageSuccess(resp.data);
         resolve(resp.data);
       };
       let onFailure: onFailure = (err) => {
         this._responseHandlers.delete(echo);
+        this.messageFail(err);
         reject(err);
       };
       this._responseHandlers.set(echo, {message, onSuccess, onFailure});
@@ -282,6 +284,13 @@ export class WebSocketCQPack {
       return this._eventBus.handle("socket.close", type, evt.code, evt.reason);
     }
     return this._eventBus.handle("socket.error", type, evt.code, evt.reason);
+  }
+  
+  /**
+   * js中 Date.now()不可能重复，直接拿来做不可重复字符串
+   */
+  public static RandomECHO(): string {
+    return Date.now().toString(36);
   }
   
   private _handleMSG(json: any): void | Promise<void> {
