@@ -38,7 +38,7 @@ export class CQTag<T extends Data> {
    * 于是我在实现了 getter 的同时写了这个方法，用于强类型代码（比如 typescript ）的编写时自动提示
    * @param key
    */
-  public get(key: keyof T) {
+  public get(key: keyof T): string {
     return this._data[key];
   }
   

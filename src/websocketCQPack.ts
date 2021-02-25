@@ -147,7 +147,6 @@ export class WebSocketCQPack {
     return new Promise<T>((resolve, reject) => {
       let onSuccess: onSuccess<T> = (resp: APIResponse<T>) => {
         this._responseHandlers.delete(echo);
-        delete resp.echo;
         return resolve(resp.data);
       };
       let onFailure: onFailure = (err) => {
