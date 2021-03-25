@@ -11,7 +11,7 @@
 关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/) 为准， 同时提供 `send()`
 方法以供未知接口的调用
 
-> 本 SDK API 已趋于稳定, 项目中引用请使用 `1.4.10` 以上版本, 后续 API 将尽可能减少变化
+> 本 SDK API 已趋于稳定, 项目中引用请使用 `2.0.0` 以上版本, 后续 API 将尽可能减少变化
 
 > 本 SDK 仅为代码提示与方便调用，使用上有机会碰到 Bug，欢迎提交 PR 或 issue 回报。
 
