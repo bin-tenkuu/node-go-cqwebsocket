@@ -1,7 +1,8 @@
 import {
-  CanSend, Device, DownloadFile, EssenceMessage, FileUrl, FriendInfo, GroupAtAllRemain, GroupData, GroupFileSystemInfo,
-  GroupHonorInfo, GroupInfo, GroupMemberInfo, GroupRootFileSystemInfo, GroupSystemMSG, int64, LoginInfo, message,
-  MessageId, MessageInfo, messageNode, OCRImage, PrivateData, PromiseRes, Status, StrangerInfo, VersionInfo, VipInfo,
+  CanSend, CookiesData, CSRFTokenData, Device, DownloadFile, EssenceMessage, FileUrl, ForwardData, FriendInfo,
+  GroupAtAllRemain, GroupData, GroupFileSystemInfo, GroupHonorInfo, GroupInfo, GroupMemberInfo, GroupRootFileSystemInfo,
+  GroupSystemMSG, int64, LoginInfo, message, MessageId, MessageInfo, messageNode, OCRImage, PrivateData, PromiseRes,
+  QQImageData, RecordFormatData, Status, StrangerInfo, VersionInfo, VipInfo, WordSlicesData,
 } from "./Interfaces";
 import {WebSocketCQPack} from "./websocketCQPack";
 
@@ -11,6 +12,12 @@ export {
   CQ,
 } from "./tags";
 
+/**
+ * 本类中所有api基于 `go-cqhttp-v0.9.37` 与 `go-cq额外文档(部分)` <br/>
+ * go-cqhttp标准文档最后编辑日期： `1/5/2021, 2:53:26 AM` <br/>
+ * **注：** 标记为 `@deprecated` 的方法为__未被支持__方法，并非过时方法 <br/>
+ * **注2：** 标记为 `@protected` 的方法为__隐藏 API__，__不__建议一般用户使用, 不正确的使用可能造成程序运行不正常
+ */
 export class CQWebSocket extends WebSocketCQPack {
   /**
    * 发送私聊消息
@@ -53,7 +60,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * 撤回消息
    * @param message_id 消息 ID
    */
-  public delete_msg(message_id: number): PromiseRes<unknown> {
+  public delete_msg(message_id: number): PromiseRes<void> {
     return this.send("delete_msg", {message_id});
   }
   
@@ -69,8 +76,16 @@ export class CQWebSocket extends WebSocketCQPack {
    * 获取合并转发内容
    * @param message_id 消息id
    */
-  public get_forward_msg(message_id: string): PromiseRes<any> {
+  public get_forward_msg(message_id: string): PromiseRes<ForwardData> {
     return this.send("get_forward_msg", {message_id});
+  }
+  
+  /**
+   * #获取图片信息
+   * @param file 图片缓存文件名
+   */
+  public get_image(file: string): PromiseRes<QQImageData> {
+    return this.send("get_image", {file});
   }
   
   /**
@@ -79,7 +94,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param user_id 要踢的 QQ 号
    * @param reject_add_request 拒绝此人的加群请求
    */
-  public set_group_kick(group_id: int64, user_id: int64, reject_add_request = false): PromiseRes<unknown> {
+  public set_group_kick(group_id: int64, user_id: int64, reject_add_request = false): PromiseRes<void> {
     return this.send("set_group_kick", {group_id, user_id, reject_add_request});
   }
   
@@ -89,8 +104,21 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param user_id 要禁言的 QQ 号
    * @param duration 禁言时长, 单位秒, 0 表示取消禁言
    */
-  public set_group_ban(group_id: int64, user_id: int64, duration = 30 * 60): PromiseRes<unknown> {
+  public set_group_ban(group_id: int64, user_id: int64, duration = 30 * 60): PromiseRes<void> {
     return this.send("set_group_ban", {group_id, user_id, duration});
+  }
+  
+  /**
+   * 群组匿名用户禁言
+   * @deprecated
+   * @param group_id 群号
+   * @param anonymous 选一，优先, 要禁言的匿名用户对象（群消息上报的 anonymous 字段）
+   * @param duration 禁言时长, 单位秒, 无法取消匿名用户禁言
+   * @param anonymous_flag 选一, 要禁言的匿名用户的 flag（需从群消息上报的数据中获得）
+   */
+  public set_group_anonymous_ban(group_id: int64, anonymous: any, duration = 30 * 60,
+                                 anonymous_flag ?: string): PromiseRes<void> {
+    return this.send("set_group_anonymous_ban", {group_id, anonymous, duration, anonymous_flag});
   }
   
   /**
@@ -98,7 +126,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id 群号
    * @param enable 是否禁言
    */
-  public set_group_whole_ban(group_id: int64, enable = true): PromiseRes<unknown> {
+  public set_group_whole_ban(group_id: int64, enable = true): PromiseRes<void> {
     return this.send("set_group_whole_ban", {group_id, enable});
   }
   
@@ -108,17 +136,26 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param user_id 要设置管理员的 QQ 号
    * @param enable true 为设置, false 为取消
    */
-  public set_group_admin(group_id: int64, user_id: int64, enable = true): PromiseRes<unknown> {
+  public set_group_admin(group_id: int64, user_id: int64, enable = true): PromiseRes<void> {
     return this.send("set_group_admin", {group_id, user_id, enable});
   }
   
   /**
-   * 设置群名片 ( 群备注 )
+   * 群组匿名
+   * @param group_id 群号
+   * @param enable 是否允许匿名聊天
+   */
+  public set_group_anonymous(group_id: int64, enable = true): PromiseRes<void> {
+    return this.send("set_group_anonymous", {group_id, enable});
+  }
+  
+  /**
+   * 设置群名片(群备注)
    * @param group_id 群号
    * @param user_id 要设置的 QQ 号
    * @param card 群名片内容, 不填或空字符串表示删除群名片
    */
-  public set_group_card(group_id: int64, user_id: int64, card = ""): PromiseRes<unknown> {
+  public set_group_card(group_id: int64, user_id: int64, card = ""): PromiseRes<void> {
     return this.send("set_group_card", {group_id, user_id, card});
   }
   
@@ -127,7 +164,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id 群号
    * @param group_name 新群名
    */
-  public set_group_name(group_id: int64, group_name = ""): PromiseRes<unknown> {
+  public set_group_name(group_id: int64, group_name = ""): PromiseRes<void> {
     return this.send("set_group_name", {group_id, group_name});
   }
   
@@ -136,7 +173,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id 群号
    * @param is_dismiss 是否解散, 如果登录号是群主, 则仅在此项为 true 时能够解散
    */
-  public set_group_leave(group_id: int64, is_dismiss = false): PromiseRes<unknown> {
+  public set_group_leave(group_id: int64, is_dismiss = false): PromiseRes<void> {
     return this.send("set_group_leave", {group_id, is_dismiss});
   }
   
@@ -148,8 +185,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param duration 专属头衔有效期, 单位秒, -1 表示永久, 不过此项似乎没有效果, 可能是只有某些特殊的时间长度有效, 有待测试
    */
   public set_group_special_title(group_id: int64, user_id: int64, special_title: string,
-                                 duration: int64,
-  ): PromiseRes<unknown> {
+                                 duration: int64): PromiseRes<void> {
     return this.send("set_group_special_title", {group_id, user_id, special_title, duration});
   }
   
@@ -159,7 +195,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param approve 是否同意请求
    * @param remark 添加后的好友备注（仅在同意时有效）
    */
-  public set_friend_add_request(flag: string, approve = true, remark = ""): PromiseRes<unknown> {
+  public set_friend_add_request(flag: string, approve = true, remark = ""): PromiseRes<void> {
     return this.send("set_friend_add_request", {flag, approve, remark});
   }
   
@@ -171,8 +207,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param reason 添加后的好友备注（仅在同意时有效）
    */
   public set_group_add_request(flag: string, sub_type: string, approve = true,
-                               reason = "",
-  ): PromiseRes<unknown> {
+                               reason = ""): PromiseRes<void> {
     return this.send("set_group_add_request", {flag, sub_type, type: sub_type, approve, reason});
   }
   
@@ -238,6 +273,42 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("get_group_honor_info", {group_id, type});
   }
   
+  /**
+   * 获取 Cookies
+   * @deprecated
+   * @param domain 需要获取 cookies 的域名
+   */
+  public get_cookies(domain: string): PromiseRes<CookiesData> {
+    return this.send("get_cookies", {domain});
+  }
+  
+  /**
+   * 获取 CSRF Token
+   * @deprecated
+   */
+  public get_csrf_token(): PromiseRes<CSRFTokenData> {
+    return this.send("get_csrf_token", {});
+  }
+  
+  /**
+   * 获取 QQ 相关接口凭证
+   * @deprecated
+   * @param domain 需要获取 cookies 的域名
+   */
+  public get_credentials(domain: string): PromiseRes<CookiesData & CSRFTokenData> {
+    return this.send("get_csrf_token", {domain});
+  }
+  
+  /**
+   * 获取语音
+   * @deprecated
+   * @param file 收到的语音文件名（消息段的 file 参数）
+   * @param out_format 要转换到的格式, 目前支持 mp3、amr、wma、m4a、spx、ogg、wav、flac
+   */
+  public get_record(file: string, out_format: string): PromiseRes<RecordFormatData> {
+    return this.send("get_record", {file, out_format});
+  }
+  
   /** 检查是否可以发送图片 */
   public can_send_image(): PromiseRes<CanSend> {
     return this.send("can_send_image", {});
@@ -251,6 +322,22 @@ export class CQWebSocket extends WebSocketCQPack {
   /** 获取版本信息 */
   public get_version_info(): PromiseRes<VersionInfo> {
     return this.send("get_version_info", {});
+  }
+  
+  /**
+   * 重启 go-cqhttp
+   * @param delay 要延迟的毫秒数, 如果默认情况下无法重启, 可以尝试设置延迟为 2000 左右
+   */
+  public set_restart(delay = 0): PromiseRes<void> {
+    return this.send("set_restart", {delay});
+  }
+  
+  /**
+   * 清理缓存
+   * @deprecated
+   */
+  public clean_cache(): PromiseRes<void> {
+    return this.send("clean_cache", {});
   }
   
   /**
@@ -269,12 +356,29 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param file 图片文件名,支持以下几种格式：
    * @param cache 表示是否使用已缓存的文件,通过网络 URL 发送时有效, `1` 表示使用缓存, `0` 关闭关闭缓存, 默认 为 `1`
    */
-  public set_group_portrait(group_id: int64, file: string, cache = 1): PromiseRes<VersionInfo> {
+  public set_group_portrait(group_id: int64, file: string, cache = 1): PromiseRes<void> {
     return this.send("set_group_portrait", {group_id, file, cache});
   }
   
-  /** 获取群系统消息 */
-  public get_group_system_msg(): PromiseRes<GroupSystemMSG> {
+  /**
+   * 获取中文分词 (隐藏 API)
+   * @protected
+   * @param content 内容
+   */
+  public get_word_slices(content: string): PromiseRes<WordSlicesData> {
+    return this.send("get_word_slices", {content});
+  }
+  
+  /**
+   * 图片OCR
+   * @param image 图片ID
+   */
+  public ocr_image(image: string): PromiseRes<OCRImage> {
+    return this.send("ocr_image", {image});
+  }
+  
+  /** 获取群系统消息, 如果列表不存在任何消息, 将返回 `null`*/
+  public get_group_system_msg(): PromiseRes<GroupSystemMSG | null> {
     return this.send("get_group_system_msg", {});
   }
   
@@ -318,7 +422,6 @@ export class CQWebSocket extends WebSocketCQPack {
    * 获取状态
    *
    * **注意**：所有统计信息都将在重启后重制
-   * @see https://ishkong.github.io/go-cqhttp-docs/api/#%E8%8E%B7%E5%8F%96%E7%8A%B6%E6%80%81
    */
   public get_status(): PromiseRes<Status> {
     return this.send("get_status", {});
@@ -330,6 +433,16 @@ export class CQWebSocket extends WebSocketCQPack {
    */
   public get_group_at_all_remain(group_id: int64): PromiseRes<GroupAtAllRemain> {
     return this.send("get_group_at_all_remain", {group_id});
+  }
+  
+  /**
+   * 对事件执行快速操作 (隐藏 API)
+   * @param context 事件数据对象, 可做精简, 如去掉 message 等无用字段
+   * @param operation 快速操作对象, 例如 `{ "ban": true, "reply": "请不要说脏话"}`
+   * @protected
+   */
+  protected handle_quick_operation(context: any, operation: any): PromiseRes<void> {
+    return this.send("handle_quick_operation", {context, operation});
   }
   
   /**
@@ -345,15 +458,18 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id QQ 号
    * @param content 公告内容
    */
-  public send_group_notice(group_id: int64, content: string): PromiseRes<unknown> {
+  public send_group_notice(group_id: int64, content: string): PromiseRes<void> {
     return this.send("_send_group_notice", {group_id});
   }
   
   /** 重载事件过滤器 */
-  public reload_event_filter(): PromiseRes<unknown> {
+  public reload_event_filter(): PromiseRes<void> {
     return this.send("reload_event_filter", {});
   }
   
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // 以下为非go-cq标准文档api
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /**
    * 获取当前账号在线客户端列表
    * @param no_cache 是否无视缓存
@@ -376,7 +492,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * 设置精华消息
    * @param message_id 消息ID
    */
-  public set_essence_msg(message_id: int64): PromiseRes<unknown> {
+  public set_essence_msg(message_id: int64): PromiseRes<void> {
     return this.send("set_essence_msg", {message_id});
   }
   
@@ -384,7 +500,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * 移出精华消息
    * @param message_id 消息ID
    */
-  public delete_essence_msg(message_id: int64): PromiseRes<unknown> {
+  public delete_essence_msg(message_id: int64): PromiseRes<void> {
     return this.send("delete_essence_msg", {message_id});
   }
   
@@ -396,13 +512,6 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("get_essence_msg_list", {group_id});
   }
   
-  /**
-   * 图片OCR
-   * @param image 图片ID
-   */
-  public ocr_image(image: string): PromiseRes<OCRImage> {
-    return this.send("ocr_image", {image});
-  }
   
   /**
    * 上传群文件<br/>
@@ -412,7 +521,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param name 储存名称
    * @param folder 父目录ID
    */
-  public upload_group_file(group_id: int64, file: string, name: string, folder?: string): PromiseRes<unknown> {
+  public upload_group_file(group_id: int64, file: string, name: string, folder?: string): PromiseRes<void> {
     return this.send("upload_group_file", {group_id, file, name, folder});
   }
   

@@ -17,13 +17,37 @@ export interface GroupData {
   auto_escape: boolean
 }
 
+/** @see get_forward_msg */
+export interface ForwardData {
+  /** 消息数组 */
+  messages: {
+    /** CQ码字符串 */
+    content: string;
+    sender: LoginInfo;
+    time: number
+  }[];
+}
+
+/** @see get_image */
+export interface QQImageData {
+  /**图片源文件大小*/
+  size: number
+  /**图片文件原名*/
+  filename: string
+  /**图片下载地址*/
+  url: string
+}
+
 /**
  * @see get_group_info
  * @see get_group_list
  */
 export interface GroupInfo extends GroupId {
+  /** 群名称 */
   group_name: string
+  /** 成员数 */
   member_count: number
+  /** 最大成员数（群容量） */
   max_member_count: number
 }
 
@@ -55,8 +79,8 @@ export interface LoginInfo extends UserId {
 
 /** @see get_stranger_info */
 export interface StrangerInfo extends LoginInfo {
-  /** 性别, male 或 female 或 unknown */
-  sex: string
+  /** 性别*/
+  sex: "male" | "female" | "unknown"
   /** 年龄 */
   age: number
 }
@@ -122,12 +146,40 @@ export interface HonorInfo extends LoginInfo {
   avatar: string
 }
 
+/**
+ * @see get_cookies
+ * @see get_credentials
+ */
+export interface CookiesData {
+  /** Cookies */
+  cookies: string
+}
+
+/**
+ * @see get_csrf_token
+ * @see get_credentials
+ */
+export interface CSRFTokenData {
+  /** CSRF Token */
+  token: number
+}
+
+/**@see get_record*/
+export interface RecordFormatData {
+  /** 转换后的语音文件路径 */
+  file: string
+}
+
 /** @see GroupHonorInfo */
 export type HonorInfoList = Array<HonorInfo & {
   /** 荣誉描述 */
   description: string
 }>
 
+/**
+ * @see can_send_image
+ * @see can_send_record
+ */
 export interface CanSend {
   /** 是或否 */
   yes: boolean
@@ -141,6 +193,12 @@ export interface VersionInfo {
   app_version: string
   /** OneBot 标准版本, 如 v11 */
   protocol_version: string
+}
+
+/**@see get_word_slices*/
+export interface WordSlicesData {
+  /**词组*/
+  slices: string[]
 }
 
 /** @see get_group_system_msg */
@@ -410,7 +468,13 @@ export interface APIRequest {
   echo: any,
 }
 
-/** 消息 ID */
+/**
+ * 消息 ID
+ * @see send_private_msg
+ * @see send_group_msg
+ * @see send_group_forward_msg
+ * @see send_msg
+ */
 export interface MessageId {
   /** 目标消息 ID */
   message_id: number
@@ -625,7 +689,7 @@ export interface EssenceMessage {
   message_id: number
 }
 
-/**图片OCR*/
+/**@see ocr_image*/
 export interface OCRImage {
   /**OCR结果*/
   texts: {
