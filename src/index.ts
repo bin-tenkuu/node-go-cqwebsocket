@@ -2,7 +2,7 @@ import {
   CanSend, CookiesData, CSRFTokenData, Device, DownloadFile, EssenceMessage, FileUrl, ForwardData, FriendInfo,
   GroupAtAllRemain, GroupData, GroupFileSystemInfo, GroupHonorInfo, GroupInfo, GroupMemberInfo, GroupRootFileSystemInfo,
   GroupSystemMSG, int64, LoginInfo, message, MessageId, MessageInfo, messageNode, OCRImage, PrivateData, PromiseRes,
-  QQImageData, RecordFormatData, Status, StrangerInfo, VersionInfo, VipInfo, WordSlicesData,
+  QQImageData, RecordFormatData, Status, StrangerInfo, URLSafely, VersionInfo, VipInfo, WordSlicesData,
 } from "./Interfaces";
 import {WebSocketCQPack} from "./websocketCQPack";
 
@@ -470,23 +470,6 @@ export class CQWebSocket extends WebSocketCQPack {
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // 以下为非go-cq标准文档api
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  /**
-   * 获取当前账号在线客户端列表
-   * @param no_cache 是否无视缓存
-   */
-  public get_online_clients(no_cache?: boolean): PromiseRes<Device[]> {
-    return this.send("get_online_clients", {no_cache});
-  }
-  
-  /**
-   * 获取群消息历史记录
-   * @param message_seq 起始消息序号, 可通过 `get_msg` 获得, 不提供起始序号将默认获取最新的消息
-   * @param group_id 群号
-   * @return 从起始序号开始的前19条消息
-   */
-  public get_group_msg_history(group_id: int64, message_seq?: int64): PromiseRes<any> {
-    return this.send("get_group_msg_history", {message_seq, group_id});
-  }
   
   /**
    * 设置精华消息
@@ -512,19 +495,6 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("get_essence_msg_list", {group_id});
   }
   
-  
-  /**
-   * 上传群文件<br/>
-   * 在不提供 folder 参数的情况下默认上传到根目录 只能上传本地文件, 需要上传 http 文件的话请先调用 download_file API下载
-   * @param group_id 群号
-   * @param file 本地文件路径
-   * @param name 储存名称
-   * @param folder 父目录ID
-   */
-  public upload_group_file(group_id: int64, file: string, name: string, folder?: string): PromiseRes<void> {
-    return this.send("upload_group_file", {group_id, file, name, folder});
-  }
-  
   /**
    * 下载文件到缓存目录<br/>
    * 通过这个API下载的文件能直接放入CQ码作为图片或语音发送 调用后会阻塞直到下载完成后才会返回数据，请注意下载大文件时的超时
@@ -539,11 +509,40 @@ export class CQWebSocket extends WebSocketCQPack {
   }
   
   /**
+   * 获取群消息历史记录
+   * @param message_seq 起始消息序号, 可通过 `get_msg` 获得, 不提供起始序号将默认获取最新的消息
+   * @param group_id 群号
+   * @return 从起始序号开始的前19条消息
+   */
+  public get_group_msg_history(group_id: int64, message_seq?: int64): PromiseRes<any[]> {
+    return this.send("get_group_msg_history", {message_seq, group_id});
+  }
+  
+  /**
+   * 获取当前账号在线客户端列表
+   * @param no_cache 是否无视缓存
+   */
+  public get_online_clients(no_cache?: boolean): PromiseRes<Device[]> {
+    return this.send("get_online_clients", {no_cache});
+  }
+  
+  /**
    * 检查链接安全性
    * @param url 需要检查的链接
-   
    */
-  public check_url_safely(url: string) {
+  public check_url_safely(url: string):PromiseRes<URLSafely> {
     return this.send("check_url_safely", {url});
+  }
+  
+  /**
+   * 上传群文件<br/>
+   * 在不提供 folder 参数的情况下默认上传到根目录 只能上传本地文件, 需要上传 http 文件的话请先调用 download_file API下载
+   * @param group_id 群号
+   * @param file 本地文件路径
+   * @param name 储存名称
+   * @param folder 父目录ID
+   */
+  public upload_group_file(group_id: int64, file: string, name: string, folder?: string): PromiseRes<void> {
+    return this.send("upload_group_file", {group_id, file, name, folder});
   }
 }

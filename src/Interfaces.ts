@@ -303,6 +303,7 @@ export interface GroupFolderInfo {
   total_file_count: number
 }
 
+/**@see get_group_file_url*/
 export interface FileUrl {
   /** 文件下载链接 */
   url: string
@@ -652,7 +653,7 @@ export interface OfflineFile extends NoticeType, UserId {
   }
 }
 
-/** 设备信息 */
+/** @see get_online_clients */
 export interface Device {
   /**客户端ID*/
   app_id: number
@@ -671,7 +672,7 @@ export interface Client_status extends NoticeType {
   online: boolean
 }
 
-/** 精华消息 */
+/** @see get_essence_msg_list */
 export interface EssenceMessage {
   /**发送者QQ 号*/
   sender_id: number
@@ -704,14 +705,14 @@ export interface OCRImage {
   language: string
 }
 
-/**下载文件到缓存目录*/
+/**@see download_file*/
 export interface DownloadFile {
   /**下载文件的绝对路径*/
   file: string
 }
 
-/**链接安全性*/
-export interface UrlSafely {
+/**@see check_url_safely*/
+export interface URLSafely {
   /**安全等级, 1: 安全 2: 未知 3: 危险*/
   level: number
 }
