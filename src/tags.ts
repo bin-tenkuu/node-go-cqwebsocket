@@ -93,7 +93,7 @@ export var CQ = {
     return msg.split(SPLIT).map(tagStr => {
       let match = CQ_TAG_REGEXP.exec(tagStr);
       if (match === null) {
-        return new CQText(tagStr);
+        return new CQText(CQ.unescape(tagStr));
       }
       // `[CQ:share,title=震惊&#44;小伙睡觉前居然...,url=http://baidu.com/?a=1&amp;b=2]`
       let [, tagName, value] = match;
@@ -225,6 +225,16 @@ export var CQ = {
    * @param id 回复时所引用的消息id, 必须为本群消息.
    */
   reply(id: number) { return new CQTag<reply>("reply", {id}); },
+  /**
+   * 自定义回复
+   * @param text 自定义回复时的自定义QQ, 如果使用自定义信息必须指定.
+   * @param qq 自定义回复时的自定义QQ, 如果使用自定义信息必须指定.
+   * @param time 可选. 自定义回复时的时间, 格式为Unix时间
+   * @param seq 起始消息序号, 可通过 get_msg 获得
+   */
+  replyCustom(text: string, qq: number, time?: number, seq?: number) {
+    return new CQTag<replyCustom>("reply", {text, qq, time, seq});
+  },
   /**
    * 戳一戳
    * @param qq 需要戳的成员
@@ -370,7 +380,19 @@ export interface poke extends Data {
 }
 
 export interface reply extends Data {
+  /**回复时所引用的消息id, 必须为本群消息.*/
   id: number
+}
+
+export interface replyCustom extends Data {
+  /**自定义回复的信息*/
+  text: string
+  /**自定义回复时的自定义QQ, 如果使用自定义信息必须指定.*/
+  qq: number
+  /**可选. 自定义回复时的时间, 格式为Unix时间*/
+  time?: number
+  /**起始消息序号, 可通过 get_msg 获得*/
+  seq?: number
 }
 
 export interface image extends Data {
