@@ -1,4 +1,3 @@
-import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {CQEventBus} from "./event-bus";
 import {
@@ -59,7 +58,7 @@ export class WebSocketCQPack {
     this._qq = qq;
     this._accessToken = accessToken;
     this._baseUrl = baseUrl;
-    this.messageSuccess = (ret) => console.log(`发送成功:${JSON.stringify(ret.data)}`);
+    this.messageSuccess = (ret) => console.log(`发送成功:${parseInt(ret.echo, 36)}`);
     this.messageFail = (reason) => console.log(`发送失败[${reason.retcode}]:${reason.wording}`);
   }
   
@@ -135,7 +134,7 @@ export class WebSocketCQPack {
         wording: "连接关闭",
       });
     }
-    let echo = shortid.generate();
+    let echo = WebSocketCQPack.GetECHO();
     let message: APIRequest = {
       action: method,
       params: params,
@@ -285,8 +284,8 @@ export class WebSocketCQPack {
     return this._eventBus.handle("socket.error", type, evt.code, evt.reason);
   }
   
-  /** js中 Date.now()不可能重复，直接拿来做不可重复字符串 */
-  public static RandomECHO(): string {
+  /** js中由于单线程特性，Date.now()不可能重复(至少有1的差距)，直接拿来做非重复字符串 */
+  public static GetECHO(): string {
     return Date.now().toString(36);
   }
   
