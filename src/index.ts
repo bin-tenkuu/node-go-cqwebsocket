@@ -66,6 +66,14 @@ export class CQWebSocket extends WebSocketCQPack {
   }
   
   /**
+   * 获取合并转发内容
+   * @param message_id 消息id
+   */
+  public get_forward_msg(message_id: string): PromiseRes<any> {
+    return this.send("get_forward_msg", {message_id});
+  }
+  
+  /**
    * 群组踢人
    * @param group_id 群号
    * @param user_id 要踢的 QQ 号
@@ -424,7 +432,7 @@ export class CQWebSocket extends WebSocketCQPack {
   /**
    * 检查链接安全性
    * @param url 需要检查的链接
- 
+   
    */
   public check_url_safely(url: string) {
     return this.send("check_url_safely", {url});
