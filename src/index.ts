@@ -13,8 +13,8 @@ export {
 } from "./tags";
 
 /**
- * 本类中所有api基于 `go-cqhttp-v0.9.37` 与 `go-cq额外文档(部分)` <br/>
- * go-cqhttp标准文档最后编辑日期： `1/5/2021, 2:53:26 AM` <br/>
+ * 本类中所有api基于 `go-cqhttp-v1.0.0` 与 `go-cq额外文档(部分)` <br/>
+ * go-cqhttp标准文档最后编辑日期： `3/22/2021, 1:44:14 PM` <br/>
  * **注：** 标记为 `@deprecated` 的方法为__未被支持__方法，并非过时方法 <br/>
  * **注2：** 标记为 `@protected` 的方法为__隐藏 API__，__不__建议一般用户使用, 不正确的使用可能造成程序运行不正常
  */
@@ -23,10 +23,12 @@ export class CQWebSocket extends WebSocketCQPack {
    * 发送私聊消息
    * @param user_id  对方 QQ 号
    * @param message 要发送的内容
+   * @param group_id 主动发起临时会话群号(机器人本身必须是管理员/群主)
    * @param auto_escape=false  消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 `message` 字段是字符串时有效
    */
-  public send_private_msg(user_id: int64, message: message, auto_escape = false): PromiseRes<MessageId> {
-    return this.send("send_private_msg", {user_id, message, auto_escape});
+  public send_private_msg(user_id: int64, message: message, group_id: int64,
+      auto_escape = false): PromiseRes<MessageId> {
+    return this.send("send_private_msg", {user_id, message, group_id, auto_escape});
   }
   
   /**
@@ -117,7 +119,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param anonymous_flag 选一, 要禁言的匿名用户的 flag（需从群消息上报的数据中获得）
    */
   public set_group_anonymous_ban(group_id: int64, anonymous: any, duration = 30 * 60,
-                                 anonymous_flag ?: string): PromiseRes<void> {
+      anonymous_flag ?: string): PromiseRes<void> {
     return this.send("set_group_anonymous_ban", {group_id, anonymous, duration, anonymous_flag});
   }
   
@@ -142,6 +144,7 @@ export class CQWebSocket extends WebSocketCQPack {
   
   /**
    * 群组匿名
+   * @deprecated
    * @param group_id 群号
    * @param enable 是否允许匿名聊天
    */
@@ -185,7 +188,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param duration 专属头衔有效期, 单位秒, -1 表示永久, 不过此项似乎没有效果, 可能是只有某些特殊的时间长度有效, 有待测试
    */
   public set_group_special_title(group_id: int64, user_id: int64, special_title: string,
-                                 duration: int64): PromiseRes<void> {
+      duration: int64): PromiseRes<void> {
     return this.send("set_group_special_title", {group_id, user_id, special_title, duration});
   }
   
@@ -207,7 +210,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param reason 添加后的好友备注（仅在同意时有效）
    */
   public set_group_add_request(flag: string, sub_type: string, approve = true,
-                               reason = ""): PromiseRes<void> {
+      reason = ""): PromiseRes<void> {
     return this.send("set_group_add_request", {flag, sub_type, type: sub_type, approve, reason});
   }
   
@@ -216,9 +219,13 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("get_login_info", {});
   }
   
-  /** 获取陌生人信息 */
-  public get_stranger_info(): PromiseRes<StrangerInfo> {
-    return this.send("get_stranger_info", {});
+  /**
+   * 获取陌生人信息
+   * @param user_id QQ 号
+   * @param no_cache 是否不使用缓存（使用缓存可能更新不及时, 但响应更快）
+   */
+  public get_stranger_info(user_id: int64, no_cache = false): PromiseRes<StrangerInfo> {
+    return this.send("get_stranger_info", {user_id, no_cache});
   }
   
   /** 获取好友列表 */
@@ -383,6 +390,18 @@ export class CQWebSocket extends WebSocketCQPack {
   }
   
   /**
+   * 上传群文件<br/>
+   * 在不提供 folder 参数的情况下默认上传到根目录 只能上传本地文件, 需要上传 http 文件的话请先调用 download_file API下载
+   * @param group_id 群号
+   * @param file 本地文件路径
+   * @param name 储存名称
+   * @param folder 父目录ID
+   */
+  public upload_group_file(group_id: int64, file: string, name: string, folder?: string): PromiseRes<void> {
+    return this.send("upload_group_file", {group_id, file, name, folder});
+  }
+  
+  /**
    * 获取群文件系统信息
    * @param group_id 群号
    */
@@ -467,9 +486,36 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("reload_event_filter", {});
   }
   
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // 以下为非go-cq标准文档api
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /**
+   * 下载文件到缓存目录<br/>
+   * 通过这个API下载的文件能直接放入CQ码作为图片或语音发送 调用后会阻塞直到下载完成后才会返回数据，请注意下载大文件时的超时
+   * @param url 链接地址
+   * @param thread_count 下载线程数
+   * @param headers 自定义请求头
+   * 格式：<br/>* 字符串:`User-Agent=YOUR_UA[\r\n]Referer=https://www.baidu.com`</br>
+   * * JSON数组:`["User-Agent=YOUR_UA","Referer=https://www.baidu.com"]`
+   */
+  public download_file(url: string, thread_count: number, headers: string | string[]): PromiseRes<DownloadFile> {
+    return this.send("download_file", {url, thread_count, headers});
+  }
+  
+  /**
+   * 获取当前账号在线客户端列表
+   * @param no_cache 是否无视缓存
+   */
+  public get_online_clients(no_cache?: boolean): PromiseRes<Device[]> {
+    return this.send("get_online_clients", {no_cache});
+  }
+  
+  /**
+   * 获取群消息历史记录
+   * @param message_seq 起始消息序号, 可通过 `get_msg` 获得, 不提供起始序号将默认获取最新的消息
+   * @param group_id 群号
+   * @return 从起始序号开始的前19条消息
+   */
+  public get_group_msg_history(group_id: int64, message_seq?: int64): PromiseRes<any[]> {
+    return this.send("get_group_msg_history", {message_seq, group_id});
+  }
   
   /**
    * 设置精华消息
@@ -496,53 +542,15 @@ export class CQWebSocket extends WebSocketCQPack {
   }
   
   /**
-   * 下载文件到缓存目录<br/>
-   * 通过这个API下载的文件能直接放入CQ码作为图片或语音发送 调用后会阻塞直到下载完成后才会返回数据，请注意下载大文件时的超时
-   * @param url 链接地址
-   * @param thread_count 下载线程数
-   * @param headers 自定义请求头
-   * 格式：<br/>* 字符串:`User-Agent=YOUR_UA[\r\n]Referer=https://www.baidu.com`</br>
-   * * JSON数组:`["User-Agent=YOUR_UA","Referer=https://www.baidu.com"]`
-   */
-  public download_file(url: string, thread_count: number, headers: string | string[]): PromiseRes<DownloadFile> {
-    return this.send("download_file", {url, thread_count, headers});
-  }
-  
-  /**
-   * 获取群消息历史记录
-   * @param message_seq 起始消息序号, 可通过 `get_msg` 获得, 不提供起始序号将默认获取最新的消息
-   * @param group_id 群号
-   * @return 从起始序号开始的前19条消息
-   */
-  public get_group_msg_history(group_id: int64, message_seq?: int64): PromiseRes<any[]> {
-    return this.send("get_group_msg_history", {message_seq, group_id});
-  }
-  
-  /**
-   * 获取当前账号在线客户端列表
-   * @param no_cache 是否无视缓存
-   */
-  public get_online_clients(no_cache?: boolean): PromiseRes<Device[]> {
-    return this.send("get_online_clients", {no_cache});
-  }
-  
-  /**
    * 检查链接安全性
    * @param url 需要检查的链接
    */
-  public check_url_safely(url: string):PromiseRes<URLSafely> {
+  public check_url_safely(url: string): PromiseRes<URLSafely> {
     return this.send("check_url_safely", {url});
   }
   
-  /**
-   * 上传群文件<br/>
-   * 在不提供 folder 参数的情况下默认上传到根目录 只能上传本地文件, 需要上传 http 文件的话请先调用 download_file API下载
-   * @param group_id 群号
-   * @param file 本地文件路径
-   * @param name 储存名称
-   * @param folder 父目录ID
-   */
-  public upload_group_file(group_id: int64, file: string, name: string, folder?: string): PromiseRes<void> {
-    return this.send("upload_group_file", {group_id, file, name, folder});
-  }
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // 以下为非go-cq标准文档api
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
 }

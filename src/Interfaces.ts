@@ -481,13 +481,11 @@ export interface MessageId {
   message_id: number
 }
 
-/** 群号 */
 export interface GroupId {
   /** 群号 */
   group_id: number
 }
 
-/** 目标 QQ 号,(发送者) */
 export interface UserId {
   /** 目标 QQ 号,(发送者) */
   user_id: number
@@ -534,9 +532,9 @@ export interface GroupUpload extends NoticeType, GroupId, UserId {
     id: string
     /** 文件名 */
     name: string
-    /** 文件大小 ( 字节数 ) */
+    /** 文件大小(字节数) */
     size: number
-    /** busid ( 目前不清楚有什么作用 ) */
+    /** busid(目前不清楚有什么作用) */
     busid: number
   }
 }
@@ -723,8 +721,7 @@ export type int64 = number | string
 export type MessageEventHandler<T> = (this: void, event: CQEvent, message: T, tags: CQTag<any>[]) => void
 export type EventHandler<T> = (this: void, event: CQEvent, message: T) => void
 export type ResponseHandle = (this: void, event: CQEvent, response: APIResponse<any>,
-                              sourceMSG: APIRequest,
-) => void
+    sourceMSG: APIRequest) => void
 export type SocketType = "api" | "event"
 export type HandleEventType = keyof SocketHandle
 export type RequestGroupType = "request.group" | "request.group.add" | "request.group.invite"

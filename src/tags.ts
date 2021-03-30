@@ -160,6 +160,15 @@ export var CQ = {
     });
   },
   /**
+   * 短视频
+   * @param file 视频地址, 支持http和file发送
+   * @param cover 视频封面, 支持http, file和base64发送, 格式必须为jpg
+   * @param c 通过网络下载视频时的线程数, 默认单线程. (在资源不支持并发时会自动处理)
+   */
+  video(file: string, cover?: string, c?: 2 | 3) {
+    return new CQTag<video>("video", {file, cover, c});
+  },
+  /**
    * .@某人
    * @param qq @的 QQ 号, `all` 表示全体成员
    */
@@ -241,7 +250,7 @@ export var CQ = {
    */
   poke(qq: number) { return new CQTag<poke>("poke", {qq}); },
   /**
-   *
+   * 礼物
    * @param qq 接收礼物的成员
    * @param id 礼物的类型
    */
@@ -287,8 +296,7 @@ export var CQ = {
    * @param icon 分享来源的icon图标url, 可以留空
    */
   cardimage(file: string, minwidth?: number, minheight?: number, maxwidth?: number, maxheight?: number,
-            source ?: string, icon?: string,
-  ) {
+      source ?: string, icon?: string) {
     return new CQTag<cardimage>("cardimage", {
       file,
       minwidth,
@@ -440,6 +448,15 @@ export interface share extends Data {
   content?: string
   /** 图片 URL */
   image?: string
+}
+
+export interface video extends Data {
+  /**视频地址, 支持http和file发送*/
+  file: string
+  /**视频封面, 支持http, file和base64发送, 格式必须为jpg*/
+  cover?: string
+  /**通过网络下载视频时的线程数, 默认单线程. (在资源不支持并发时会自动处理)*/
+  c?: number
 }
 
 export interface at extends Data {

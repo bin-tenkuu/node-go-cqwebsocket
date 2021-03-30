@@ -2,6 +2,10 @@
 
 <del>`node-cq-websocke` 停止维护后的替代品</del>
 
+本SDK中所有api基于 `go-cqhttp-v1.0.0` 与 `go-cq额外文档(部分)`
+
+go-cqhttp标准文档最后编辑日期： `3/22/2021, 1:44:14 PM`
+
 # 关于此SDK
 
 依赖 `go-cqhttp` 的 websocket 接口, 为 NodeJs 开发者提供一个搭建 QQ 聊天机器人的 SDK。
