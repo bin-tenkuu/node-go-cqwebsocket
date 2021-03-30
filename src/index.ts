@@ -26,7 +26,7 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param group_id 主动发起临时会话群号(机器人本身必须是管理员/群主)
    * @param auto_escape=false  消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 `message` 字段是字符串时有效
    */
-  public send_private_msg(user_id: int64, message: message, group_id: int64,
+  public send_private_msg(user_id: int64, message: message, group_id?: int64,
       auto_escape = false): PromiseRes<MessageId> {
     return this.send("send_private_msg", {user_id, message, group_id, auto_escape});
   }
