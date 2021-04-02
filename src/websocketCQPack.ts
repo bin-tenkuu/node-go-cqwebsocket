@@ -4,6 +4,7 @@ import {
   APIRequest, APIResponse, CQWebSocketOptions, ErrorAPIResponse, HandleEventType, PromiseRes, SocketHandle, SocketType,
 } from "./Interfaces";
 import {CQ} from "./tags";
+import shortid from "shortid";
 
 export class WebSocketCQPack {
   public messageSuccess: onSuccess<any>;
@@ -284,9 +285,10 @@ export class WebSocketCQPack {
     return this._eventBus.handle("socket.error", type, evt.code, evt.reason);
   }
   
-  /** js中由于单线程特性，Date.now()不可能重复(至少有1的差距)，直接拿来做非重复字符串 */
   public static GetECHO(): string {
-    return Date.now().toString(36);
+    // 异步环境下,可以重复,废弃
+    // return Date.now().toString(36);
+    return shortid.generate();
   }
   
   private _handleMSG(json: any): void | Promise<void> {

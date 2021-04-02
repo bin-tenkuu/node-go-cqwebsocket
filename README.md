@@ -52,7 +52,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
   | accessToken          | string  | ""                    | 校验口令, config.hjson中配置<br/>[参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) |
   | baseUrl              | string  | `ws://127.0.0.1:6700` | 完整链接                                                     |
   | qq                   | number  | `-1`                  | qq号                                                         |
-  | reconnection         | boolean | `true`                | 是否自动重连                                                 |
+  | reconnection         | boolean | `false`                | 是否自动重连                                                 |
   | reconnectionAttempts | number  | `10`                  | 重连次数                                                     |
   | reconnectionDelay    | number  | `1000`                | 重连延时(ms)                                                 |
 
