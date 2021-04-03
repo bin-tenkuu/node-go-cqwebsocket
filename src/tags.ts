@@ -16,17 +16,6 @@ export class CQTag<T extends Data> {
     this._type = type;
     this._data = data;
     this._modifier = {};
-    // 将 data 中全部属性在 this 中注册 getter
-    Object.defineProperties(this, Object.fromEntries(Object.entries(this._data).map<[
-      string,
-      PropertyDescriptor
-    ]>(([key]) => [
-      key, {
-        configurable: true,
-        enumerable: false,
-        get: () => this._data[key],
-      },
-    ])));
   }
   
   public get tagName(): tagName | string {
