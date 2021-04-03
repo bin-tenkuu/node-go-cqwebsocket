@@ -1,24 +1,22 @@
-interface Data {
-  [key: string]: any
+export interface Tag {
+  type: string
+  data: {
+    [key: string]: any
+  }
 }
 
-type Tag<T extends Data> = {
-  type: string,
-  data: T
-}
-
-export class CQTag<T extends Data> {
-  public readonly _type: string;
-  public readonly _data: T;
-  public _modifier: Data;
+export class CQTag<T extends Tag> {
+  public readonly _type: T["type"];
+  public readonly _data: T["data"];
+  public _modifier: T["data"];
   
-  public constructor(type: tagName | string, data: T) {
+  public constructor(type: T["type"], data: T["data"]) {
     this._type = type;
     this._data = data;
     this._modifier = {};
   }
   
-  public get tagName(): tagName | string {
+  public get tagName(): T["type"] | tagName {
     return this._type;
   }
   
@@ -27,11 +25,15 @@ export class CQTag<T extends Data> {
    * 于是我在实现了 getter 的同时写了这个方法，用于强类型代码（比如 typescript ）的编写时自动提示
    * @param key
    */
-  public get(key: keyof T): string {
-    return this._data[key];
+  public get<K extends keyof T["data"]>(key: K): T["data"][K] {
+    return this._modifier[key] ?? this._data[key] as T["data"][K];
   }
   
-  public toJSON(): Tag<T> {
+  public set<K extends keyof T["data"]>(key: K, value: any): void {
+    this._modifier[key] = value;
+  }
+  
+  public toJSON(): Tag {
     return this.toTag();
   }
   
@@ -46,11 +48,6 @@ export class CQTag<T extends Data> {
     
     ret += "]";
     return ret;
-  }
-  
-  public modifier<U extends Data>(modifier: U): this {
-    this._modifier = modifier;
-    return this;
   }
   
   /** 转换为纯消息段 */
@@ -128,7 +125,7 @@ export var CQ = {
    * 纯文本
    * @param text 纯文本内容
    */
-  text(text: string) { return new CQText(String(text)); },
+  text(text: string): CQTag<text> { return new CQText(String(text)); },
   /**
    * QQ 表情
    * @param id QQ 表情 ID,处于 [0,221] 区间
@@ -144,7 +141,7 @@ export var CQ = {
    * @param timeout 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时
    */
   record(file: string, magic?: boolean, cache?: boolean, proxy?: boolean, timeout?: number) {
-    return new CQTag<_record>("record", {
+    return new CQTag<record>("record", {
       file, magic, cache, proxy, timeout,
     });
   },
@@ -248,7 +245,7 @@ export var CQ = {
    * 合并转发消息节点
    * @param id 转发消息id, 直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序
    */
-  nodeId(id: number) { return new CQTag<nodeID>("node", {id}); },
+  nodeId(id: number) { return new CQTag<node>("node", {id}); },
   /**
    * 合并转发消息节点
    * @param name 发送者显示名字
@@ -273,7 +270,7 @@ export var CQ = {
    * @param data json内容, json的所有字符串记得实体化处理
    * @param resid 默认不填为0, 走小程序通道, 填了走富文本通道发送
    */
-  json(data: string, resid?: number) { return new CQTag<json>("xml", {data, resid}); },
+  json(data: string, resid?: number) { return new CQTag<json>("json", {data, resid}); },
   /**
    * 一种xml的图片消息（装逼大图）<br/> **PS** : xml 接口的消息都存在风控风险, 请自行兼容发送失败后的处理 ( 可以失败后走普通图片模式 )
    * @param file 和image的file字段对齐, 支持也是一样的
@@ -306,190 +303,304 @@ export var CQ = {
    * @param type CQ码类型
    * @param data CQ码参数
    */
-  custom<T extends Data>(type: string, data: T = <T>{}) { return new CQTag<T>(type, data); },
+  custom<T extends Tag>(type: string, data: T = <T>{}) { return new CQTag<T>(type, data); },
 };
 
-export interface tts extends Data {
-  /** 内容 */
-  text: string
+export interface tts extends Tag {
+  type: "tts"
+  data: {
+    /** 内容 */
+    text: string
+  }
 }
 
-export interface cardimage extends Data {
-  /** 和image的file字段对齐, 支持也是一样的 */
-  file: string
-  /** 默认不填为400, 最小width */
-  minwidth?: number
-  /** 默认不填为400, 最小height */
-  minheight?: number
-  /** 默认不填为500, 最大width */
-  maxwidth?: number
-  /** 默认不填为1000, 最大height */
-  maxheight?: number
-  /** 分享来源的名称, 可以留空 */
-  source?: string
-  /** 分享来源的icon图标url, 可以留空 */
-  icon?: string
-  
+export interface cardimage extends Tag {
+  type: "cardimage"
+  data: {
+    /** 和image的file字段对齐, 支持也是一样的 */
+    file: string
+    /** `收` 默认不填为400, 最小width */
+    minwidth?: number
+    /** `收` 默认不填为400, 最小height */
+    minheight?: number
+    /** `收` 默认不填为500, 最大width */
+    maxwidth?: number
+    /** `收` 默认不填为1000, 最大height */
+    maxheight?: number
+    /** `收` 分享来源的名称, 可以留空 */
+    source?: string
+    /** `收` 分享来源的icon图标url, 可以留空 */
+    icon?: string
+    
+  }
 }
 
-export interface json extends Data {
-  /** json内容, json的所有字符串记得实体化处理 */
-  data: string
-  /** 默认不填为0, 走小程序通道, 填了走富文本通道发送 */
-  resid?: number
+export interface json extends Tag {
+  type: "json"
+  data: {
+    /** json内容, json的所有字符串记得实体化处理 */
+    data: string
+    /** `收` 默认不填为0, 走小程序通道, 填了走富文本通道发送 */
+    resid?: number
+  }
 }
 
-export interface xml extends Data {
-  /** xml内容, xml中的value部分, 记得实体化处理 */
-  data: string
-  /** 可以不填 */
-  resid?: number
+export interface xml extends Tag {
+  type: "xml"
+  data: {
+    /** xml内容, xml中的value部分, 记得实体化处理 */
+    data: string
+    /** `收` 可以不填 */
+    resid?: number
+  }
 }
 
-export interface node extends Data {
-  /** 发送者显示名字 */
-  name: string
-  /** 发送者QQ号 */
-  uin: number | string
-  /**
-   * 具体消息
-   *
-   * 不支持转发套娃, 不支持引用回复
-   */
-  content: CQTag<any>[] | string
+export interface node extends Tag {
+  type: "node"
+  data: {
+    /** 转发消息id, 直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序 */
+    id: number
+  } | {
+    /** 发送者显示名字 */
+    name: string
+    /** 发送者QQ号 */
+    uin: number | string
+    /**
+     * 具体消息
+     *
+     * 不支持转发套娃, 不支持引用回复
+     */
+    content: CQTag<any>[] | string
+  }
 }
 
-export interface nodeID extends Data {
-  /** 转发消息id, 直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序 */
-  id: number
+export interface forward extends Tag {
+  type: "forward"
+  data: {
+    /** 合并转发ID, 需要通过 {@link get_forward_msg} API获取转发的具体内容 */
+    id: string
+  }
 }
 
-export interface gift extends Data {
-  /** 接收礼物的成员 */
-  qq: number
-  /** 礼物的类型 */
-  id: number
+export interface gift extends Tag {
+  type: "gift"
+  data: {
+    /** 接收礼物的成员 */
+    qq: number
+    /** 礼物的类型 <br/>取值:[0,13]*/
+    id: number
+  }
 }
 
-export interface poke extends Data {
-  /** 需要戳的成员 */
-  qq: number
+export interface poke extends Tag {
+  type: "poke"
+  data: {
+    /** 需要戳的成员 */
+    qq: number
+  }
 }
 
-export interface reply extends Data {
-  /**回复时所引用的消息id, 必须为本群消息.*/
-  id: number
+export interface redbag extends Tag {
+  type: "redbag"
+  data: {
+    /**祝福语/口令*/
+    title: string
+  }
 }
 
-export interface replyCustom extends Data {
-  /**自定义回复的信息*/
-  text: string
-  /**自定义回复时的自定义QQ, 如果使用自定义信息必须指定.*/
-  qq: number
-  /**可选. 自定义回复时的时间, 格式为Unix时间*/
-  time?: number
-  /**起始消息序号, 可通过 get_msg 获得*/
-  seq?: number
+export interface reply extends Tag {
+  type: "reply"
+  data: {
+    /**回复时所引用的消息id, 必须为本群消息.*/
+    id: number
+  }
 }
 
-export interface image extends Data {
-  /** 图片文件名 */
-  file: string
-  /** 图片类型, flash 表示闪照, show 表示秀图, 默认普通图片 */
-  type?: string
-  /** 图片 URL */
-  url?: string
-  /** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
-  cache?: number
-  /** 发送秀图时的特效id, 默认为40000 */
-  id?: number
-  /** 通过网络下载图片时的线程数, 默认单线程. (在资源不支持并发时会自动处理) */
-  c?: number
+export interface replyCustom extends Tag {
+  type: "reply"
+  data: {
+    /**自定义回复的信息*/
+    text: string
+    /**自定义回复时的自定义QQ, 如果使用自定义信息必须指定.*/
+    qq: number
+    /**可选. 自定义回复时的时间, 格式为Unix时间*/
+    time?: number
+    /**起始消息序号, 可通过 get_msg 获得*/
+    seq?: number
+  }
 }
 
-export interface musicCustom extends Data {
-  type: "custom"
-  /** 点击后跳转目标 URL */
-  url: string
-  /** 音乐 URL */
-  audio: string
-  /** 标题 */
-  title: string
-  /** 发送时可选, 内容描述 */
-  content?: string
-  /** 发送时可选, 图片 URL */
-  image?: string
+export interface image extends Tag {
+  type: "image"
+  data: {
+    /** 图片文件名 */
+    file: string
+    /** 图片类型, flash 表示闪照, show 表示秀图, 默认普通图片 */
+    type?: string
+    /** `收` 图片 URL */
+    url?: string
+    /** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
+    cache?: number
+    /** 发送秀图时的特效id, 默认为40000 <br/>取值:[40000,40005]*/
+    id?: number
+    /** 通过网络下载图片时的线程数, 默认单线程. (在资源不支持并发时会自动处理) */
+    c?: number
+  }
 }
 
-export interface music extends Data {
-  /** 分别表示使用 QQ 音乐、网易云音乐、虾米音乐 */
-  type: "qq" | "163" | "xm"
-  /** 歌曲 ID */
-  id: number
+export interface musicCustom extends Tag {
+  type: "music"
+  data: {
+    type: "custom"
+    /** 点击后跳转目标 URL */
+    url: string
+    /** 音乐 URL */
+    audio: string
+    /** 标题 */
+    title: string
+    /** 发送时可选, 内容描述 */
+    content?: string
+    /** 发送时可选, 图片 URL */
+    image?: string
+  }
 }
 
-export interface share extends Data {
-  /** URL */
-  url: string
-  /** 标题 */
-  title: string
-  /** 内容描述 */
-  content?: string
-  /** 图片 URL */
-  image?: string
+export interface music extends Tag {
+  type: "music"
+  data: {
+    /** 分别表示使用 QQ 音乐、网易云音乐、虾米音乐 */
+    type: "qq" | "163" | "xm"
+    /** 歌曲 ID */
+    id: number
+  }
 }
 
-export interface video extends Data {
-  /**视频地址, 支持http和file发送*/
-  file: string
-  /**视频封面, 支持http, file和base64发送, 格式必须为jpg*/
-  cover?: string
-  /**通过网络下载视频时的线程数, 默认单线程. (在资源不支持并发时会自动处理)*/
-  c?: number
+export interface location extends Tag {
+  type: "location"
+  data: {
+    /**纬度*/
+    lat: number
+    /**经度*/
+    lon: number
+    /**`收` 发送时可选, 标题*/
+    title?: string
+    /**`收` 发送时可选, 内容描述*/
+    content?: string
+  }
 }
 
-export interface at extends Data {
-  /** .@的 QQ 号, `all` 表示全体成员 */
-  qq: number | "all"
+export interface contact extends Tag {
+  type: "contact"
+  data: {
+    /**推荐好友/群*/
+    type: "qq" | "group"
+    /**被推荐的 QQ （群）号*/
+    id: number
+  }
 }
 
-export interface video extends Data {
-  /** 视频文件名 */
-  file: string
-  /** 视频 URL */
-  url?: string
+export interface share extends Tag {
+  type: "share"
+  data: {
+    /** URL */
+    url: string
+    /** 标题 */
+    title: string
+    /** `收` 内容描述 */
+    content?: string
+    /** `收` 图片 URL */
+    image?: string
+  }
 }
 
-export interface record extends Data {
-  /** 语音文件名 */
-  file: string
-  /** 语音 URL */
-  url?: string
-  /** 表示变声 */
-  magic?: boolean
+export interface anonymous extends Tag {
+  type: "anonymous"
+  data: {}
 }
 
-interface _record extends Data {
-  /** 语音文件名 */
-  file: string
-  /** 表示变声 */
-  magic?: boolean
-  /** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
-  cache?: boolean
-  /** 只在通过网络 URL 发送时有效, 表示是否通过代理下载文件 ( 需通过环境变量或配置文件配置代理 ) , 默认 1 */
-  proxy?: boolean
-  /** 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时 */
-  timeout?: number
+export interface shake extends Tag {
+  type: "shake"
+  data: {}
 }
 
-export interface text extends Data {
-  /** 纯文本内容 */
-  text: string
+export interface dice extends Tag {
+  type: "dice"
+  data: {}
 }
 
-export interface face extends Data {
-  /** QQ 表情 ID,处于 [0,221] 区间 */
-  id: number
+export interface rps extends Tag {
+  type: "rps"
+  data: {}
+}
+
+export interface at extends Tag {
+  type: "at"
+  data: {
+    /** .@的 QQ 号, `all` 表示全体成员 */
+    qq: number | "all"
+  }
+}
+
+export interface video extends Tag {
+  type: "video"
+  data: {
+    /**视频地址, 支持http和file发送*/
+    file: string
+    /**视频封面, 支持http, file和base64发送, 格式必须为jpg*/
+    cover?: string
+    /**通过网络下载视频时的线程数, 默认单线程. (在资源不支持并发时会自动处理)*/
+    c?: number
+  }
+}
+
+export interface videoReceive extends Tag {
+  type: "video"
+  data: {
+    /** 视频文件名 */
+    file: string
+    /** `收` 视频 URL */
+    url?: string
+    /** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
+    cache?: boolean
+    /** 只在通过网络 URL 发送时有效, 表示是否通过代理下载文件 ( 需通过环境变量或配置文件配置代理 ) , 默认 1 */
+    proxy?: boolean
+    /** 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时 */
+    timeout?: number
+  }
+}
+
+export interface record extends Tag {
+  type: "record"
+  data: {
+    /** 语音文件名 */
+    file: string
+    /** `收` 表示变声,发送时可选, 默认 0, 设置为 1 */
+    magic?: boolean
+    /** `收` 语音 URL */
+    url?: string
+    /** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
+    cache?: boolean
+    /** 只在通过网络 URL 发送时有效, 表示是否通过代理下载文件 ( 需通过环境变量或配置文件配置代理 ) , 默认 1 */
+    proxy?: boolean
+    /** 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时 */
+    timeout?: number
+  }
+}
+
+export interface face extends Tag {
+  type: "face"
+  data: {
+    /** QQ 表情 ID,处于 [0,221] 区间 */
+    id: number
+  }
+}
+
+export interface text extends Tag {
+  type: "text"
+  data: {
+    /** 纯文本内容 */
+    text: string
+  }
 }
 
 export type tagName = "text" | "face" | "record" | "video" | "at" | "rps" | "dice" | "shake" | "anonymous" | "share"
