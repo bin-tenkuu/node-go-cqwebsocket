@@ -8,12 +8,10 @@ export interface Tag {
 export class CQTag<T extends Tag> {
   public readonly _type: T["type"];
   public readonly _data: T["data"];
-  public _modifier: T["data"];
   
   public constructor(type: T["type"], data: T["data"]) {
     this._type = type;
     this._data = data;
-    this._modifier = {};
   }
   
   public get tagName(): T["type"] | tagName {
@@ -21,16 +19,24 @@ export class CQTag<T extends Tag> {
   }
   
   /**
-   * 原本应该是每一个 data 里的属性都在外面给一个 getter 的，奈何我不会写约束文件里的索引器。
-   * 于是我在实现了 getter 的同时写了这个方法，用于强类型代码（比如 typescript ）的编写时自动提示
-   * @param key
+   * 用于获取data属性里的字段
+   * @param key 字段
+   * @return 值
    */
   public get<K extends keyof T["data"]>(key: K): T["data"][K] {
-    return this._modifier[key] ?? this._data[key] as T["data"][K];
+    return this._data[key];
   }
   
-  public set<K extends keyof T["data"]>(key: K, value: any): void {
-    this._modifier[key] = value;
+  /**
+   * 设置新值
+   * @param key 字段
+   * @param value 新值
+   * @return 替换前的值
+   */
+  public set<K extends keyof T["data"]>(key: K, value: T["data"][K]): T["data"][K] {
+    let temp = this._data[key];
+    this._data[key] = value;
+    return temp;
   }
   
   public toJSON(): Tag {
@@ -38,24 +44,23 @@ export class CQTag<T extends Tag> {
   }
   
   public toString(): string {
-    let ret = `[CQ:${this._type}`;
-    
-    Object.entries(Object.assign({}, this._data, this._modifier)).forEach(([k, v]) => {
-      if (v !== undefined) {
-        ret += `,${k}=${v}`;
-      }
-    });
-    
-    ret += "]";
-    return ret;
+    // 暂不清楚哪个效率高,直接进行一个模板字符串的用
+    return `[CQ:${this._type}${Object.entries(this._data).map(([k, v]) => {
+      if (v === undefined) return "";
+      return `,${k}=${v}`;
+    }).join("")}]`;
+  }
+  
+  /**浅拷贝 data 对象*/
+  public clone(): CQTag<T> {
+    return new CQTag<T>(this._type, Object.assign<{}, T["data"]>({}, this._data));
   }
   
   /** 转换为纯消息段 */
-  public toTag(): Tag<T> {
-    const data = Object.assign({}, this._data, this._modifier);
+  public toTag(): Tag {
     return {
-      type: this.tagName,
-      data: data,
+      type: this._type,
+      data: this._data,
     };
   }
 }
@@ -189,7 +194,7 @@ export var CQ = {
    * @param image 发送时可选, 图片 URL
    */
   musicCustom(url: string, audio: string, title: string, content?: string, image?: string) {
-    return new CQTag<musicCustom>(
+    return new CQTag<music>(
         "music", {
           type: "custom",
           url,
@@ -448,9 +453,14 @@ export interface image extends Tag {
   }
 }
 
-export interface musicCustom extends Tag {
+export interface music extends Tag {
   type: "music"
   data: {
+    /** 分别表示使用 QQ 音乐、网易云音乐、虾米音乐 */
+    type: "qq" | "163" | "xm"
+    /** 歌曲 ID */
+    id: number
+  } | {
     type: "custom"
     /** 点击后跳转目标 URL */
     url: string
@@ -462,16 +472,6 @@ export interface musicCustom extends Tag {
     content?: string
     /** 发送时可选, 图片 URL */
     image?: string
-  }
-}
-
-export interface music extends Tag {
-  type: "music"
-  data: {
-    /** 分别表示使用 QQ 音乐、网易云音乐、虾米音乐 */
-    type: "qq" | "163" | "xm"
-    /** 歌曲 ID */
-    id: number
   }
 }
 
@@ -550,12 +550,7 @@ export interface video extends Tag {
     cover?: string
     /**通过网络下载视频时的线程数, 默认单线程. (在资源不支持并发时会自动处理)*/
     c?: number
-  }
-}
-
-export interface videoReceive extends Tag {
-  type: "video"
-  data: {
+  } | {
     /** 视频文件名 */
     file: string
     /** `收` 视频 URL */
@@ -568,6 +563,7 @@ export interface videoReceive extends Tag {
     timeout?: number
   }
 }
+
 
 export interface record extends Tag {
   type: "record"
