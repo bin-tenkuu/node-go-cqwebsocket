@@ -1,10 +1,10 @@
+import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {CQEventBus} from "./event-bus";
 import {
   APIRequest, APIResponse, CQWebSocketOptions, ErrorAPIResponse, HandleEventType, PromiseRes, SocketHandle, SocketType,
 } from "./Interfaces";
 import {CQ} from "./tags";
-import shortid from "shortid";
 
 export class WebSocketCQPack {
   public messageSuccess: onSuccess<any>;
@@ -23,18 +23,18 @@ export class WebSocketCQPack {
   private _socketEVENT?: w3cwebsocket;
   
   constructor({
-                // connectivity configs
-                accessToken = "",
-                baseUrl = "ws://127.0.0.1:6700",
+    // connectivity configs
+    accessToken = "",
+    baseUrl = "ws://127.0.0.1:6700",
     
-                // application aware configs
-                qq = -1,
+    // application aware configs
+    qq = -1,
     
-                // Reconnection configs
-                reconnection = false,
-                reconnectionAttempts = 10,
-                reconnectionDelay = 1000,
-              }: CQWebSocketOptions = {}, debug?: true) {
+    // Reconnection configs
+    reconnection = false,
+    reconnectionAttempts = 10,
+    reconnectionDelay = 1000,
+  }: CQWebSocketOptions = {}, debug?: true) {
     this._debug = Boolean(debug);
     this._responseHandlers = new Map();
     this._eventBus = new CQEventBus();
@@ -310,48 +310,10 @@ export class WebSocketCQPack {
         let notice_type = json["notice_type"];
         switch (notice_type) {
           case "group_upload":
-            return this._eventBus.handle([post_type, notice_type], json);
-          case "group_admin": {
-            let subType = json["sub_type"];
-            switch (subType) {
-              case "set":
-              case "unset":
-                return this._eventBus.handle([post_type, notice_type, subType], json);
-              default:
-                return console.warn(`未知的 notice.group_admin 类型: ${subType}`);
-            }
-          }
-          case "group_decrease": {
-            let subType = json["sub_type"];
-            switch (subType) {
-              case "leave":
-              case "kick":
-              case "kick_me":
-                return this._eventBus.handle([post_type, notice_type, subType], json);
-              default:
-                return console.warn(`未知的 notice.group_decrease 类型: ${subType}`);
-            }
-          }
-          case "group_increase": {
-            let subType = json["sub_type"];
-            switch (subType) {
-              case "approve":
-              case "invite":
-                return this._eventBus.handle([post_type, notice_type, subType], json);
-              default:
-                return console.warn(`未知的 notice.group_increase 类型: ${subType}`);
-            }
-          }
-          case "group_ban": {
-            let subType = json["sub_type"];
-            switch (subType) {
-              case "ban":
-              case "lift_ban":
-                return this._eventBus.handle([post_type, notice_type, subType], json);
-              default:
-                return console.warn(`未知的 notice.group_ban 类型: ${subType}`);
-            }
-          }
+          case "group_admin":
+          case "group_decrease":
+          case "group_increase":
+          case "group_ban":
           case "friend_add":
           case "group_recall":
           case "friend_recall":
@@ -394,17 +356,8 @@ export class WebSocketCQPack {
         let request_type = json["request_type"];
         switch (request_type) {
           case "friend":
+          case "group":
             return this._eventBus.handle([post_type, request_type], json);
-          case "group": {
-            let subType = json["sub_type"];
-            switch (subType) {
-              case "add":
-              case "invite":
-                return this._eventBus.handle([post_type, request_type, subType], json);
-              default:
-                return console.warn(`未知的 request.group 类型: ${subType}`);
-            }
-          }
           default:
             return console.warn(`未知的 request 类型: ${request_type}`);
         }

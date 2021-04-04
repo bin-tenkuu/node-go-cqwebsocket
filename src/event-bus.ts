@@ -1,32 +1,21 @@
 import {HandleEventType} from "./Interfaces";
 
-interface dom {
+type dom = {
   [key: string]: [] | dom
 }
 
-export class Node {
+class Node {
   _child: { [key: string]: Node };
-  _parent?: Node;
   _name: string;
-  _handle: Function[];
+  _handles: Function[];
   
-  constructor(name: string, parent?: Node) {
+  private constructor(name: string, parent?: Node) {
     this._name = name;
     this._child = {};
-    this._handle = [];
-    if (parent) {
-      this._parent = parent;
+    this._handles = [];
+    if (parent !== undefined) {
       parent._child[name] = this;
     }
-  }
-  
-  get hasParent(): boolean {
-    return this._parent !== undefined && this._parent !== this;
-  }
-  
-  /** 当没有父节点时,将会返回自身 */
-  get parent(): Node {
-    return this._parent || this;
   }
   
   child(key: string): Node | undefined {
@@ -34,18 +23,18 @@ export class Node {
   }
   
   on(handle: Function): void {
-    this._handle.push(handle);
+    this._handles.push(handle);
   }
   
   off(handle: Function): void {
-    let indexOf = this._handle.indexOf(handle);
+    let indexOf = this._handles.indexOf(handle);
     if (indexOf >= 0) {
-      this._handle.splice(indexOf, 1);
+      this._handles.splice(indexOf, 1);
     }
   }
   
-  get handle(): Function[] {
-    return this._handle;
+  get handles(): Function[] {
+    return this._handles;
   }
   
   static parseNode(obj: dom, parent: Node = new Node("root")): Node {
@@ -64,7 +53,7 @@ export class CQEventBus {
   _onceListeners: WeakMap<Function, Function>;
   
   constructor() {
-    this._EventMap = Node.parseNode({
+    this._EventMap = Node.parseNode(<dom>{
       message: {
         private: [],
         group: [],
@@ -72,23 +61,10 @@ export class CQEventBus {
       },
       notice: {
         group_upload: [],
-        group_admin: {
-          set: [],
-          unset: [],
-        },
-        group_decrease: {
-          leave: [],
-          kick: [],
-          kick_me: [],
-        },
-        group_increase: {
-          approve: [],
-          invite: [],
-        },
-        group_ban: {
-          ban: [],
-          lift_ban: [],
-        },
+        group_admin: [],
+        group_decrease: [],
+        group_increase: [],
+        group_ban: [],
         friend_add: [],
         group_recall: [],
         friend_recall: [],
@@ -110,10 +86,7 @@ export class CQEventBus {
       },
       request: {
         friend: [],
-        group: {
-          add: [],
-          invite: [],
-        },
+        group: [],
       },
       socket: {
         open: [],
@@ -179,18 +152,17 @@ export class CQEventBus {
     if (typeof eventType === "string") {
       eventType = eventType.split(".");
     }
-    for (let node = this.get(eventType); node.hasParent; node = node.parent) {
-      let event = new CQEvent();
-      for (let handle of node.handle) {
-        try {
-          await handle(event, ...args);
-          if (event.isCanceled) {
-            break;
-          }
-        } catch (e) {
-          console.error(e);
-          this.off(eventType, handle);
+    let handles = this.get(eventType).handles;
+    let event = new CQEvent();
+    for (let handle of handles) {
+      try {
+        await handle(event, ...args);
+        if (event.isCanceled) {
+          break;
         }
+      } catch (e) {
+        console.error(e);
+        this.off(eventType, handle);
       }
     }
   }
