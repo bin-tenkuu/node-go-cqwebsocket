@@ -12,7 +12,7 @@ go-cqhttp标准文档最后编辑日期： `3/22/2021, 1:44:14 PM`
 
 关于 `go-cqhttp`，见 [Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
 
-关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/) 为准， 同时提供 `send()`
+关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/) 为准， 同时提供 `send(...)`
 方法以供未知接口的调用
 
 > 本 SDK API 已趋于稳定, 项目中引用请使用 `2.0.0` 以上版本, 后续 API 将尽可能减少变化
@@ -62,6 +62,8 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 **注2：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 Event,
 查找请参考 [go-cqhttp 帮助中心 Event](https://ishkong.github.io/go-cqhttp-docs/event/) , 注册监听请使用 `bot.on(...)`, `bot.once(...)`
 , `bot.off(...)`, `bot.bind(...)`, `bot.unbind(...)`
+
+**注3：** 实例属性 `errorEvent` 用于替代默认的 `error` 事件, 仅在事件运行出错时调用
 
 ------------------------------------
 

@@ -311,6 +311,11 @@ export var CQ = {
   custom<T extends Tag>(type: string, data: T = <T>{}) { return new CQTag<T>(type, data); },
 };
 
+export type allTags = text | face | record | video | at | rps | dice | shake | anonymous | share | contact | location
+    | music | image | replyCustom | reply | redbag | poke | gift | forward | node | xml | json | cardimage | tts
+
+export type tagName = allTags["type"]
+
 export interface tts extends Tag {
   type: "tts"
   data: {
@@ -564,7 +569,6 @@ export interface video extends Tag {
   }
 }
 
-
 export interface record extends Tag {
   type: "record"
   data: {
@@ -598,7 +602,3 @@ export interface text extends Tag {
     text: string
   }
 }
-
-export type tagName = "text" | "face" | "record" | "video" | "at" | "rps" | "dice" | "shake" | "anonymous" | "share"
-    | "contact" | "location" | "music" | "image" | "reply" | "redbag" | "poke" | "gift" | "forward" | "node" | "xml"
-    | "json" | "cardimage" | "tts"

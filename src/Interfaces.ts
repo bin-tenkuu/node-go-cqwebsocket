@@ -1,4 +1,3 @@
-import {CQEvent} from "./event-bus";
 import {CQTag, node} from "./tags";
 
 /**@see send_msg*/
@@ -41,7 +40,7 @@ export interface QQImageData {
 /**
  * @see get_group_info
  * @see get_group_list
-*/
+ */
 export interface GroupInfo extends GroupId {
   /**群名称*/
   group_name: string
@@ -107,7 +106,7 @@ export interface GroupRenderInfo extends StrangerInfo {
 /**
  * @see get_group_member_info
  * @see get_group_member_list
-*/
+ */
 export interface GroupMemberInfo extends GroupRenderInfo, GroupId {
   /**加群时间戳*/
   join_time: number
@@ -149,7 +148,7 @@ export interface HonorInfo extends LoginInfo {
 /**
  * @see get_cookies
  * @see get_credentials
-*/
+ */
 export interface CookiesData {
   /**Cookies*/
   cookies: string
@@ -158,7 +157,7 @@ export interface CookiesData {
 /**
  * @see get_csrf_token
  * @see get_credentials
-*/
+ */
 export interface CSRFTokenData {
   /**CSRF Token*/
   token: number
@@ -179,7 +178,7 @@ export type HonorInfoList = Array<HonorInfo & {
 /**
  * @see can_send_image
  * @see can_send_record
-*/
+ */
 export interface CanSend {
   /**是或否*/
   yes: boolean
@@ -255,7 +254,7 @@ export interface GroupFileSystemInfo {
  * @see get_group_root_files
  * @see get_group_files_by_folder
  * @see get_group_root_files
-*/
+ */
 export interface GroupRootFileSystemInfo {
   /**文件列表*/
   files: GroupFileInfo[]
@@ -466,7 +465,7 @@ export interface CQWebSocketOptions {
 export interface APIRequest {
   action: string,
   params: CQTag<any>[] | string,
-  echo: string,
+  echo: any,
 }
 
 /**
@@ -475,7 +474,7 @@ export interface APIRequest {
  * @see send_group_msg
  * @see send_group_forward_msg
  * @see send_msg
-*/
+ */
 export interface MessageId {
   /**目标消息 ID*/
   message_id: number
@@ -491,6 +490,16 @@ export interface UserId {
   user_id: number
 }
 
+export interface SenderId {
+  /**发送者 QQ 号*/
+  sender_id: number
+}
+
+export interface OperatorId {
+  /**操作者ID*/
+  operator_id: number
+}
+
 /**API 消息回复报文*/
 export interface APIResponse<T> {
   status: string,
@@ -504,7 +513,7 @@ export interface APIResponse<T> {
    * |103|操作失败,一般是因为用户权限不足,或文件系统异常、不符合预期|
    * |104|由于 酷Q 提供的凭证(Cookie 和 CSRF Token)失效导致请求 QQ 相关接口失败,可尝试清除 酷Q 缓存来解决|
    * |201|工作线程池未正确初始化(无法执行异步任务)|
-  */
+   */
   retcode: number
   data: T
   echo: any
@@ -547,7 +556,7 @@ export interface GroupAdmin extends NoticeType, SubType, GroupId, UserId {
 }
 
 /**群成员减少*/
-export interface GroupDecrease extends NoticeType, SubType, GroupId, UserId {
+export interface GroupDecrease extends NoticeType, SubType, GroupId, UserId, OperatorId {
   notice_type: "group_decrease"
   /**事件子类型, 分别表示主动退群、成员被踢、登录号被踢*/
   sub_type: "leave" | "kick" | "kick_me"
@@ -556,21 +565,17 @@ export interface GroupDecrease extends NoticeType, SubType, GroupId, UserId {
 }
 
 /**群成员增加*/
-export interface GroupIncrease extends NoticeType, SubType, GroupId, UserId {
+export interface GroupIncrease extends NoticeType, SubType, GroupId, UserId, OperatorId {
   notice_type: "group_increase"
   /**事件子类型, 分别表示管理员已同意入群、管理员邀请入群*/
   sub_type: "approve" | "invite"
-  /**操作者 QQ 号*/
-  operator_id: number
 }
 
 /**群禁言*/
-export interface GroupBan extends NoticeType, SubType, GroupId, UserId {
+export interface GroupBan extends NoticeType, SubType, GroupId, UserId, OperatorId {
   notice_type: "group_ban"
   /**事件子类型, 分别表示禁言、解除禁言*/
   sub_type: "ban" | "lift_ban"
-  /**操作者 QQ 号*/
-  operator_id: number
   /**禁言时长, 单位秒*/
   duration: number
 }
@@ -581,11 +586,9 @@ export interface FriendAdd extends NoticeType, UserId {
 }
 
 /**群消息撤回*/
-export interface GroupRecall extends NoticeType, MessageId, GroupId, UserId {
+export interface GroupRecall extends NoticeType, MessageId, GroupId, UserId, OperatorId {
   /**group_recall  通知类型*/
   notice_type: "group_recall"
-  /**操作者 QQ 号*/
-  operator_id: number
 }
 
 /**好友消息撤回*/
@@ -595,17 +598,15 @@ export interface FriendRecall extends NoticeType, MessageId, UserId {
 }
 
 /**好友戳一戳*/
-export interface NotifyPokeFriend extends NoticeType, SubType, UserId {
+export interface NotifyPokeFriend extends NoticeType, SubType, UserId, SenderId {
   notice_type: "notify"
   sub_type: "poke"
-  /**发送者 QQ 号*/
-  sender_id: number
   /**被戳者 QQ 号*/
   target_id: number
 }
 
 /**群内戳一戳*/
-export interface NotifyPokeGroup extends NoticeType, GroupId, UserId {
+export interface NotifyPokeGroup extends NoticeType, SubType, UserId, GroupId {
   notice_type: "notify"
   sub_type: "poke"
   /**被戳者 QQ 号*/
@@ -616,6 +617,8 @@ export interface NotifyPokeGroup extends NoticeType, GroupId, UserId {
 export interface NotifyLuckyKing extends NoticeType, SubType, GroupId, UserId {
   notice_type: "notify"
   sub_type: "lucky_king"
+  /**红包发送者id*/
+  user_id: number
   /**运气王id*/
   target_id: number
 }
@@ -662,7 +665,7 @@ export interface Device {
 }
 
 /**其他客户端在线状态*/
-export interface Client_status extends NoticeType {
+export interface ClientStatus extends NoticeType {
   notice_type: "client_status"
   /**客户端信息*/
   client: Device
@@ -670,22 +673,22 @@ export interface Client_status extends NoticeType {
   online: boolean
 }
 
+export interface Essence extends NoticeType, MessageId, SenderId, OperatorId {
+  notice_type: "essence"
+  /**添加为add,移出为delete*/
+  sub_type: "add" | "delete"
+}
+
 /**@see get_essence_msg_list*/
-export interface EssenceMessage {
-  /**发送者QQ 号*/
-  sender_id: number
+export interface EssenceMessage extends MessageId, SenderId, OperatorId {
   /**发送者昵称*/
   sender_nick: string
   /**消息发送时间*/
   sender_time: number
-  /**操作者QQ 号*/
-  operator_id: number
   /**操作者昵称*/
   operator_nick: string
   /**精华设置时间*/
   operator_time: number
-  /**消息ID*/
-  message_id: number
 }
 
 /**@see ocr_image*/
@@ -720,11 +723,16 @@ export type messageNode = CQTag<node>
 export type int64 = number | string
 export type MessageEventHandler<T> = (this: void, event: CQEvent, message: T, tags: CQTag<any>[]) => void
 export type EventHandler<T> = (this: void, event: CQEvent, message: T) => void
-export type ResponseHandle = (this: void, event: CQEvent, response: APIResponse<any>,
-    sourceMSG: APIRequest) => void
+export type ResponseHandle = (this: void, event: CQEvent, response: APIResponse<any>, sourceMSG: APIRequest) => void
 export type SocketType = "api" | "event"
+export type SocketCloseHandle = (this: void, event: CQEvent, type: SocketType, code: number, reason: string) => void
+export type ListenerChangeHandle = (this: void, type: HandleEventType, handler: SocketHandle[HandleEventType]) => void
 export type HandleEventType = keyof SocketHandle
-export type SocketHandle = Partial<{
+export type HandleEventParam<T extends HandleEventType> = SocketHandle[T] extends (event: CQEvent,
+    ...args: infer U) => void ? U : SocketHandle[T] extends (...args: infer U) => void ? U : unknown[];
+export type SocketHandleArray = [HandleEventType, SocketHandle[HandleEventType]][]
+export type ErrorEventHandle = <T extends HandleEventType>(error: Error | any, type: T, handler: SocketHandle[T]) => void;
+export type SocketHandle = {
   "message.private": MessageEventHandler<PrivateMessage>
   "message.group": MessageEventHandler<GroupMessage>
   "message.discuss": MessageEventHandler<any>
@@ -732,10 +740,9 @@ export type SocketHandle = Partial<{
   "request.friend": EventHandler<RequestFriend>
   "request.group": EventHandler<RequestGroup>
   
-  "socket": EventHandler<SocketType>
   "socket.open": EventHandler<SocketType>
-  "socket.close": (this: void, event: CQEvent, type: SocketType, code: number, reason: string) => void
-  "socket.error": (this: void, event: CQEvent, type: SocketType, code: number, reason: string) => void
+  "socket.close": SocketCloseHandle
+  "socket.error": SocketCloseHandle
   
   "api.preSend": EventHandler<APIRequest>
   "api.response": ResponseHandle
@@ -757,8 +764,78 @@ export type SocketHandle = Partial<{
   "notice.notify.honor": EventHandler<NotifyHonor>
   "notice.group_card": EventHandler<GroupCard>
   "notice.offline_file": EventHandler<OfflineFile>
-  "notice.client_status": EventHandler<Client_status>
-}>
+  "notice.client_status": EventHandler<ClientStatus>
+  "notice.essence": EventHandler<Essence>
+  
+  "message_sent": EventHandler<any>
+  
+  // node 原生事件
+  "newListener": ListenerChangeHandle
+  "removeListener": ListenerChangeHandle
+}
+export type SocketDom = {
+  message: {
+    private: [],
+    group: [],
+    discuss: [],
+  },
+  notice: {
+    group_upload: [],
+    group_admin: [],
+    group_decrease: [],
+    group_increase: [],
+    group_ban: [],
+    friend_add: [],
+    group_recall: [],
+    friend_recall: [],
+    notify: {
+      poke: {
+        friend: [],
+        group: [],
+      },
+      lucky_king: [],
+      honor: [],
+    },
+    group_card: [],
+    offline_file: [],
+    client_status: [],
+    essence: [],
+  },
+  request: {
+    friend: [],
+    group: [],
+  },
+  socket: {
+    open: [],
+    error: [],
+    close: [],
+  },
+  api: {
+    response: [],
+    preSend: [],
+  },
+  meta_event: {
+    lifecycle: [],
+    heartbeat: [],
+  },
+  message_sent: [],
+}
+
+export class CQEvent {
+  _isCanceled: boolean;
+  
+  constructor() {
+    this._isCanceled = false;
+  }
+  
+  get isCanceled(): boolean {
+    return this._isCanceled;
+  }
+  
+  stopPropagation(): void {
+    this._isCanceled = true;
+  }
+}
 
 export interface PromiseRes<T> extends Promise<T> {
   then<S = T, F = never>(
