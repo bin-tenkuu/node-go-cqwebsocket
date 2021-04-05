@@ -1,4 +1,4 @@
-import EventEmitter from "node:events";
+import EventEmitter from "events";
 import {CQEvent, ErrorEventHandle, HandleEventParam, HandleEventType, SocketHandle} from "./Interfaces";
 
 export class CQEventBus extends EventEmitter {
