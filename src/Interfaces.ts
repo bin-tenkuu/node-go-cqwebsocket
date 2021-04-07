@@ -774,53 +774,6 @@ export type SocketHandle = {
   "newListener": ListenerChangeHandle
   "removeListener": ListenerChangeHandle
 }
-type SocketDom = {
-  message: {
-    private: [],
-    group: [],
-    discuss: [],
-  },
-  notice: {
-    group_upload: [],
-    group_admin: [],
-    group_decrease: [],
-    group_increase: [],
-    group_ban: [],
-    friend_add: [],
-    group_recall: [],
-    friend_recall: [],
-    notify: {
-      poke: {
-        friend: [],
-        group: [],
-      },
-      lucky_king: [],
-      honor: [],
-    },
-    group_card: [],
-    offline_file: [],
-    client_status: [],
-    essence: [],
-  },
-  request: {
-    friend: [],
-    group: [],
-  },
-  socket: {
-    open: [],
-    error: [],
-    close: [],
-  },
-  api: {
-    response: [],
-    preSend: [],
-  },
-  meta_event: {
-    lifecycle: [],
-    heartbeat: [],
-  },
-  message_sent: [],
-}
 
 export class CQEvent {
   _isCanceled: boolean;

@@ -51,10 +51,6 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
   | :------------------- | :------ | :-------------------- | :----------------------------------------------------------- |
   | accessToken          | string  | ""                    | 校验口令, config.hjson中配置<br/>[参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) |
   | baseUrl              | string  | `ws://127.0.0.1:6700` | 完整链接                                                     |
-  | qq                   | number  | `-1`                  | qq号                                                         |
-  | reconnection         | boolean | `false`               | 是否自动重连                                                 |
-  | reconnectionAttempts | number  | `10`                  | 重连次数                                                     |
-  | reconnectionDelay    | number  | `1000`                | 重连延时(ms)                                                 |
 
 **注1：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 API,
 查找&调用请参考 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/)
@@ -65,7 +61,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 **注3：** 实例属性 `errorEvent` 用于替代默认的 `error` 事件, 仅在事件运行出错时调用
 
-**注4：** 如非必要, 推荐自行实现 `自动重连` 的功能
+**注4：** 如非必要, 请自行实现 `自动重连` 的功能
 
 ------------------------------------
 
@@ -73,8 +69,8 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 - `CQ.escape(str)` | `CQ.unescape(str)`：转义/反转义方法
 - `CQ.text(...)` | `CQ.at(...)`等：便捷构建 CQ码 的方法
-- `CQ.custom(...)` ：自定义 CQ码, 有不被识别的风险, 谨慎使用
-- `CQ.parse(...)` ：将携带 CQ码 的字符串转换为 CQ码数组
+- `CQ.custom(...)` ：自定义 CQ码, 有不被识别的风险
+- `CQ.parse(...)` ：将携带 CQ码 的 字符串 **或** 数组 转换为 CQ码数组
 
 #### `Tags`
 
