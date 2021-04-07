@@ -5,17 +5,17 @@ export interface Tag {
   }
 }
 
-export class CQTag<T extends Tag> {
-  public readonly _type: T["type"];
-  public readonly _data: T["data"];
+export class CQTag<T extends Tag> implements Tag {
+  public readonly type: T["type"];
+  public readonly data: T["data"];
   
   public constructor(type: T["type"], data: T["data"]) {
-    this._type = type;
-    this._data = data;
+    this.type = type;
+    this.data = data;
   }
   
   public get tagName(): T["type"] | tagName {
-    return this._type;
+    return this.type;
   }
   
   /**
@@ -24,7 +24,7 @@ export class CQTag<T extends Tag> {
    * @return 值
    */
   public get<K extends keyof T["data"]>(key: K): T["data"][K] {
-    return this._data[key];
+    return this.data[key];
   }
   
   /**
@@ -34,8 +34,8 @@ export class CQTag<T extends Tag> {
    * @return 替换前的值
    */
   public set<K extends keyof T["data"]>(key: K, value: T["data"][K]): T["data"][K] {
-    let temp = this._data[key];
-    this._data[key] = value;
+    let temp = this.data[key];
+    this.data[key] = value;
     return temp;
   }
   
@@ -45,7 +45,7 @@ export class CQTag<T extends Tag> {
   
   public toString(): string {
     // 暂不清楚哪个效率高,直接进行一个模板字符串的用
-    return `[CQ:${this._type}${Object.entries(this._data).map(([k, v]) => {
+    return `[CQ:${this.type}${Object.entries(this.data).map(([k, v]) => {
       if (v === undefined) return "";
       return `,${k}=${v}`;
     }).join("")}]`;
@@ -53,14 +53,14 @@ export class CQTag<T extends Tag> {
   
   /**浅拷贝 data 对象*/
   public clone(): CQTag<T> {
-    return new CQTag<T>(this._type, Object.assign<{}, T["data"]>({}, this._data));
+    return new CQTag<T>(this.type, Object.assign<{}, T["data"]>({}, this.data));
   }
   
   /** 转换为纯消息段 */
   public toTag(): Tag {
     return {
-      type: this._type,
-      data: this._data,
+      type: this.type,
+      data: this.data,
     };
   }
 }
@@ -71,7 +71,7 @@ class CQText extends CQTag<text> {
   }
   
   toString(): string {
-    return this._data.text;
+    return this.data.text;
   }
 }
 
