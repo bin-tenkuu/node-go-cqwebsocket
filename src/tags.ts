@@ -80,7 +80,10 @@ export const CQ_TAG_REGEXP = /^\[CQ:([a-z]+)(?:,([^\]]+))?]$/;
 
 export var CQ = {
   /** 将携带 CQ码 的字符串转换为 CQ码数组 */
-  parse(msg: string): CQTag<any>[] {
+  parse(msg: string | Tag[]): CQTag<any>[] {
+    if (typeof msg !== "string") {
+      return msg.map(tag => new CQTag(tag.type, tag.data));
+    }
     return msg.split(SPLIT).map(tagStr => {
       let match = CQ_TAG_REGEXP.exec(tagStr);
       if (match === null) {

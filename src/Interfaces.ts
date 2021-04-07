@@ -378,7 +378,7 @@ export interface MessageType extends PostType, SubType, MessageId, UserId {
   post_type: "message"
   message_type: string
   /**消息内容*/
-  message: string
+  message: string | Tag[]
   /**原始消息内容*/
   raw_message: string
   /**字体*/
@@ -507,9 +507,9 @@ export interface APIResponse<T> {
   /**
    * |retcode|说明|
    * |-|-|
-   * |0|同时 status 为 ok,表示操作成功|
-   * |1|同时 status 为 async,表示操作已进入异步执行,具体结果未知|
-   * |100|参数缺失或参数无效,通常是因为没有传入必要参数,某些接口中也可能因为参数明显无效(比如传入的 QQ 号小于等于 0,此时无需调用 酷Q 函数即可确定失败),此项和以下的 status 均为 failed|
+   * |0|同时 `status` 为 `ok`,表示操作成功|
+   * |1|同时 `status` 为 `async`,表示操作已进入异步执行,具体结果未知|
+   * |100|参数缺失或参数无效,通常是因为没有传入必要参数,某些接口中也可能因为参数明显无效(比如传入的 QQ 号小于等于 0,此时无需调用 酷Q 函数即可确定失败),此项和以下的 `status` 均为 `failed`|
    * |102|酷Q 函数返回的数据无效,一般是因为传入参数有效但没有权限,比如试图获取没有加入的群组的成员列表|
    * |103|操作失败,一般是因为用户权限不足,或文件系统异常、不符合预期|
    * |104|由于 酷Q 提供的凭证(Cookie 和 CSRF Token)失效导致请求 QQ 相关接口失败,可尝试清除 酷Q 缓存来解决|
@@ -725,14 +725,14 @@ export type int64 = number | string
 export type MessageEventHandler<T> = (this: void, event: CQEvent, message: T, tags: CQTag<any>[]) => void
 export type EventHandler<T> = (this: void, event: CQEvent, message: T) => void
 export type ResponseHandle = (this: void, event: CQEvent, response: APIResponse<any>, sourceMSG: APIRequest) => void
-export type SocketType = "api" | "event"
-export type SocketCloseHandle = (this: void, event: CQEvent, type: SocketType, code: number, reason: string) => void
-export type ListenerChangeHandle = (this: void, type: HandleEventType, handler: SocketHandle[HandleEventType]) => void
+export type SocketCloseHandle = (this: void, event: CQEvent, code: number, reason: string) => void
+export type ListenerChangeHandle = <T extends HandleEventType>(this: void, event: CQEvent, type: T,
+    handler: SocketHandle[T]) => void
 export type HandleEventType = keyof SocketHandle
 export type HandleEventParam<T extends HandleEventType> = SocketHandle[T] extends (event: CQEvent,
-    ...args: infer U) => void ? U : SocketHandle[T] extends (...args: infer U) => void ? U : unknown[];
-export type SocketHandleArray = [HandleEventType, SocketHandle[HandleEventType]][]
-export type ErrorEventHandle = <T extends HandleEventType>(error: Error | any, type: T, handler: SocketHandle[T]) => void;
+    ...args: infer U) => void ? U : unknown[];
+export type SocketHandleArray<T extends HandleEventType> = [T, SocketHandle[T]][]
+export type ErrorEventHandle = <T extends HandleEventType>(error: any, type: T, handler: SocketHandle[T]) => void;
 export type SocketHandle = {
   "message.private": MessageEventHandler<PrivateMessage>
   "message.group": MessageEventHandler<GroupMessage>
@@ -741,7 +741,7 @@ export type SocketHandle = {
   "request.friend": EventHandler<RequestFriend>
   "request.group": EventHandler<RequestGroup>
   
-  "socket.open": EventHandler<SocketType>
+  "socket.open": EventHandler<void>
   "socket.close": SocketCloseHandle
   "socket.error": SocketCloseHandle
   
@@ -774,7 +774,7 @@ export type SocketHandle = {
   "newListener": ListenerChangeHandle
   "removeListener": ListenerChangeHandle
 }
-export type SocketDom = {
+type SocketDom = {
   message: {
     private: [],
     group: [],
