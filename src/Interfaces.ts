@@ -1,4 +1,5 @@
-import {CQTag, node} from "./tags";
+import EventEmitter from "events";
+import {CQTag, node, Tag} from "./tags";
 
 /**@see send_msg*/
 export interface PrivateData {
@@ -835,6 +836,34 @@ export class CQEvent {
   stopPropagation(): void {
     this._isCanceled = true;
   }
+}
+
+exports.CQEventEmitter = EventEmitter;
+
+export declare class CQEventEmitter extends EventEmitter {
+  addListener<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+  
+  on<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+  
+  once<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+  
+  prependListener<T extends HandleEventType>(type: T, listener: SocketHandle[T]): this;
+  
+  prependOnceListener<T extends HandleEventType>(type: T, listener: SocketHandle[T]): this;
+  
+  removeListener<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+  
+  off<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+  
+  removeAllListeners(type?: HandleEventType): this;
+  
+  listeners(type: HandleEventType): Function[];
+  
+  rawListeners(type: HandleEventType): Function[];
+  
+  emit<T extends HandleEventType>(type: T, ...args: HandleEventParam<T>): boolean;
+  
+  listenerCount(type: HandleEventType): number;
 }
 
 export interface PromiseRes<T> extends Promise<T> {

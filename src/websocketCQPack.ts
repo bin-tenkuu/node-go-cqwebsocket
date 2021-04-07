@@ -434,3 +434,46 @@ interface ResponseHandler {
 
 type onSuccess<T> = (this: void, json: APIResponse<T>, message: APIRequest) => void
 type onFailure = (this: void, reason: ErrorAPIResponse, message: APIRequest) => void
+
+export class CQEventBus extends CQEventEmitter {
+  declare _events: { [key in string]: Function | Function[] };
+  public _errorEvent: ErrorEventHandle;
+  
+  constructor() {
+    super({captureRejections: true});
+    this.setMaxListeners(0);
+    this._errorEvent = (e) => {
+      console.error(e);
+    };
+  }
+  
+  emit<T extends HandleEventType>(type: T, ...args: HandleEventParam<T>): boolean {
+    let event = new CQEvent();
+    const handlers: Function | Function[] | undefined = this._events[type];
+    if (handlers === undefined) return false;
+    if (typeof handlers === "function") {
+      try {
+        handlers(event, ...args);
+      } catch (e) {
+        Reflect.deleteProperty(this._events, type);
+        this._errorEvent(e, type, handlers as SocketHandle[T]);
+      }
+    } else {
+      let len = handlers.length;
+      for (let i = 0; i < len; i++) {
+        try {
+          handlers[i](event, ...args);
+          if (event.isCanceled) {
+            break;
+          }
+        } catch (e) {
+          let func = handlers.splice(i, 1)[0];
+          this._errorEvent(e, type, func as SocketHandle[T]);
+          len--;
+          i--;
+        }
+      }
+    }
+    return true;
+  }
+}
