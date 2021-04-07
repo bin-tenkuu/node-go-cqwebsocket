@@ -1,16 +1,15 @@
 import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
-import {CQEventBus} from "./event-bus";
 import {
-  APIRequest, APIResponse, CQWebSocketOptions, ErrorAPIResponse, ErrorEventHandle, HandleEventType, PromiseRes,
-  SocketHandle, SocketHandleArray, SocketType,
+  APIRequest, APIResponse, CQEvent, CQEventEmitter, CQWebSocketOptions, ErrorAPIResponse, ErrorEventHandle,
+  HandleEventParam, HandleEventType, PromiseRes, SocketHandle, SocketHandleArray,
 } from "./Interfaces";
 import {CQ} from "./tags";
 
 export class WebSocketCQPack {
-  /**消息发送成功时调用*/
+  /**消息发送成功时自动调用*/
   public messageSuccess: onSuccess<any>;
-  /**消息发送失败时调用*/
+  /**消息发送失败时自动调用*/
   public messageFail: onFailure;
   
   public reconnection?: Reconnection;
@@ -18,20 +17,16 @@ export class WebSocketCQPack {
   private _responseHandlers: Map<string, ResponseHandler>;
   private _eventBus: CQEventBus;
   
-  private readonly _qq: number;
   private readonly _accessToken: string;
   private readonly _baseUrl: string;
   private readonly _debug: boolean;
-  private _socketAPI?: w3cwebsocket;
-  private _socketEVENT?: w3cwebsocket;
+  private _qq?: number;
+  private _socket?: w3cwebsocket;
   
   constructor({
     // connectivity configs
     accessToken = "",
     baseUrl = "ws://127.0.0.1:6700",
-    
-    // application aware configs
-    qq = -1,
     
     // Reconnection configs
     reconnection = false,
@@ -47,7 +42,7 @@ export class WebSocketCQPack {
         timesMax: reconnectionAttempts,
         delay: reconnectionDelay,
       };
-      this._eventBus.on("socket.close", (e, _, code: number) => {
+      this._eventBus.on("socket.close", (e, code: number) => {
         if (code !== 1006) return;
         if (!this.reconnection || this.reconnection.timeout) return;
         if (this.reconnection.times++ < this.reconnection.timesMax) {
@@ -59,68 +54,54 @@ export class WebSocketCQPack {
         }
       });
     }
-    this._qq = qq;
     this._accessToken = accessToken;
     this._baseUrl = baseUrl;
     this.messageSuccess = (ret) => console.log(`发送成功:${parseInt(ret.echo, 36)}`);
     this.messageFail = (reason) => console.log(`发送失败[${reason.retcode}]:${reason.wording}`);
+    this.errorEvent = (error) => console.error("调用API失败", error);
+    this.once("meta_event.lifecycle", (event, message) => {
+      this._qq = message.self_id;
+    });
   }
   
+  /**重连*/
   public reconnect(): void {
     this.disconnect();
     this.connect();
   }
   
+  /**连接*/
   public connect(): void {
-    {
-      let urlAPI = `${this._baseUrl}/api/?access_token=${this._accessToken}`;
-      this._socketAPI = new w3cwebsocket(urlAPI);
-      this._socketAPI.onopen = () => this._open("api");
-      this._socketAPI.onclose = evt => {
-        this._close(evt, "api");
-        this._socketAPI = undefined;
-      };
-      this._socketAPI.onmessage = evt => this._onmessageAPI(evt);
-    }
-    {
-      let urlEVENT = `${this._baseUrl}/event/?access_token=${this._accessToken}`;
-      this._socketEVENT = new w3cwebsocket(urlEVENT);
-      this._socketEVENT.onopen = () => this._open("event");
-      this._socketEVENT.onclose = evt => {
-        this._close(evt, "event");
-        this._socketEVENT = undefined;
-      };
-      this._socketEVENT.onmessage = evt => this._onmessage(evt);
-    }
-    if (this._debug) {
-      this._socketAPI.onmessage = evt => {
-        console.log(evt);
-        this._onmessageAPI(evt);
-      };
-      this._socketEVENT.onmessage = evt => {
-        console.log(evt);
-        this._onmessage(evt);
-      };
-    }
+    let urlAPI = `${this._baseUrl}/?access_token=${this._accessToken}`;
+    this._socket = new w3cwebsocket(urlAPI);
+    this._socket.onopen = () => this._open();
+    this._socket.onclose = evt => {
+      this._close(evt);
+      this._socket = undefined;
+    };
+    this._socket.onmessage = evt => this._onmessage(evt);
   }
   
+  /**断开*/
   public disconnect(): void {
-    if (this.reconnection && this.reconnection.timeout) {
+    if (this.reconnection !== undefined && this.reconnection.timeout !== undefined) {
       clearTimeout(this.reconnection.timeout);
       this.reconnection.timeout = undefined;
     }
-    if (this._socketAPI !== undefined) {
-      this._socketAPI.close(1000, "Normal connection closure");
-      this._socketAPI = undefined;
-    }
-    if (this._socketEVENT !== undefined) {
-      this._socketEVENT.close(1000, "Normal connection closure");
-      this._socketEVENT = undefined;
+    if (this._socket !== undefined) {
+      this._socket.close(1000, "Normal connection closure");
+      this._socket = undefined;
     }
   }
   
+  /**
+   * 发送消息
+   * @param method api名称
+   * @param params 消息内容
+   * @return api调用结果
+   */
   public send<T = any>(method: string, params: any): PromiseRes<T> {
-    if (this._socketAPI === undefined) {
+    if (this._socket === undefined) {
       return Promise.reject(<ErrorAPIResponse>{
         data: null,
         echo: undefined,
@@ -159,8 +140,8 @@ export class WebSocketCQPack {
         return reject(err);
       };
       this._responseHandlers.set(echo, {message, onSuccess, onFailure});
-      this._eventBus.handle("api.preSend", message);
-      if (this._socketAPI === undefined) {
+      this._eventBus.emit("api.preSend", message);
+      if (this._socket === undefined) {
         onFailure({
           data: null,
           echo: undefined,
@@ -170,7 +151,7 @@ export class WebSocketCQPack {
           wording: "无连接",
         }, message);
       } else {
-        this._socketAPI.send(JSON.stringify(message));
+        this._socket.send(JSON.stringify(message));
       }
     });
   }
@@ -220,7 +201,7 @@ export class WebSocketCQPack {
    * @return 用于当作参数调用 [unbind]{@link unbind} 解除监听
    */
   public bind(option: "on" | "once" | "onceAll", event: Partial<SocketHandle> = {}): Partial<SocketHandle> {
-    let entries = Object.entries(event) as SocketHandleArray;
+    let entries = Object.entries(event) as SocketHandleArray<HandleEventType>;
     if (option === "onceAll") {
       entries = entries.map(([k, v]) => [
         k, (...args: any) => {
@@ -244,58 +225,55 @@ export class WebSocketCQPack {
    * @param [event={}]
    */
   public unbind(event: Partial<SocketHandle> = {}): this {
-    (Object.entries(event) as SocketHandleArray).forEach(([k, v]) => {
+    (Object.entries(event) as SocketHandleArray<HandleEventType>).forEach(([k, v]) => {
       this._eventBus.off(k, v);
     });
     return this;
   }
   
-  private _open(data: SocketType): void {
-    this._eventBus.handle("socket.open", data);
-  }
-  
-  private _onmessageAPI(evt: IMessageEvent): void {
-    if (typeof evt.data !== "string") {
-      return;
-    }
-    let json: ErrorAPIResponse = JSON.parse(evt.data);
-    if (json.echo) {
-      let handler = this._responseHandlers.get(json.echo);
-      if (handler === undefined) return;
-      if (json.retcode === 0) {
-        if (typeof handler.onSuccess === "function") {
-          handler.onSuccess(json, handler.message);
-          this.messageSuccess(json, handler.message);
-        }
-      } else {
-        if (typeof handler.onFailure === "function") {
-          handler.onFailure(json, handler.message);
-          this.messageFail(json, handler.message);
-        }
-      }
-      this._eventBus.handle("api.response", json, handler.message);
-      return;
-    }
+  private _open(): void {
+    this._eventBus.emit("socket.open");
   }
   
   private _onmessage(evt: IMessageEvent): void {
     if (typeof evt.data !== "string") {
       return;
     }
-    this._handleMSG(JSON.parse(evt.data));
-  }
-  
-  private _close(evt: ICloseEvent, type: SocketType): void {
-    if (evt.code === 1000) {
-      this._eventBus.handle("socket.close", type, evt.code, evt.reason);
+    let json: ErrorAPIResponse = JSON.parse(evt.data);
+    if (this._debug) {
+      console.log(json);
+    }
+    if (json.echo === undefined) {
+      this._handleMSG(json);
       return;
     }
-    this._eventBus.handle("socket.error", type, evt.code, evt.reason);
+    let handler = this._responseHandlers.get(json.echo);
+    if (handler === undefined) return;
+    let message = handler.message;
+    if (json.retcode <= 1) {
+      handler.onSuccess(json, message);
+      this.messageSuccess(json, message);
+    } else {
+      handler.onFailure(json, message);
+      this.messageFail(json, message);
+    }
+    this._eventBus.emit("api.response", json, message);
+    return;
   }
   
+  private _close(evt: ICloseEvent): void {
+    if (evt.code === 1000) {
+      this._eventBus.emit("socket.close", evt.code, evt.reason);
+      return;
+    }
+    this._eventBus.emit("socket.error", evt.code, evt.reason);
+  }
+  
+  /**
+   * 获取随机ID <br/>
+   * 原本实现为 `return Date.now().toString(36);`, 后发现异步环境下方法调用可以达到毫秒级以内, 故废弃
+   */
   public static GetECHO(): string {
-    // 异步环境下,可以重复,废弃
-    // return Date.now().toString(36);
     return shortid.generate();
   }
   
@@ -307,11 +285,11 @@ export class WebSocketCQPack {
         let cqTags = CQ.parse(json.message);
         switch (messageType) {
           case "private":
-            return this._eventBus.handle("message.private", json, cqTags);
+            return this._eventBus.emit("message.private", json, cqTags);
           case "discuss":
-            return this._eventBus.handle("message.discuss", json, cqTags);
+            return this._eventBus.emit("message.discuss", json, cqTags);
           case "group":
-            return this._eventBus.handle("message.group", json, cqTags);
+            return this._eventBus.emit("message.group", json, cqTags);
           default:
             return console.warn(`未知的消息类型: ${messageType}`);
         }
@@ -320,46 +298,46 @@ export class WebSocketCQPack {
         let notice_type = json["notice_type"];
         switch (notice_type) {
           case "group_upload":
-            return this._eventBus.handle("notice.group_upload", json);
+            return this._eventBus.emit("notice.group_upload", json);
           case "group_admin":
-            return this._eventBus.handle("notice.group_admin", json);
+            return this._eventBus.emit("notice.group_admin", json);
           case "group_decrease":
-            return this._eventBus.handle("notice.group_decrease", json);
+            return this._eventBus.emit("notice.group_decrease", json);
           case "group_increase":
-            return this._eventBus.handle("notice.group_increase", json);
+            return this._eventBus.emit("notice.group_increase", json);
           case "group_ban":
-            return this._eventBus.handle("notice.group_ban", json);
+            return this._eventBus.emit("notice.group_ban", json);
           case "friend_add":
-            return this._eventBus.handle("notice.friend_add", json);
+            return this._eventBus.emit("notice.friend_add", json);
           case "group_recall":
-            return this._eventBus.handle("notice.group_recall", json);
+            return this._eventBus.emit("notice.group_recall", json);
           case "friend_recall":
-            return this._eventBus.handle("notice.friend_recall", json);
+            return this._eventBus.emit("notice.friend_recall", json);
           case "notify": {
             let subType = json["sub_type"];
             switch (subType) {
               case "poke":
                 if ("group_id" in json) {
-                  return this._eventBus.handle("notice.notify.poke.group", json);
+                  return this._eventBus.emit("notice.notify.poke.group", json);
                 } else {
-                  return this._eventBus.handle("notice.notify.poke.friend", json);
+                  return this._eventBus.emit("notice.notify.poke.friend", json);
                 }
               case "lucky_king":
-                return this._eventBus.handle("notice.notify.lucky_king", json);
+                return this._eventBus.emit("notice.notify.lucky_king", json);
               case "honor":
-                return this._eventBus.handle("notice.notify.honor", json);
+                return this._eventBus.emit("notice.notify.honor", json);
               default:
                 return console.warn(`未知的 notify 类型: ${subType}`);
             }
           }
           case "group_card":
-            return this._eventBus.handle("notice.group_card", json);
+            return this._eventBus.emit("notice.group_card", json);
           case "offline_file":
-            return this._eventBus.handle("notice.offline_file", json);
+            return this._eventBus.emit("notice.offline_file", json);
           case "client_status":
-            return this._eventBus.handle("notice.client_status", json);
+            return this._eventBus.emit("notice.client_status", json);
           case "essence":
-            return this._eventBus.handle("notice.essence", json);
+            return this._eventBus.emit("notice.essence", json);
           default:
             return console.warn(`未知的 notice 类型: ${notice_type}`);
         }
@@ -368,9 +346,9 @@ export class WebSocketCQPack {
         let request_type = json["request_type"];
         switch (request_type) {
           case "friend":
-            return this._eventBus.handle("request.friend", json);
+            return this._eventBus.emit("request.friend", json);
           case "group":
-            return this._eventBus.handle("request.group", json);
+            return this._eventBus.emit("request.group", json);
           default:
             return console.warn(`未知的 request 类型: ${request_type}`);
         }
@@ -379,15 +357,15 @@ export class WebSocketCQPack {
         let meta_event_type = json["meta_event_type"];
         switch (meta_event_type) {
           case "lifecycle":
-            return this._eventBus.handle("meta_event.lifecycle", json);
+            return this._eventBus.emit("meta_event.lifecycle", json);
           case "heartbeat":
-            return this._eventBus.handle("meta_event.heartbeat", json);
+            return this._eventBus.emit("meta_event.heartbeat", json);
           default:
             return console.warn(`未知的 meta_event 类型: ${meta_event_type}`);
         }
       }
       case "message_sent":
-        return this._eventBus.handle("message_sent", json);
+        return this._eventBus.emit("message_sent", json);
       default:
         return console.warn(`未知的上报类型: ${post_type}`);
     }
@@ -400,14 +378,15 @@ export class WebSocketCQPack {
    * - CLOSED = 3 已关闭
    */
   public get state(): number {
-    if (this._socketAPI === undefined) {
+    if (this._socket === undefined) {
       return w3cwebsocket.CLOSED;
     }
-    return this._socketAPI.readyState;
+    return this._socket.readyState;
   }
   
+  /** 获取当前登录账号的 QQ 号, 当获取失败时返回 `-1` */
   public get qq(): number {
-    return this._qq;
+    return this._qq ?? -1;
   }
   
   public get errorEvent(): ErrorEventHandle {
