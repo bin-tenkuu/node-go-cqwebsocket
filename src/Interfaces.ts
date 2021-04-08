@@ -456,10 +456,6 @@ export interface LifeCycle extends MetaEventType, SubType {
 export interface CQWebSocketOptions {
   accessToken?: string,
   baseUrl?: string,
-  qq?: number,
-  reconnection?: boolean,
-  reconnectionAttempts?: number,
-  reconnectionDelay?: number,
 }
 
 /**API 消息发送报文*/
@@ -598,25 +594,27 @@ export interface FriendRecall extends NoticeType, MessageId, UserId {
   notice_type: "friend_recall"
 }
 
-/**好友戳一戳*/
-export interface NotifyPokeFriend extends NoticeType, SubType, UserId, SenderId {
+export interface NoticeNotifyType extends NoticeType, SubType {
   notice_type: "notify"
-  sub_type: "poke"
+}
+
+export interface TargetId {
   /**被戳者 QQ 号*/
   target_id: number
+}
+
+/**好友戳一戳*/
+export interface NotifyPokeFriend extends NoticeNotifyType, UserId, SenderId, TargetId {
+  sub_type: "poke"
 }
 
 /**群内戳一戳*/
-export interface NotifyPokeGroup extends NoticeType, SubType, UserId, GroupId {
-  notice_type: "notify"
+export interface NotifyPokeGroup extends NoticeNotifyType, UserId, GroupId, TargetId {
   sub_type: "poke"
-  /**被戳者 QQ 号*/
-  target_id: number
 }
 
 /**群红包运气王提示*/
-export interface NotifyLuckyKing extends NoticeType, SubType, GroupId, UserId {
-  notice_type: "notify"
+export interface NotifyLuckyKing extends NoticeNotifyType, GroupId, UserId, TargetId {
   sub_type: "lucky_king"
   /**红包发送者id*/
   user_id: number
@@ -625,8 +623,7 @@ export interface NotifyLuckyKing extends NoticeType, SubType, GroupId, UserId {
 }
 
 /**群成员荣誉变更提示*/
-export interface NotifyHonor extends NoticeType, SubType, GroupId, UserId {
-  notice_type: "notify"
+export interface NotifyHonor extends NoticeNotifyType, GroupId, UserId {
   sub_type: "honor"
   /**talkative:龙王 performer:群聊之火 emotion:快乐源泉  荣誉类型*/
   honor_type: "talkative" | "performer" | "emotion" | string
