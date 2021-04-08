@@ -7,9 +7,9 @@ go-cqhttp的专用 SDK, 跟随官方文档更新
   cqhttp 已死, go-cqhttp 当立
 </del>
 
-本SDK中所有api基于 `go-cqhttp-v1.0.0` 与 `go-cq额外文档(部分)`
+本SDK中所有api基于 `go-cqhttp-v1.0.0-beta2` 与 `go-cq额外文档(部分)`
 
-go-cqhttp标准文档最后编辑日期： `3/22/2021, 1:44:14 PM`
+go-cqhttp标准文档最后编辑日期： `4/7/2021, 12:57:26 PM`
 
 # 关于此SDK
 

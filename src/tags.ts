@@ -116,8 +116,7 @@ export var CQ = {
         .replace(/\[/g, "&#91;")
         .replace(/]/g, "&#93;");
     if (insideCQ) {
-      temp = temp
-          .replace(/,/g, "&#44;");
+      return temp.replace(/,/g, "&#44;");
     }
     return temp;
   },
