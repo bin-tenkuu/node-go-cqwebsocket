@@ -2,7 +2,7 @@ import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {
   APIRequest, APIResponse, CQEvent, CQEventEmitter, CQWebSocketOptions, ErrorAPIResponse, ErrorEventHandle,
-  HandleEventParam, HandleEventType, PromiseRes, SocketHandle, SocketHandleArray,
+  HandleEventParam, HandleEventType, ObjectEntries, PromiseRes, SocketHandle,
 } from "./Interfaces";
 import {CQ} from "./tags";
 
@@ -201,7 +201,7 @@ export class WebSocketCQPack {
    * @return 用于当作参数调用 [unbind]{@link unbind} 解除监听
    */
   public bind(option: "on" | "once" | "onceAll", event: Partial<SocketHandle> = {}): Partial<SocketHandle> {
-    let entries = Object.entries(event) as SocketHandleArray<HandleEventType>;
+    let entries = Object.entries(event) as ObjectEntries<SocketHandle>;
     if (option === "onceAll") {
       entries = entries.map(([k, v]) => [
         k, (...args: any) => {
@@ -225,7 +225,7 @@ export class WebSocketCQPack {
    * @param [event={}]
    */
   public unbind(event: Partial<SocketHandle> = {}): this {
-    (Object.entries(event) as SocketHandleArray<HandleEventType>).forEach(([k, v]) => {
+    (Object.entries(event) as ObjectEntries<SocketHandle>).forEach(([k, v]) => {
       this._eventBus.off(k, v);
     });
     return this;
@@ -414,7 +414,7 @@ interface ResponseHandler {
 type onSuccess<T> = (this: void, json: APIResponse<T>, message: APIRequest) => void
 type onFailure = (this: void, reason: ErrorAPIResponse, message: APIRequest) => void
 
-export class CQEventBus extends CQEventEmitter {
+export class CQEventBus extends CQEventEmitter<SocketHandle> {
   declare _events: { [key in string]: Function | Function[] };
   public _errorEvent: ErrorEventHandle;
   
@@ -426,7 +426,7 @@ export class CQEventBus extends CQEventEmitter {
     };
   }
   
-  emit<T extends HandleEventType>(type: T, ...args: HandleEventParam<T>): boolean {
+  emit<T extends HandleEventType>(type: T, ...args: HandleEventParam<SocketHandle, T>): boolean {
     let event = new CQEvent();
     const handlers: Function | Function[] | undefined = this._events[type];
     if (handlers === undefined) return false;

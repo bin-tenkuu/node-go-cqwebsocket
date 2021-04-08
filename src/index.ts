@@ -15,7 +15,7 @@ export {
 /**
  * 本类中所有api基于 `go-cqhttp-v1.0.0` 与 `go-cq额外文档(部分)` <br/>
  * go-cqhttp标准文档最后编辑日期： `3/22/2021, 1:44:14 PM` <br/>
- * **注：** 标记为 `@deprecated` 的方法为__未被支持__方法，并非过时方法 <br/>
+ * **注：** 标记为 `@deprecated` 的方法为__未被支持__方法，并非过时方法, 但依然禁止使用 <br/>
  * **注2：** 标记为 `@protected` 的方法为__隐藏 API__，__不__建议一般用户使用, 不正确的使用可能造成程序运行不正常
  */
 export class CQWebSocket extends WebSocketCQPack {

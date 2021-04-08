@@ -722,6 +722,7 @@ export interface URLSafely {
 export type message = CQTag<any>[] | string
 export type messageNode = CQTag<node>
 export type int64 = number | string
+export type SocketHandleFunction<T extends Array<any>> = (this: void, event: CQEvent, ...args: T) => void
 export type MessageEventHandler<T> = (this: void, event: CQEvent, message: T, tags: CQTag<any>[]) => void
 export type EventHandler<T> = (this: void, event: CQEvent, message: T) => void
 export type ResponseHandle = (this: void, event: CQEvent, response: APIResponse<any>, sourceMSG: APIRequest) => void
@@ -729,9 +730,8 @@ export type SocketCloseHandle = (this: void, event: CQEvent, code: number, reaso
 export type ListenerChangeHandle = <T extends HandleEventType>(this: void, event: CQEvent, type: T,
     handler: SocketHandle[T]) => void
 export type HandleEventType = keyof SocketHandle
-export type HandleEventParam<T extends HandleEventType> = SocketHandle[T] extends (event: CQEvent,
-    ...args: infer U) => void ? U : unknown[];
-export type SocketHandleArray<T extends HandleEventType> = [T, SocketHandle[T]][]
+export type HandleEventParam<T extends SocketHandle, K extends keyof T> = T[K] extends SocketHandleFunction<infer U> ? U : unknown[];
+export type ObjectEntries<T, K extends keyof T = keyof T> = [K, T[K]][];
 export type ErrorEventHandle = <T extends HandleEventType>(error: any, type: T, handler: SocketHandle[T]) => void;
 export type SocketHandle = {
   "message.private": MessageEventHandler<PrivateMessage>
@@ -793,30 +793,30 @@ export class CQEvent {
 
 exports.CQEventEmitter = EventEmitter;
 
-export declare class CQEventEmitter extends EventEmitter {
-  addListener<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+export declare class CQEventEmitter<T extends SocketHandle> extends EventEmitter {
+  addListener<K extends HandleEventType>(type: K, handler: T[K]): this;
   
-  on<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+  on<K extends HandleEventType>(type: K, handler: T[K]): this;
   
-  once<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+  once<K extends HandleEventType>(type: K, handler: T[K]): this;
   
-  prependListener<T extends HandleEventType>(type: T, listener: SocketHandle[T]): this;
+  prependListener<K extends HandleEventType>(type: K, handler: T[K]): this;
   
-  prependOnceListener<T extends HandleEventType>(type: T, listener: SocketHandle[T]): this;
+  prependOnceListener<K extends HandleEventType>(type: K, handler: T[K]): this;
   
-  removeListener<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+  removeListener<K extends HandleEventType>(type: K, handler: T[K]): this;
   
-  off<T extends HandleEventType>(type: T, handler: SocketHandle[T]): this;
+  off<K extends HandleEventType>(type: K, handler: T[K]): this;
   
   removeAllListeners(type?: HandleEventType): this;
   
-  listeners(type: HandleEventType): Function[];
+  listeners<K extends HandleEventType>(type: K): T[K][];
   
-  rawListeners(type: HandleEventType): Function[];
+  rawListeners<K extends HandleEventType>(type: K): T[K][];
   
-  emit<T extends HandleEventType>(type: T, ...args: HandleEventParam<T>): boolean;
+  emit<K extends HandleEventType>(type: K, ...args: HandleEventParam<T, K>): boolean;
   
-  listenerCount(type: HandleEventType): number;
+  listenerCount<K extends HandleEventType>(type: K): number;
 }
 
 export interface PromiseRes<T> extends Promise<T> {
