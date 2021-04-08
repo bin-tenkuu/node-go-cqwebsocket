@@ -290,7 +290,7 @@ export class CQEventBus extends CQEventEmitter<SocketHandle> {
     this.data = {};
   }
   
-  private message(json: any): void | boolean {
+  protected message(json: any): void | boolean {
     let messageType = json["message_type"];
     let cqTags = CQ.parse(json.message);
     switch (messageType) {
@@ -305,7 +305,7 @@ export class CQEventBus extends CQEventEmitter<SocketHandle> {
     }
   }
   
-  private "notice.notify"(json: any): void | boolean {
+  protected "notice.notify"(json: any): void | boolean {
     let subType = json["sub_type"];
     switch (subType) {
       case "poke":
@@ -323,7 +323,7 @@ export class CQEventBus extends CQEventEmitter<SocketHandle> {
     }
   }
   
-  private notice(json: any): void | boolean {
+  protected notice(json: any): void | boolean {
     let notice_type = json["notice_type"];
     switch (notice_type) {
       case "group_upload":
@@ -357,7 +357,7 @@ export class CQEventBus extends CQEventEmitter<SocketHandle> {
     }
   }
   
-  private request(json: any): void | boolean {
+  protected request(json: any): void | boolean {
     let request_type = json["request_type"];
     switch (request_type) {
       case "friend":
@@ -369,7 +369,7 @@ export class CQEventBus extends CQEventEmitter<SocketHandle> {
     }
   }
   
-  private meta_event(json: any): void | boolean {
+  protected meta_event(json: any): void | boolean {
     let meta_event_type = json["meta_event_type"];
     switch (meta_event_type) {
       case "lifecycle":
@@ -383,7 +383,7 @@ export class CQEventBus extends CQEventEmitter<SocketHandle> {
     }
   }
   
-  private message_sent(json: any): void | boolean {
+  protected message_sent(json: any): void | boolean {
     return this.emit("message_sent", json);
   }
   
