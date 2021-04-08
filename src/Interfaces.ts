@@ -791,6 +791,8 @@ export class CQEvent {
 exports.CQEventEmitter = EventEmitter;
 
 export declare class CQEventEmitter<T extends SocketHandle> extends EventEmitter {
+  protected _events: { [key in string]: Function | Function[] };
+  
   addListener<K extends HandleEventType>(type: K, handler: T[K]): this;
   
   on<K extends HandleEventType>(type: K, handler: T[K]): this;

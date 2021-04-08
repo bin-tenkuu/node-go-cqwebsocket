@@ -278,7 +278,6 @@ interface BotData {
 }
 
 export class CQEventBus extends CQEventEmitter<SocketHandle> {
-  declare _events: { [key in string]: Function | Function[] };
   public _errorEvent: ErrorEventHandle;
   public data: Partial<BotData>;
   
