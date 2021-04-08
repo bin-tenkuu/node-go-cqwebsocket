@@ -13,8 +13,8 @@ export {
 } from "./tags";
 
 /**
- * 本类中所有api基于 `go-cqhttp-v1.0.0` 与 `go-cq额外文档(部分)` <br/>
- * go-cqhttp标准文档最后编辑日期： `3/22/2021, 1:44:14 PM` <br/>
+ * 本类中所有api基于 `go-cqhttp-v1.0.0-beta2` 与 `go-cq额外文档(部分)` <br/>
+ * go-cqhttp标准文档最后编辑日期： `4/7/2021, 12:57:26 PM` <br/>
  * **注：** 标记为 `@deprecated` 的方法为__未被支持__方法，并非过时方法, 但依然禁止使用 <br/>
  * **注2：** 标记为 `@protected` 的方法为__隐藏 API__，__不__建议一般用户使用, 不正确的使用可能造成程序运行不正常
  */
@@ -24,25 +24,22 @@ export class CQWebSocket extends WebSocketCQPack {
    * @param user_id  对方 QQ 号
    * @param message 要发送的内容
    * @param group_id 主动发起临时会话群号(机器人本身必须是管理员/群主)
-   * @param auto_escape=false  消息内容是否作为纯文本发送 ( 即不解析 CQ 码 ) , 只在 `message` 字段是字符串时有效
    */
-  public send_private_msg(user_id: int64, message: message, group_id?: int64,
-      auto_escape = false): PromiseRes<MessageId> {
-    return this.send("send_private_msg", {user_id, message, group_id, auto_escape});
+  public send_private_msg(user_id: int64, message: message, group_id?: int64): PromiseRes<MessageId> {
+    return this.send("send_private_msg", {user_id, message, group_id});
   }
   
   /**
    * 发送群消息
    * @param group_id 群号
    * @param message  要发送的内容
-   * @param auto_escape=false 消息内容是否作为纯文本发送 ( 即不解析 CQ 码) , 只在 `message` 字段是字符串时有效
    */
-  public send_group_msg(group_id: int64, message: message, auto_escape = false): PromiseRes<MessageId> {
-    return this.send("send_group_msg", {group_id, message, auto_escape});
+  public send_group_msg(group_id: int64, message: message): PromiseRes<MessageId> {
+    return this.send("send_group_msg", {group_id, message});
   }
   
   /**
-   * 发送合并转发 ( 群 )
+   * 发送合并转发(群)
    * @param group_id 群号
    * @param messages 自定义转发消息
    */
@@ -83,7 +80,7 @@ export class CQWebSocket extends WebSocketCQPack {
   }
   
   /**
-   * #获取图片信息
+   * 获取图片信息
    * @param file 图片缓存文件名
    */
   public get_image(file: string): PromiseRes<QQImageData> {
@@ -214,7 +211,7 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("set_group_add_request", {flag, sub_type, type: sub_type, approve, reason});
   }
   
-  /** 获取登录号信息 */
+  /**获取登录号信息*/
   public get_login_info(): PromiseRes<LoginInfo> {
     return this.send("get_login_info", {});
   }
@@ -228,7 +225,7 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("get_stranger_info", {user_id, no_cache});
   }
   
-  /** 获取好友列表 */
+  /**获取好友列表*/
   public get_friend_list(): PromiseRes<FriendInfo[]> {
     return this.send("get_friend_list", {});
   }
@@ -242,7 +239,7 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("get_group_info", {group_id, no_cache});
   }
   
-  /** 获取群列表 */
+  /**获取群列表*/
   public get_group_list(): PromiseRes<GroupInfo[]> {
     return this.send("get_group_list", {});
   }
@@ -316,17 +313,17 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("get_record", {file, out_format});
   }
   
-  /** 检查是否可以发送图片 */
+  /**检查是否可以发送图片*/
   public can_send_image(): PromiseRes<CanSend> {
     return this.send("can_send_image", {});
   }
   
-  /** 检查是否可以发送语音 */
+  /**检查是否可以发送语音*/
   public can_send_record(): PromiseRes<CanSend> {
     return this.send("can_send_record", {});
   }
   
-  /** 获取版本信息 */
+  /**获取版本信息*/
   public get_version_info(): PromiseRes<VersionInfo> {
     return this.send("get_version_info", {});
   }
@@ -352,8 +349,7 @@ export class CQWebSocket extends WebSocketCQPack {
    *
    * **[1]** `file` 参数支持以下几种格式：
    *
-   * - 绝对路径, 例如 `file:///C:\\Users\Richard\Pictures\1.png`, 格式使用 [`file` URI]{@link
-      * https://tools.ietf.org/html/rfc8089}
+   * - 绝对路径, 例如 `file:///C:\\Users\Richard\Pictures\1.png`, 格式使用 [`file` URI]{@link https://tools.ietf.org/html/rfc8089}
    * - 网络 URL, 例如 `http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg`
    * - Base64 编码, 例如
    * `base64://iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAIAAADJt1n/AAAAKElEQVQ4EWPk5+RmIBcwkasRpG9UM4mhNxpgowFGMARGEwnBIEJVAAAdBgBNAZf+QAAAAABJRU5ErkJggg==`
@@ -384,7 +380,7 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("ocr_image", {image});
   }
   
-  /** 获取群系统消息, 如果列表不存在任何消息, 将返回 `null`*/
+  /**获取群系统消息, 如果列表不存在任何消息, 将返回 `null`*/
   public get_group_system_msg(): PromiseRes<GroupSystemMSG | null> {
     return this.send("get_group_system_msg", {});
   }
@@ -481,7 +477,7 @@ export class CQWebSocket extends WebSocketCQPack {
     return this.send("_send_group_notice", {group_id});
   }
   
-  /** 重载事件过滤器 */
+  /**重载事件过滤器*/
   public reload_event_filter(): PromiseRes<void> {
     return this.send("reload_event_filter", {});
   }
