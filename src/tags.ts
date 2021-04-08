@@ -10,8 +10,8 @@ export class CQTag<T extends Tag> implements Tag {
   public readonly data: T["data"];
   
   public constructor(type: T["type"], data: T["data"]) {
-    this.type = type;
-    this.data = data;
+    this.type = type ?? "";
+    this.data = data ?? {};
   }
   
   public get tagName(): T["type"] | tagName {
@@ -82,7 +82,9 @@ export var CQ = {
   /** 将携带 CQ码 的字符串转换为 CQ码数组 */
   parse(msg: string | Tag[]): CQTag<any>[] {
     if (typeof msg !== "string") {
-      return msg.map(tag => new CQTag(tag.type, tag.data));
+      return msg.filter(tag => {
+        return tag !== null && tag !== undefined;
+      }).map(tag => new CQTag(tag.type, tag.data));
     }
     return msg.split(SPLIT).map(tagStr => {
       let match = CQ_TAG_REGEXP.exec(tagStr);
