@@ -19,11 +19,13 @@ export class CQTag<T extends Tag> implements Tag {
   }
   
   /**
-   * 用于获取data属性里的字段
+   * 用于获取data属性里的字段,<br/>
+   * 值得注意的是,当接受消息为 字符串格式 时，本方法返回类型永远为 `string`,
+   * 当且仅当接受消息为 数组格式 时，返回类型才可能为正常类型
    * @param key 字段
    * @return 值
    */
-  public get<K extends keyof T["data"]>(key: K): T["data"][K] {
+  public get<K extends keyof T["data"]>(key: K): T["data"][K] | string {
     return this.data[key];
   }
   
@@ -84,7 +86,7 @@ export var CQ = {
     if (typeof msg !== "string") {
       return msg.filter(tag => {
         return tag !== null && tag !== undefined;
-      }).map(tag => new CQTag(tag.type, tag.data));
+      }).map(tag => tag.type === "text" ? new CQText(tag.data.text) : new CQTag(tag.type, tag.data));
     }
     return msg.split(SPLIT).map(tagStr => {
       let match = CQ_TAG_REGEXP.exec(tagStr);
@@ -238,7 +240,7 @@ export var CQ = {
    * @param seq 起始消息序号, 可通过 get_msg 获得
    */
   replyCustom(text: string, qq: number, time?: number, seq?: number) {
-    return new CQTag<replyCustom>("reply", {text, qq, time, seq});
+    return new CQTag<reply>("reply", {text, qq, time, seq});
   },
   /**
    * 戳一戳
@@ -317,7 +319,7 @@ export var CQ = {
 };
 
 export type allTags = text | face | record | video | at | rps | dice | shake | anonymous | share | contact | location
-    | music | image | replyCustom | reply | redbag | poke | gift | forward | node | xml | json | cardimage | tts
+    | music | image | reply | redbag | poke | gift | forward | node | xml | json | cardimage | tts
 
 export type tagName = allTags["type"]
 
@@ -428,12 +430,7 @@ export interface reply extends Tag {
   data: {
     /**回复时所引用的消息id, 必须为本群消息.*/
     id: number
-  }
-}
-
-export interface replyCustom extends Tag {
-  type: "reply"
-  data: {
+  } | {
     /**自定义回复的信息*/
     text: string
     /**自定义回复时的自定义QQ, 如果使用自定义信息必须指定.*/
@@ -560,17 +557,6 @@ export interface video extends Tag {
     cover?: string
     /**通过网络下载视频时的线程数, 默认单线程. (在资源不支持并发时会自动处理)*/
     c?: number
-  } | {
-    /** 视频文件名 */
-    file: string
-    /** `收` 视频 URL */
-    url?: string
-    /** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
-    cache?: boolean
-    /** 只在通过网络 URL 发送时有效, 表示是否通过代理下载文件 ( 需通过环境变量或配置文件配置代理 ) , 默认 1 */
-    proxy?: boolean
-    /** 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时 */
-    timeout?: number
   }
 }
 
