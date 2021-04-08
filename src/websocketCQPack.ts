@@ -2,7 +2,7 @@ import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {
   APIRequest, APIResponse, CQEvent, CQEventEmitter, CQWebSocketOptions, ErrorAPIResponse, ErrorEventHandle,
-  HandleEventParam, HandleEventType, ObjectEntries, PromiseRes, SocketHandle,
+  HandleEventParam, HandleEventType, ObjectEntries, PromiseRes, SocketHandle, Status,
 } from "./Interfaces";
 import {CQ} from "./tags";
 
@@ -12,56 +12,27 @@ export class WebSocketCQPack {
   /**消息发送失败时自动调用*/
   public messageFail: onFailure;
   
-  public reconnection?: Reconnection;
-  
   private _responseHandlers: Map<string, ResponseHandler>;
   private _eventBus: CQEventBus;
   
   private readonly _accessToken: string;
   private readonly _baseUrl: string;
   private readonly _debug: boolean;
-  private _qq?: number;
   private _socket?: w3cwebsocket;
   
   constructor({
     // connectivity configs
     accessToken = "",
     baseUrl = "ws://127.0.0.1:6700",
-    
-    // Reconnection configs
-    reconnection = false,
-    reconnectionAttempts = 10,
-    reconnectionDelay = 1000,
   }: CQWebSocketOptions = {}, debug = false) {
     this._debug = Boolean(debug);
     this._responseHandlers = new Map();
     this._eventBus = new CQEventBus();
-    if (reconnection) {
-      this.reconnection = {
-        times: 0,
-        timesMax: reconnectionAttempts,
-        delay: reconnectionDelay,
-      };
-      this._eventBus.on("socket.close", (e, code: number) => {
-        if (code !== 1006) return;
-        if (!this.reconnection || this.reconnection.timeout) return;
-        if (this.reconnection.times++ < this.reconnection.timesMax) {
-          this.reconnection.timeout = setTimeout(() => {
-            this.reconnect();
-          }, this.reconnection.delay);
-        } else {
-          console.error("Number of reconnections exceeded");
-        }
-      });
-    }
     this._accessToken = accessToken;
     this._baseUrl = baseUrl;
     this.messageSuccess = (ret) => console.log(`发送成功:${parseInt(ret.echo, 36)}`);
     this.messageFail = (reason) => console.log(`发送失败[${reason.retcode}]:${reason.wording}`);
     this.errorEvent = (error) => console.error("调用API失败", error);
-    this.once("meta_event.lifecycle", (event, message) => {
-      this._qq = message.self_id;
-    });
   }
   
   /**重连*/
@@ -84,10 +55,6 @@ export class WebSocketCQPack {
   
   /**断开*/
   public disconnect(): void {
-    if (this.reconnection !== undefined && this.reconnection.timeout !== undefined) {
-      clearTimeout(this.reconnection.timeout);
-      this.reconnection.timeout = undefined;
-    }
     if (this._socket !== undefined) {
       this._socket.close(1000, "Normal connection closure");
       this._socket = undefined;
@@ -111,7 +78,7 @@ export class WebSocketCQPack {
         wording: "无连接",
       });
     }
-    if (this.state === w3cwebsocket.CLOSING) {
+    if (this._socket.readyState === w3cwebsocket.CLOSING) {
       return Promise.reject(<ErrorAPIResponse>{
         data: null,
         echo: undefined,
@@ -244,7 +211,7 @@ export class WebSocketCQPack {
       console.log(json);
     }
     if (json.echo === undefined) {
-      this._handleMSG(json);
+      this._eventBus.handleMSG(json);
       return;
     }
     let handler = this._responseHandlers.get(json.echo);
@@ -277,116 +244,14 @@ export class WebSocketCQPack {
     return shortid.generate();
   }
   
-  private _handleMSG(json: any): void | boolean {
-    let post_type = json["post_type"];
-    switch (post_type) {
-      case "message": {
-        let messageType = json["message_type"];
-        let cqTags = CQ.parse(json.message);
-        switch (messageType) {
-          case "private":
-            return this._eventBus.emit("message.private", json, cqTags);
-          case "discuss":
-            return this._eventBus.emit("message.discuss", json, cqTags);
-          case "group":
-            return this._eventBus.emit("message.group", json, cqTags);
-          default:
-            return console.warn(`未知的消息类型: ${messageType}`);
-        }
-      }
-      case "notice": {
-        let notice_type = json["notice_type"];
-        switch (notice_type) {
-          case "group_upload":
-            return this._eventBus.emit("notice.group_upload", json);
-          case "group_admin":
-            return this._eventBus.emit("notice.group_admin", json);
-          case "group_decrease":
-            return this._eventBus.emit("notice.group_decrease", json);
-          case "group_increase":
-            return this._eventBus.emit("notice.group_increase", json);
-          case "group_ban":
-            return this._eventBus.emit("notice.group_ban", json);
-          case "friend_add":
-            return this._eventBus.emit("notice.friend_add", json);
-          case "group_recall":
-            return this._eventBus.emit("notice.group_recall", json);
-          case "friend_recall":
-            return this._eventBus.emit("notice.friend_recall", json);
-          case "notify": {
-            let subType = json["sub_type"];
-            switch (subType) {
-              case "poke":
-                if ("group_id" in json) {
-                  return this._eventBus.emit("notice.notify.poke.group", json);
-                } else {
-                  return this._eventBus.emit("notice.notify.poke.friend", json);
-                }
-              case "lucky_king":
-                return this._eventBus.emit("notice.notify.lucky_king", json);
-              case "honor":
-                return this._eventBus.emit("notice.notify.honor", json);
-              default:
-                return console.warn(`未知的 notify 类型: ${subType}`);
-            }
-          }
-          case "group_card":
-            return this._eventBus.emit("notice.group_card", json);
-          case "offline_file":
-            return this._eventBus.emit("notice.offline_file", json);
-          case "client_status":
-            return this._eventBus.emit("notice.client_status", json);
-          case "essence":
-            return this._eventBus.emit("notice.essence", json);
-          default:
-            return console.warn(`未知的 notice 类型: ${notice_type}`);
-        }
-      }
-      case "request": {
-        let request_type = json["request_type"];
-        switch (request_type) {
-          case "friend":
-            return this._eventBus.emit("request.friend", json);
-          case "group":
-            return this._eventBus.emit("request.group", json);
-          default:
-            return console.warn(`未知的 request 类型: ${request_type}`);
-        }
-      }
-      case "meta_event": {
-        let meta_event_type = json["meta_event_type"];
-        switch (meta_event_type) {
-          case "lifecycle":
-            return this._eventBus.emit("meta_event.lifecycle", json);
-          case "heartbeat":
-            return this._eventBus.emit("meta_event.heartbeat", json);
-          default:
-            return console.warn(`未知的 meta_event 类型: ${meta_event_type}`);
-        }
-      }
-      case "message_sent":
-        return this._eventBus.emit("message_sent", json);
-      default:
-        return console.warn(`未知的上报类型: ${post_type}`);
-    }
+  /**状态信息*/
+  public get state(): Status | undefined {
+    return this._eventBus.data.status;
   }
   
-  /**
-   * - CONNECTING = 0 连接中
-   * - OPEN = 1 已连接
-   * - CLOSING = 2 关闭中
-   * - CLOSED = 3 已关闭
-   */
-  public get state(): number {
-    if (this._socket === undefined) {
-      return w3cwebsocket.CLOSED;
-    }
-    return this._socket.readyState;
-  }
-  
-  /** 获取当前登录账号的 QQ 号, 当获取失败时返回 `-1` */
+  /**获取当前登录账号的 QQ 号, 当获取失败时返回 `-1`*/
   public get qq(): number {
-    return this._qq ?? -1;
+    return this._eventBus.data.qq ?? -1;
   }
   
   public get errorEvent(): ErrorEventHandle {
@@ -398,13 +263,6 @@ export class WebSocketCQPack {
   }
 }
 
-interface Reconnection {
-  times: number
-  delay: number
-  timesMax: number
-  timeout?: NodeJS.Timeout
-}
-
 interface ResponseHandler {
   onSuccess: onSuccess<any>
   onFailure: onFailure
@@ -414,9 +272,15 @@ interface ResponseHandler {
 type onSuccess<T> = (this: void, json: APIResponse<T>, message: APIRequest) => void
 type onFailure = (this: void, reason: ErrorAPIResponse, message: APIRequest) => void
 
+interface BotData {
+  qq: number
+  status: Status
+}
+
 export class CQEventBus extends CQEventEmitter<SocketHandle> {
   declare _events: { [key in string]: Function | Function[] };
   public _errorEvent: ErrorEventHandle;
+  public data: Partial<BotData>;
   
   constructor() {
     super({captureRejections: true});
@@ -424,6 +288,113 @@ export class CQEventBus extends CQEventEmitter<SocketHandle> {
     this._errorEvent = (e) => {
       console.error(e);
     };
+    this.data = {};
+  }
+  
+  private message(json: any): void | boolean {
+    let messageType = json["message_type"];
+    let cqTags = CQ.parse(json.message);
+    switch (messageType) {
+      case "private":
+        return this.emit("message.private", json, cqTags);
+      case "discuss":
+        return this.emit("message.discuss", json, cqTags);
+      case "group":
+        return this.emit("message.group", json, cqTags);
+      default:
+        return console.warn(`未知的消息类型: ${messageType}`);
+    }
+  }
+  
+  private "notice.notify"(json: any): void | boolean {
+    let subType = json["sub_type"];
+    switch (subType) {
+      case "poke":
+        if (Reflect.has(json, "group_id")) {
+          return this.emit("notice.notify.poke.group", json);
+        } else {
+          return this.emit("notice.notify.poke.friend", json);
+        }
+      case "lucky_king":
+        return this.emit("notice.notify.lucky_king", json);
+      case "honor":
+        return this.emit("notice.notify.honor", json);
+      default:
+        return console.warn(`未知的 notify 类型: ${subType}`);
+    }
+  }
+  
+  private notice(json: any): void | boolean {
+    let notice_type = json["notice_type"];
+    switch (notice_type) {
+      case "group_upload":
+        return this.emit("notice.group_upload", json);
+      case "group_admin":
+        return this.emit("notice.group_admin", json);
+      case "group_decrease":
+        return this.emit("notice.group_decrease", json);
+      case "group_increase":
+        return this.emit("notice.group_increase", json);
+      case "group_ban":
+        return this.emit("notice.group_ban", json);
+      case "friend_add":
+        return this.emit("notice.friend_add", json);
+      case "group_recall":
+        return this.emit("notice.group_recall", json);
+      case "friend_recall":
+        return this.emit("notice.friend_recall", json);
+      case "notify":
+        return this["notice.notify"](json);
+      case "group_card":
+        return this.emit("notice.group_card", json);
+      case "offline_file":
+        return this.emit("notice.offline_file", json);
+      case "client_status":
+        return this.emit("notice.client_status", json);
+      case "essence":
+        return this.emit("notice.essence", json);
+      default:
+        return console.warn(`未知的 notice 类型: ${notice_type}`);
+    }
+  }
+  
+  private request(json: any): void | boolean {
+    let request_type = json["request_type"];
+    switch (request_type) {
+      case "friend":
+        return this.emit("request.friend", json);
+      case "group":
+        return this.emit("request.group", json);
+      default:
+        return console.warn(`未知的 request 类型: ${request_type}`);
+    }
+  }
+  
+  private meta_event(json: any): void | boolean {
+    let meta_event_type = json["meta_event_type"];
+    switch (meta_event_type) {
+      case "lifecycle":
+        this.data.qq = json["self_id"];
+        return this.emit("meta_event.lifecycle", json);
+      case "heartbeat":
+        this.data.status = json["status"];
+        return this.emit("meta_event.heartbeat", json);
+      default:
+        return console.warn(`未知的 meta_event 类型: ${meta_event_type}`);
+    }
+  }
+  
+  private message_sent(json: any): void | boolean {
+    return this.emit("message_sent", json);
+  }
+  
+  public handleMSG(json: any): void | boolean {
+    let post_type = json["post_type"];
+    if (Reflect.has(this, post_type)) {
+      return (<any>this)[post_type](json);
+    } else {
+      return console.warn(`未知的上报类型: ${post_type}`);
+    }
   }
   
   emit<T extends HandleEventType>(type: T, ...args: HandleEventParam<SocketHandle, T>): boolean {
