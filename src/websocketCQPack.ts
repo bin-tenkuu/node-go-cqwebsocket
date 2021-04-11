@@ -1,4 +1,4 @@
-import shortid from "shortid";
+import * as shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {
   APIRequest, APIResponse, CQEvent, CQEventEmitter, CQWebSocketOptions, ErrorAPIResponse, ErrorEventHandle,
@@ -207,9 +207,7 @@ export class WebSocketCQPack {
       return;
     }
     let json: ErrorAPIResponse = JSON.parse(evt.data);
-    if (this._debug) {
-      console.log(json);
-    }
+    if (this._debug) console.log(json);
     if (json.echo === undefined) {
       this._eventBus.handleMSG(json);
       return;

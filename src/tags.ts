@@ -77,6 +77,19 @@ class CQText extends CQTag<text> {
   }
 }
 
+class CQNode extends CQTag<node> {
+  declare data: { name: string, uin: string, content: CQTag<any>[] | string };
+  
+  constructor(name: string, uin: string | number, content: CQTag<any>[] | string) {
+    super("node", {name, uin: String(uin), content: content});
+  }
+  
+  public toString(): string {
+    let {name, uin, content} = this.data;
+    return `[CQ:${this.type},name=${name},uin=${uin},content=${CQ.escape(content.toString(), true)}]`;
+  }
+}
+
 export const SPLIT = /(?=\[CQ:)|(?<=])/;
 export const CQ_TAG_REGEXP = /^\[CQ:([a-z]+)(?:,([^\]]+))?]$/;
 
@@ -263,12 +276,8 @@ export var CQ = {
    * @param uin 发送者QQ号
    * @param content 具体消息, 不支持转发套娃, 不支持引用回复
    */
-  node(name: string, uin: number | string, content: CQTag<any>[] | string) {
-    return new CQTag<node>("node", {
-      name,
-      uin: String(uin),
-      content,
-    });
+  node(name: string, uin: number | string, content: CQTag<any>[] | string): CQTag<node> {
+    return new CQNode(name, String(uin), content);
   },
   /**
    * XML 消息

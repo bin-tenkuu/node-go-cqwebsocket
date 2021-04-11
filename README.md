@@ -1,10 +1,9 @@
 # go-cqwebsocket
 
-go-cqhttp的专用 SDK, 跟随官方文档更新
+go-cqhttp 的专用 SDK, 跟随官方文档更新
 
 <del>
-  <code>node-cq-websocke</code> 停止维护后的替代品<br/>
-  cqhttp 已死, go-cqhttp 当立
+  <code>node-cq-websocke</code> 停止维护后的替代品
 </del>
 
 本SDK中所有api基于 `go-cqhttp-v1.0.0-beta2` 与 `go-cq额外文档(部分)`
@@ -52,7 +51,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 - 参数 `options`
 
-  | 可选参数             | 类型    | 默认值                | 描述                                                         |
+  | 可选参数             | 类型     | 默认值                | 描述                                                         |
   | :------------------- | :------ | :-------------------- | :----------------------------------------------------------- |
   | accessToken          | string  | ""                    | 校验口令, config.hjson中配置<br/>[参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) |
   | baseUrl              | string  | `ws://127.0.0.1:6700` | 完整链接                                                     |
