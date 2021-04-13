@@ -49,7 +49,7 @@ export class CQTag<T extends Tag> implements Tag {
     // 暂不清楚哪个效率高,直接进行一个模板字符串的用
     return `[CQ:${this.type}${Object.entries(this.data).map(([k, v]) => {
       if (v === undefined) return "";
-      return `,${k}=${v}`;
+      return `,${k}=${CQ.escape(String(v), true)}`;
     }).join("")}]`;
   }
   
@@ -74,19 +74,6 @@ class CQText extends CQTag<text> {
   
   toString(): string {
     return this.data.text;
-  }
-}
-
-class CQNode extends CQTag<node> {
-  declare data: { name: string, uin: string, content: CQTag<any>[] | string };
-  
-  constructor(name: string, uin: string | number, content: CQTag<any>[] | string) {
-    super("node", {name, uin: String(uin), content: content});
-  }
-  
-  public toString(): string {
-    let {name, uin, content} = this.data;
-    return `[CQ:${this.type},name=${name},uin=${uin},content=${CQ.escape(content.toString(), true)}]`;
   }
 }
 
@@ -125,6 +112,7 @@ export var CQ = {
    * @returns 转义后的字符串
    */
   escape(str: string, insideCQ = false): string {
+    if (!/[[\]&,]/.test(str)) return str;
     let temp = str.replace(/&/g, "&amp;")
         .replace(/\[/g, "&#91;")
         .replace(/]/g, "&#93;");
@@ -276,8 +264,8 @@ export var CQ = {
    * @param uin 发送者QQ号
    * @param content 具体消息, 不支持转发套娃, 不支持引用回复
    */
-  node(name: string, uin: number | string, content: CQTag<any>[] | string): CQTag<node> {
-    return new CQNode(name, String(uin), content);
+  node(name: string, uin: number | string, content: CQTag<any>[] | string) {
+    return new CQTag<node>("node", {name, uin: String(uin), content});
   },
   /**
    * XML 消息

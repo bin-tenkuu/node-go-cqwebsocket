@@ -1,10 +1,6 @@
 # go-cqwebsocket
 
-go-cqhttp 的专用 SDK, 跟随官方文档更新
-
-<del>
-  <code>node-cq-websocke</code> 停止维护后的替代品
-</del>
+针对 go-cqhttp 开发的 SDK, 跟随官方文档更新, 理论上有向其他 OneBot 实现兼容的能力
 
 本SDK中所有api基于 `go-cqhttp-v1.0.0-beta2` 与 `go-cq额外文档(部分)`
 

@@ -8,9 +8,7 @@ import {WebSocketCQPack} from "./websocketCQPack";
 
 export * as Tags from "./tags";
 export * as Interfaces from "./Interfaces";
-export {
-  CQ,
-} from "./tags";
+export {CQ} from "./tags";
 
 /**
  * 本类中所有api基于 `go-cqhttp-v1.0.0-beta2` 与 `go-cq额外文档(部分)` <br/>
