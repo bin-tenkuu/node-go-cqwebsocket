@@ -1,4 +1,5 @@
 import EventEmitter from "events";
+import {IClientConfig} from "websocket";
 import {CQTag, node, Tag} from "./tags";
 
 /**@see send_msg*/
@@ -453,9 +454,18 @@ export interface LifeCycle extends MetaEventType, SubType {
 }
 
 /**@see CQWebSocket.constructor*/
-export interface CQWebSocketOptions {
-  accessToken?: string,
-  baseUrl?: string,
+export type CQWebSocketOptions = {
+  /**@default "ws:"*/
+  protocol?: "ws:" | "wss:"
+  /**@default "127.0.0.1"*/
+  host?: string
+  /**@default 6700*/
+  port?: number
+  /**@default ""*/
+  accessToken?: string
+  baseUrl?: string
+  origin?: string
+  clientConfig?: IClientConfig
 }
 
 /**API 消息发送报文*/
@@ -739,8 +749,11 @@ export type SocketHandle = {
   "request.group": EventHandler<RequestGroup>
   
   "socket.open": EventHandler<void>
+  "socket.openEvent": EventHandler<void>
   "socket.close": SocketCloseHandle
+  "socket.closeEvent": SocketCloseHandle
   "socket.error": SocketCloseHandle
+  "socket.errorEvent": SocketCloseHandle
   
   "api.preSend": EventHandler<APIRequest>
   "api.response": ResponseHandle

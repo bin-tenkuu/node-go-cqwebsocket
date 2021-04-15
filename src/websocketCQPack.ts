@@ -17,19 +17,27 @@ export class WebSocketCQPack {
   
   private readonly _accessToken: string;
   private readonly _baseUrl: string;
+  private readonly _origin?: string;
+  private readonly _clientConfig?: IClientConfig;
   private readonly _debug: boolean;
   private _socket?: w3cwebsocket;
   
   constructor({
-    // connectivity configs
+    protocol = "ws:",
+    host = "127.0.0.1",
+    port = 6700,
     accessToken = "",
-    baseUrl = "ws://127.0.0.1:6700",
+    baseUrl,
+    origin,
+    clientConfig,
   }: CQWebSocketOptions = {}, debug = false) {
     this._debug = Boolean(debug);
     this._responseHandlers = new Map();
     this._eventBus = new CQEventBus();
     this._accessToken = accessToken;
-    this._baseUrl = baseUrl;
+    this._baseUrl = baseUrl ?? `${protocol}//${host}:${port}`;
+    this._origin = origin;
+    this._clientConfig = clientConfig;
     this.messageSuccess = (ret) => console.log(`发送成功:${parseInt(ret.echo, 36)}`);
     this.messageFail = (reason) => console.log(`发送失败[${reason.retcode}]:${reason.wording}`);
     this.errorEvent = (error) => console.error("调用API失败", error);
