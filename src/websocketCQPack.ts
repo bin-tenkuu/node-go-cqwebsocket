@@ -1,5 +1,5 @@
 import shortid from "shortid";
-import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
+import {connection, IClientConfig, ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {
   APIRequest, APIResponse, CQEvent, CQEventEmitter, CQWebSocketOptions, ErrorAPIResponse, ErrorEventHandle,
   HandleEventParam, HandleEventType, ObjectEntries, PromiseRes, SocketHandle, Status,
@@ -21,6 +21,7 @@ export class WebSocketCQPack {
   private readonly _clientConfig?: IClientConfig;
   private readonly _debug: boolean;
   private _socket?: w3cwebsocket;
+  private _socketEvent?: w3cwebsocket;
   
   constructor({
     protocol = "ws:",
@@ -51,21 +52,38 @@ export class WebSocketCQPack {
   
   /**连接*/
   public connect(): void {
-    let urlAPI = `${this._baseUrl}/?access_token=${this._accessToken}`;
-    this._socket = new w3cwebsocket(urlAPI);
-    this._socket.onopen = () => this._open();
-    this._socket.onclose = evt => {
-      this._close(evt);
-      this._socket = undefined;
-    };
-    this._socket.onmessage = evt => this._onmessage(evt);
+    {
+      let url = `${this._baseUrl}/api?access_token=${this._accessToken}`;
+      this._socket = new w3cwebsocket(url, [], this._origin, undefined, undefined, this._clientConfig);
+      this._socket.onopen = () => this._eventBus.emit("socket.open");
+      this._socket.onclose = evt => {
+        this._close(evt, false);
+        this._socket = undefined;
+      };
+      this._socket.onmessage = evt => this._onmessage(evt);
+    }
+    {
+      let url = `${this._baseUrl}/event?access_token=${this._accessToken}`;
+      this._socketEvent = new w3cwebsocket(url, [], this._origin, undefined, undefined,
+          this._clientConfig);
+      this._socketEvent.onopen = () => this._eventBus.emit("socket.openEvent");
+      this._socketEvent.onclose = evt => {
+        this._close(evt, true);
+        this._socketEvent = undefined;
+      };
+      this._socketEvent.onmessage = evt => this._onmessageEvent(evt);
+    }
   }
   
   /**断开*/
   public disconnect(): void {
     if (this._socket !== undefined) {
-      this._socket.close(1000, "Normal connection closure");
+      this._socket.close(connection.CLOSE_REASON_NORMAL, connection.CLOSE_DESCRIPTIONS[1000]);
       this._socket = undefined;
+    }
+    if (this._socketEvent !== undefined) {
+      this._socketEvent.close(connection.CLOSE_REASON_NORMAL, connection.CLOSE_DESCRIPTIONS[1000]);
+      this._socketEvent = undefined;
     }
   }
   
@@ -96,7 +114,7 @@ export class WebSocketCQPack {
         wording: "连接关闭",
       });
     }
-    let echo = WebSocketCQPack.GetECHO();
+    let echo = this.getECHO();
     let message: APIRequest = {
       action: method,
       params: params,
@@ -206,20 +224,13 @@ export class WebSocketCQPack {
     return this;
   }
   
-  private _open(): void {
-    this._eventBus.emit("socket.open");
-  }
-  
   private _onmessage(evt: IMessageEvent): void {
     if (typeof evt.data !== "string") {
       return;
     }
     let json: ErrorAPIResponse = JSON.parse(evt.data);
     if (this._debug) console.log(json);
-    if (json.echo === undefined) {
-      this._eventBus.handleMSG(json);
-      return;
-    }
+    if (json.echo === undefined) return;
     let handler = this._responseHandlers.get(json.echo);
     if (handler === undefined) return;
     let message = handler.message;
@@ -234,19 +245,29 @@ export class WebSocketCQPack {
     return;
   }
   
-  private _close(evt: ICloseEvent): void {
-    if (evt.code === 1000) {
-      this._eventBus.emit("socket.close", evt.code, evt.reason);
+  private _onmessageEvent(evt: IMessageEvent): void {
+    if (typeof evt.data !== "string") {
       return;
     }
-    this._eventBus.emit("socket.error", evt.code, evt.reason);
+    let json: ErrorAPIResponse = JSON.parse(evt.data);
+    if (this._debug) console.log(json);
+    this._eventBus.handleMSG(json);
+    return;
+  }
+  
+  private _close(evt: ICloseEvent, isEvent: boolean): void {
+    if (evt.code === connection.CLOSE_REASON_NORMAL) {
+      this._eventBus.emit(isEvent ? "socket.closeEvent" : "socket.close", evt.code, evt.reason);
+      return;
+    }
+    this._eventBus.emit(isEvent ? "socket.errorEvent" : "socket.error", evt.code, evt.reason);
   }
   
   /**
    * 获取随机ID <br/>
    * 原本实现为 `return Date.now().toString(36);`, 后发现异步环境下方法调用可以达到毫秒级以内, 故废弃
    */
-  public static GetECHO(): string {
+  public getECHO(): string {
     return shortid.generate();
   }
   
@@ -264,6 +285,7 @@ export class WebSocketCQPack {
     return this._eventBus._errorEvent;
   }
   
+  /**设置当注册的事件运行失败时,的回调方法,记录出错的事件与方法*/
   public set errorEvent(value: ErrorEventHandle) {
     this._eventBus._errorEvent = value;
   }
@@ -278,21 +300,17 @@ interface ResponseHandler {
 type onSuccess<T> = (this: void, json: APIResponse<T>, message: APIRequest) => void
 type onFailure = (this: void, reason: ErrorAPIResponse, message: APIRequest) => void
 
-interface BotData {
-  qq: number
-  status: Status
-}
-
 export class CQEventBus extends CQEventEmitter<SocketHandle> {
   public _errorEvent: ErrorEventHandle;
-  public data: Partial<BotData>;
+  public data: {
+    qq?: number
+    status?: Status
+  };
   
   constructor() {
     super({captureRejections: true});
     this.setMaxListeners(0);
-    this._errorEvent = (e) => {
-      console.error(e);
-    };
+    this._errorEvent = (e) => console.error(e);
     this.data = {};
   }
   
@@ -411,19 +429,17 @@ export class CQEventBus extends CQEventEmitter<SocketHandle> {
         handlers(event, ...args);
       } catch (e) {
         Reflect.deleteProperty(this._events, type);
-        this._errorEvent(e, type, handlers as SocketHandle[T]);
+        this._errorEvent(e, type, handlers as SocketHandle[T], args);
       }
     } else {
       let len = handlers.length;
       for (let i = 0; i < len; i++) {
         try {
           handlers[i](event, ...args);
-          if (event.isCanceled) {
-            break;
-          }
+          if (event.isCanceled) break;
         } catch (e) {
           let func = handlers.splice(i, 1)[0];
-          this._errorEvent(e, type, func as SocketHandle[T]);
+          this._errorEvent(e, type, func as SocketHandle[T], args);
           len--;
           i--;
         }

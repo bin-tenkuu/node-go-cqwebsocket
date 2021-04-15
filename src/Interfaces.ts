@@ -739,7 +739,8 @@ export type ListenerChangeHandle = <T extends HandleEventType>(this: void, event
 export type HandleEventType = keyof SocketHandle
 export type HandleEventParam<T extends SocketHandle, K extends keyof T> = T[K] extends SocketHandleFunction<infer U> ? U : unknown[];
 export type ObjectEntries<T, K extends keyof T = keyof T> = [K, T[K]][];
-export type ErrorEventHandle = <T extends HandleEventType>(error: any, type: T, handler: SocketHandle[T]) => void;
+export type ErrorEventHandle = <T extends HandleEventType>(error: any, type: T, handler: SocketHandle[T],
+    args: HandleEventParam<SocketHandle, T>) => void;
 export type SocketHandle = {
   "message.private": MessageEventHandler<PrivateMessage>
   "message.group": MessageEventHandler<GroupMessage>
