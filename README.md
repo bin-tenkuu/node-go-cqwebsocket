@@ -47,10 +47,15 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 - 参数 `options`
 
-  | 可选参数             | 类型     | 默认值                | 描述                                                         |
-  | :------------------- | :------ | :-------------------- | :----------------------------------------------------------- |
-  | accessToken          | string  | ""                    | 校验口令, config.hjson中配置<br/>[参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) |
-  | baseUrl              | string  | `ws://127.0.0.1:6700` | 完整链接                                                     |
+  | 可选参数     | 类型            | 默认值                | 描述                                                         |
+  | :----------- | :-------------- | :-------------------- | :----------------------------------------------------------- |
+  | protocol     | `ws:`           | `"wss:" | "ws:"`      | 协议                                                         |
+  | host         | string          | `127.0.0.1`           | 地址                                                         |
+  | port         | number          | `6700`                | 端口                                                         |
+  | accessToken  | string          | ""                    | 校验口令, [参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) config.hjson中配置 |
+  | baseUrl      | string          | `ws://127.0.0.1:6700` | 完整链接, 当配置中有此项时, 优先使用                         |
+  | origin       | string          | `undefined`           | 源                                                           |
+  | clientConfig | `IClientConfig` | `undefined`           | ws 配置, 参考 IDE 内部提示                                   |
 
 **注1：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 API,
 查找&调用请参考 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/)
@@ -61,7 +66,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 **注3：** 实例属性 `errorEvent` 用于替代默认的 `error` 事件, 仅在事件运行出错时调用
 
-**注4：** 如非必要, 请自行实现 `自动重连` 的功能
+**注4：** `自动重连` 功能请自行实现, 本 SDK 中已将两个连接的事件分开触发
 
 ------------------------------------
 
