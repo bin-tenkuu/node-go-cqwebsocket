@@ -1,4 +1,4 @@
-import * as shortid from "shortid";
+import shortid from "shortid";
 import {ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
 import {
   APIRequest, APIResponse, CQEvent, CQEventEmitter, CQWebSocketOptions, ErrorAPIResponse, ErrorEventHandle,
