@@ -1,5 +1,6 @@
+import http from "http";
 import shortid from "shortid";
-import {connection, IClientConfig, ICloseEvent, IMessageEvent, w3cwebsocket} from "websocket";
+import WebSocket, {ClientOptions, Data} from "ws";
 import {
   APIRequest, APIResponse, CQEvent, CQEventEmitter, CQWebSocketOptions, ErrorAPIResponse, ErrorEventHandle,
   HandleEventParam, HandleEventType, ObjectEntries, PromiseRes, SocketHandle, Status,
@@ -17,11 +18,10 @@ export class WebSocketCQPack {
   
   private readonly _accessToken: string;
   private readonly _baseUrl: string;
-  private readonly _origin?: string;
-  private readonly _clientConfig?: IClientConfig;
+  private readonly _clientConfig?: ClientOptions | http.ClientRequestArgs;
   private readonly _debug: boolean;
-  private _socket?: w3cwebsocket;
-  private _socketEvent?: w3cwebsocket;
+  private _socket?: WebSocket;
+  private _socketEvent?: WebSocket;
   
   constructor({
     protocol = "ws:",
@@ -29,7 +29,6 @@ export class WebSocketCQPack {
     port = 6700,
     accessToken = "",
     baseUrl,
-    origin,
     clientConfig,
   }: CQWebSocketOptions = {}, debug = false) {
     this._debug = Boolean(debug);
@@ -37,7 +36,6 @@ export class WebSocketCQPack {
     this._eventBus = new CQEventBus();
     this._accessToken = accessToken;
     this._baseUrl = baseUrl ?? `${protocol}//${host}:${port}`;
-    this._origin = origin;
     this._clientConfig = clientConfig;
     this.messageSuccess = (ret) => console.log(`发送成功:${parseInt(ret.echo, 36)}`);
     this.messageFail = (reason) => console.log(`发送失败[${reason.retcode}]:${reason.wording}`);
@@ -54,35 +52,39 @@ export class WebSocketCQPack {
   public connect(): void {
     {
       let url = `${this._baseUrl}/api?access_token=${this._accessToken}`;
-      this._socket = new w3cwebsocket(url, [], this._origin, undefined, undefined, this._clientConfig);
-      this._socket.onopen = () => this._eventBus.emit("socket.open");
-      this._socket.onclose = evt => {
-        this._close(evt, false);
+      this._socket = new WebSocket(url, undefined, this._clientConfig);
+      new WebSocket(url);
+      this._socket.on("open", () => {
+        this._eventBus.emit("socket.open");
+      }).on("close", (code, reason) => {
+        this._close(false, code, reason);
         this._socket = undefined;
-      };
-      this._socket.onmessage = evt => this._onmessage(evt);
+      }).on("message", data => {
+        this._onmessage(data);
+      });
     }
     {
       let url = `${this._baseUrl}/event?access_token=${this._accessToken}`;
-      this._socketEvent = new w3cwebsocket(url, [], this._origin, undefined, undefined,
-          this._clientConfig);
-      this._socketEvent.onopen = () => this._eventBus.emit("socket.openEvent");
-      this._socketEvent.onclose = evt => {
-        this._close(evt, true);
+      this._socketEvent = new WebSocket(url, undefined, this._clientConfig);
+      this._socketEvent.on("open", () => {
+        this._eventBus.emit("socket.openEvent");
+      }).on("close", (code, reason) => {
+        this._close(true, code, reason);
         this._socketEvent = undefined;
-      };
-      this._socketEvent.onmessage = evt => this._onmessageEvent(evt);
+      }).on("message", data => {
+        this._onmessageEvent(data);
+      });
     }
   }
   
   /**断开*/
   public disconnect(): void {
     if (this._socket !== undefined) {
-      this._socket.close(connection.CLOSE_REASON_NORMAL, connection.CLOSE_DESCRIPTIONS[1000]);
+      this._socket.close(1000);
       this._socket = undefined;
     }
     if (this._socketEvent !== undefined) {
-      this._socketEvent.close(connection.CLOSE_REASON_NORMAL, connection.CLOSE_DESCRIPTIONS[1000]);
+      this._socketEvent.close(1000);
       this._socketEvent = undefined;
     }
   }
@@ -104,7 +106,7 @@ export class WebSocketCQPack {
         wording: "无连接",
       });
     }
-    if (this._socket.readyState === w3cwebsocket.CLOSING) {
+    if (this._socket.readyState === WebSocket.CLOSING) {
       return Promise.reject(<ErrorAPIResponse>{
         data: null,
         echo: undefined,
@@ -224,11 +226,11 @@ export class WebSocketCQPack {
     return this;
   }
   
-  private _onmessage(evt: IMessageEvent): void {
-    if (typeof evt.data !== "string") {
+  private _onmessage(data: Data): void {
+    if (typeof data !== "string") {
       return;
     }
-    let json: ErrorAPIResponse = JSON.parse(evt.data);
+    let json: ErrorAPIResponse = JSON.parse(data);
     if (this._debug) console.log(json);
     if (json.echo === undefined) return;
     let handler = this._responseHandlers.get(json.echo);
@@ -245,22 +247,22 @@ export class WebSocketCQPack {
     return;
   }
   
-  private _onmessageEvent(evt: IMessageEvent): void {
-    if (typeof evt.data !== "string") {
+  private _onmessageEvent(data: Data): void {
+    if (typeof data !== "string") {
       return;
     }
-    let json: ErrorAPIResponse = JSON.parse(evt.data);
+    let json: ErrorAPIResponse = JSON.parse(data);
     if (this._debug) console.log(json);
     this._eventBus.handleMSG(json);
     return;
   }
   
-  private _close(evt: ICloseEvent, isEvent: boolean): void {
-    if (evt.code === connection.CLOSE_REASON_NORMAL) {
-      this._eventBus.emit(isEvent ? "socket.closeEvent" : "socket.close", evt.code, evt.reason);
+  private _close(isEvent: boolean, code: number, reason: string): void {
+    if (code === 1000) {
+      this._eventBus.emit(isEvent ? "socket.closeEvent" : "socket.close", code, reason);
       return;
     }
-    this._eventBus.emit(isEvent ? "socket.errorEvent" : "socket.error", evt.code, evt.reason);
+    this._eventBus.emit(isEvent ? "socket.errorEvent" : "socket.error", code, reason);
   }
   
   /**

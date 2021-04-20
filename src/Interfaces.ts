@@ -1,5 +1,6 @@
 import EventEmitter from "events";
-import {IClientConfig} from "websocket";
+import http from "http";
+import {ClientOptions} from "ws";
 import {CQTag, node, Tag} from "./tags";
 
 /**@see send_msg*/
@@ -463,9 +464,9 @@ export type CQWebSocketOptions = {
   port?: number
   /**@default ""*/
   accessToken?: string
+  /**基础链接*/
   baseUrl?: string
-  origin?: string
-  clientConfig?: IClientConfig
+  clientConfig?: ClientOptions | http.ClientRequestArgs
 }
 
 /**API 消息发送报文*/
@@ -762,8 +763,8 @@ export type SocketHandle = {
   "meta_event.lifecycle": EventHandler<LifeCycle>
   "meta_event.heartbeat": EventHandler<HeartBeat>
   
-  "notice.group_upload": EventHandler<GroupUpload>
   "notice.group_admin": EventHandler<GroupAdmin>
+  "notice.group_upload": EventHandler<GroupUpload>
   "notice.group_decrease": EventHandler<GroupDecrease>
   "notice.group_increase": EventHandler<GroupIncrease>
   "notice.group_ban": EventHandler<GroupBan>

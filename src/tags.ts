@@ -278,7 +278,7 @@ export var CQ = {
    * @param data json内容, json的所有字符串记得实体化处理
    * @param resid 默认不填为0, 走小程序通道, 填了走富文本通道发送
    */
-  json(data: string, resid?: number) { return new CQTag<json>("json", {data, resid}); },
+  json(data: string, resid = 0) { return new CQTag<json>("json", {data, resid}); },
   /**
    * 一种xml的图片消息（装逼大图）<br/> **PS** : xml 接口的消息都存在风控风险, 请自行兼容发送失败后的处理 ( 可以失败后走普通图片模式 )
    * @param file 和image的file字段对齐, 支持也是一样的
@@ -292,13 +292,7 @@ export var CQ = {
   cardimage(file: string, minwidth?: number, minheight?: number, maxwidth?: number, maxheight?: number,
       source ?: string, icon?: string) {
     return new CQTag<cardimage>("cardimage", {
-      file,
-      minwidth,
-      minheight,
-      maxwidth,
-      maxheight,
-      source,
-      icon,
+      file, minwidth, minheight, maxwidth, maxheight, source, icon,
     });
   },
   /**
