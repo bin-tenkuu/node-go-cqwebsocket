@@ -1,6 +1,6 @@
-import EventEmitter from "events";
+import {EventEmitter} from "events";
 import http from "http";
-import {ClientOptions} from "ws";
+import {ClientOptions, PerMessageDeflateOptions} from "ws";
 import {CQTag, node, Tag} from "./tags";
 
 /**@see send_msg*/
@@ -466,7 +466,16 @@ export type CQWebSocketOptions = {
   accessToken?: string
   /**基础链接*/
   baseUrl?: string
-  clientConfig?: ClientOptions | http.ClientRequestArgs
+  clientConfig?: {
+    /**握手请求的超时事件（单位：毫秒）*/
+    handshakeTimeout?: number
+    /**Enable/disable `permessage-deflate`*/
+    perMessageDeflate?: boolean | PerMessageDeflateOptions;
+    /**Value of the `Sec-WebSocket-Version` header.*/
+    protocolVersion?: number
+    /**Value of the `Origin` or `Sec-WebSocket-Origin` header 取决于 the protocolVersion.*/
+    origin?: string
+  } & (ClientOptions | http.ClientRequestArgs | {})
 }
 
 /**API 消息发送报文*/

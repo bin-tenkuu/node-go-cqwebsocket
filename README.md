@@ -2,9 +2,9 @@
 
 针对 go-cqhttp 开发的 SDK, 跟随官方文档更新, 理论上有向其他 OneBot 实现兼容的能力
 
-本SDK中所有api基于 `go-cqhttp-v1.0.0-beta2` 与 `go-cq额外文档(部分)`
+本SDK中所有api基于 `go-cqhttp-v1.0.0-beta3` 与 `go-cq额外文档(部分)`
 
-go-cqhttp标准文档最后编辑日期： `4/7/2021, 12:57:26 PM`
+go-cqhttp标准文档最后编辑日期： `4/17/2021, 5:31:10 AM`
 
 # 关于此SDK
 
@@ -15,7 +15,7 @@ go-cqhttp标准文档最后编辑日期： `4/7/2021, 12:57:26 PM`
 关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/) 为准， 同时提供 `send(...)`
 方法以供未知接口的调用
 
-> 本 SDK API 已趋于稳定, 项目中引用请使用 `2.0.0` 以上版本, 后续 API 将尽可能减少变化
+> 本 SDK API 已趋于稳定, 项目中引用请使用 `2.0.0` 以上版本, 后续 API 将尽可能减少破坏性变化
 
 > 本 SDK 仅为代码提示与方便调用，使用上有机会碰到 Bug，欢迎提交 PR 或 issue 回报。
 
@@ -47,15 +47,14 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 - 参数 `options`
 
-  | 可选参数     | 类型            | 默认值                | 描述                                                         |
-  | :----------- | :-------------- | :-------------------- | :----------------------------------------------------------- |
-  | protocol     | `ws:`           | `"wss:" | "ws:"`      | 协议                                                         |
-  | host         | string          | `127.0.0.1`           | 地址                                                         |
-  | port         | number          | `6700`                | 端口                                                         |
-  | accessToken  | string          | ""                    | 校验口令, [参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) config.hjson中配置 |
-  | baseUrl      | string          | `ws://127.0.0.1:6700` | 完整链接, 当配置中有此项时, 优先使用                         |
-  | origin       | string          | `undefined`           | 源                                                           |
-  | clientConfig | `IClientConfig` | `undefined`           | ws 配置, 参考 IDE 内部提示                                   |
+  | 可选参数     | 类型                                     | 默认值                | 描述                                                         |
+  | :----------- | :--------------------------------------- | :-------------------- | :----------------------------------------------------------- |
+  | protocol     | `"ws:" | "wss:"`                         | `"ws:"`               | 协议                                                         |
+  | host         | string                                   | `127.0.0.1`           | 地址                                                         |
+  | port         | number                                   | `6700`                | 端口                                                         |
+  | accessToken  | string                                   | ""                    | 校验口令, [参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) config.hjson中配置 |
+  | baseUrl      | string                                   | `ws://127.0.0.1:6700` | 完整链接, 当配置中有此项时, 优先使用                         |
+  | clientConfig | `ClientOptions` `http.ClientRequestArgs` | `undefined`           | ws 配置, 参考 IDE 内部提示                                   |
 
 **注1：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 API,
 查找&调用请参考 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/)
