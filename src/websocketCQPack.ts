@@ -37,7 +37,7 @@ export class WebSocketCQPack {
     this._accessToken = accessToken;
     this._baseUrl = baseUrl ?? `${protocol}//${host}:${port}`;
     this._clientConfig = clientConfig;
-    this.messageSuccess = (ret) => console.log(`发送成功:${parseInt(ret.echo, 36)}`);
+    this.messageSuccess = (ret) => console.log(`发送成功:${ret.echo}`);
     this.messageFail = (reason) => console.log(`发送失败[${reason.retcode}]:${reason.wording}`);
     this.errorEvent = (error) => console.error("调用API失败", error);
   }
