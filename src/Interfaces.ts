@@ -385,6 +385,8 @@ export interface MessageType extends PostType, SubType, MessageId, UserId {
   raw_message: string
   /**字体*/
   font: number
+  /**发送人信息*/
+  sender: StrangerInfo
 }
 
 /**私聊消息*/
@@ -392,8 +394,6 @@ export interface PrivateMessage extends MessageType {
   message_type: "private"
   /**消息子类型, 如果是好友则是 friend, 如果是群临时会话则是 group*/
   sub_type: "friend" | "group" | "other"
-  /**发送人信息*/
-  sender: StrangerInfo
 }
 
 /**群消息*/

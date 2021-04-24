@@ -49,7 +49,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
   | 可选参数     | 类型                                     | 默认值                | 描述                                                         |
   | :----------- | :--------------------------------------- | :-------------------- | :----------------------------------------------------------- |
-  | protocol     | `"ws:" | "wss:"`                         | `"ws:"`               | 协议                                                         |
+  | protocol     | `ws:` , `wss:`                           | `"ws:"`               | 协议                                                         |
   | host         | string                                   | `127.0.0.1`           | 地址                                                         |
   | port         | number                                   | `6700`                | 端口                                                         |
   | accessToken  | string                                   | ""                    | 校验口令, [参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) config.hjson中配置 |

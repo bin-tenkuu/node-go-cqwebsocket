@@ -53,7 +53,6 @@ export class WebSocketCQPack {
     {
       let url = `${this._baseUrl}/api?access_token=${this._accessToken}`;
       this._socket = new WebSocket(url, undefined, this._clientConfig);
-      new WebSocket(url);
       this._socket.on("open", () => {
         this._eventBus.emit("socket.open");
       }).on("close", (code, reason) => {
@@ -258,11 +257,10 @@ export class WebSocketCQPack {
   }
   
   private _close(isEvent: boolean, code: number, reason: string): void {
-    if (code === 1000) {
-      this._eventBus.emit(isEvent ? "socket.closeEvent" : "socket.close", code, reason);
-      return;
+    if (code !== 1000) {
+      this._eventBus.emit(isEvent ? "socket.errorEvent" : "socket.error", code, reason);
     }
-    this._eventBus.emit(isEvent ? "socket.errorEvent" : "socket.error", code, reason);
+    this._eventBus.emit(isEvent ? "socket.closeEvent" : "socket.close", code, reason);
   }
   
   /**
@@ -305,7 +303,7 @@ type onFailure = (this: void, reason: ErrorAPIResponse, message: APIRequest) => 
 export class CQEventBus extends CQEventEmitter<SocketHandle> {
   public _errorEvent: ErrorEventHandle;
   public data: {
-    qq?: number
+    qq: number
     status?: Status
   };
   
@@ -313,7 +311,7 @@ export class CQEventBus extends CQEventEmitter<SocketHandle> {
     super({captureRejections: true});
     this.setMaxListeners(0);
     this._errorEvent = (e) => console.error(e);
-    this.data = {};
+    this.data = {qq: -1};
   }
   
   protected message(json: any): void | boolean {
