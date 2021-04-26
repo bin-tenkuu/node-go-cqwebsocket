@@ -42,39 +42,34 @@ export class CQTag<T extends Tag> implements Tag {
   }
   
   public toJSON(): Tag {
-    return this.toTag();
+    return this.valueOf();
   }
   
   public toString(): string {
-    // 暂不清楚哪个效率高,直接进行一个模板字符串的用
-    return `[CQ:${this.type}${Object.entries(this.data).map(([k, v]) => {
-      if (v === undefined) return "";
-      return `,${k}=${CQ.escape(String(v), true)}`;
-    }).join("")}]`;
+    if (this.tagName === "text") {
+      return this.data.text;
+    } else {
+      return `[CQ:${this.type}${Object.entries(this.data).map(([k, v]) => {
+        if (v === undefined) return "";
+        return `,${k}=${CQ.escape(String(v), true)}`;
+      }).join("")}]`;
+    }
   }
   
   /**浅拷贝 data 对象*/
   public clone(): CQTag<T> {
-    return new CQTag<T>(this.type, Object.assign<{}, T["data"]>({}, this.data));
+    return new CQTag<T>(this.type, Object.assign({}, this.data));
   }
   
   /** 转换为纯消息段 */
-  public toTag(): Tag {
+  public valueOf(): Tag {
     return {
       type: this.type,
       data: this.data,
     };
   }
-}
-
-class CQText extends CQTag<text> {
-  constructor(text: string) {
-    super("text", {text});
-  }
   
-  toString(): string {
-    return this.data.text;
-  }
+  [Symbol.toStringTag]() {return CQTag.name;}
 }
 
 export const SPLIT = /(?=\[CQ:)|(?<=])/;
@@ -86,12 +81,12 @@ export var CQ = {
     if (typeof msg !== "string") {
       return msg.filter(tag => {
         return tag !== null && tag !== undefined;
-      }).map(tag => tag.type === "text" ? new CQText(tag.data.text) : new CQTag(tag.type, tag.data));
+      }).map(tag => new CQTag(tag.type, tag.data));
     }
     return msg.split(SPLIT).map(tagStr => {
       let match = CQ_TAG_REGEXP.exec(tagStr);
       if (match === null) {
-        return new CQText(CQ.unescape(tagStr));
+        return new CQTag("text", CQ.unescape(tagStr));
       }
       // `[CQ:share,title=震惊&#44;小伙睡觉前居然...,url=http://baidu.com/?a=1&amp;b=2]`
       let [, tagName, value] = match;
@@ -137,7 +132,7 @@ export var CQ = {
    * 纯文本
    * @param text 纯文本内容
    */
-  text(text: string): CQTag<text> { return new CQText(String(text)); },
+  text(text: string): CQTag<text> { return new CQTag<text>("text", {text: String(text)}); },
   /**
    * QQ 表情
    * @param id QQ 表情 ID,处于 [0,221] 区间
@@ -306,6 +301,7 @@ export var CQ = {
    * @param data CQ码参数
    */
   custom<T extends Tag>(type: string, data: T = <T>{}) { return new CQTag<T>(type, data); },
+  [Symbol.toStringTag]() {return "CQ";},
 };
 
 export type allTags = text | face | record | video | at | rps | dice | shake | anonymous | share | contact | location

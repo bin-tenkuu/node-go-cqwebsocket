@@ -1,7 +1,7 @@
-import {EventEmitter} from "events";
 import http from "http";
 import {ClientOptions, PerMessageDeflateOptions} from "ws";
 import {CQTag, node, Tag} from "./tags";
+import {CQEvent} from "./websocketCQPack";
 
 /**@see send_msg*/
 export interface PrivateData {
@@ -736,111 +736,75 @@ export interface URLSafely {
   level: number
 }
 
-export type message = CQTag<any>[] | string
-export type messageNode = CQTag<node>
+export interface ResponseHandle {
+  response: APIResponse<any>,
+  sourceMSG: APIRequest
+}
+
+export interface SocketCloseType {
+  code: number,
+  reason: string
+}
+
+export interface ListenerChangeType {
+  type: HandleEventType,
+  handler: EventHandle<HandleEventType>
+}
+
 export type int64 = number | string
-export type SocketHandleFunction<T extends Array<any>> = (this: void, event: CQEvent, ...args: T) => void
-export type MessageEventHandler<T> = (this: void, event: CQEvent, message: T, tags: CQTag<any>[]) => void
-export type EventHandler<T> = (this: void, event: CQEvent, message: T) => void
-export type ResponseHandle = (this: void, event: CQEvent, response: APIResponse<any>, sourceMSG: APIRequest) => void
-export type SocketCloseHandle = (this: void, event: CQEvent, code: number, reason: string) => void
-export type ListenerChangeHandle = <T extends HandleEventType>(this: void, event: CQEvent, type: T,
-    handler: SocketHandle[T]) => void
+export type message = CQTag<any>[] | string
+export type messageNode = CQTag<node>[]
 export type HandleEventType = keyof SocketHandle
-export type HandleEventParam<T extends SocketHandle, K extends keyof T> = T[K] extends SocketHandleFunction<infer U> ? U : unknown[];
 export type ObjectEntries<T, K extends keyof T = keyof T> = [K, T[K]][];
-export type ErrorEventHandle = <T extends HandleEventType>(error: any, type: T, handler: SocketHandle[T],
-    args: HandleEventParam<SocketHandle, T>) => void;
+export type ErrorEventHandle = <T extends HandleEventType>(error: any, type: T, handler: EventHandle<T>) => void;
+export type EventHandle<T extends HandleEventType> = (this: void, event: CQEvent<T>) => void
+export type PartialSocketHandle = { [key in HandleEventType]?: EventHandle<key> }
 export type SocketHandle = {
-  "message.private": MessageEventHandler<PrivateMessage>
-  "message.group": MessageEventHandler<GroupMessage>
-  "message.discuss": MessageEventHandler<any>
+  "message.private": PrivateMessage
+  "message.group": GroupMessage
+  "message.discuss": any
   
-  "request.friend": EventHandler<RequestFriend>
-  "request.group": EventHandler<RequestGroup>
+  "request.friend": RequestFriend
+  "request.group": RequestGroup
   
-  "socket.open": EventHandler<void>
-  "socket.openEvent": EventHandler<void>
-  "socket.close": SocketCloseHandle
-  "socket.closeEvent": SocketCloseHandle
-  "socket.error": SocketCloseHandle
-  "socket.errorEvent": SocketCloseHandle
+  "socket.open": void
+  "socket.openEvent": void
+  "socket.close": SocketCloseType
+  "socket.closeEvent": SocketCloseType
+  "socket.error": SocketCloseType
+  "socket.errorEvent": SocketCloseType
   
-  "api.preSend": EventHandler<APIRequest>
+  "api.preSend": APIRequest
   "api.response": ResponseHandle
   
-  "meta_event.lifecycle": EventHandler<LifeCycle>
-  "meta_event.heartbeat": EventHandler<HeartBeat>
+  "meta_event.lifecycle": LifeCycle
+  "meta_event.heartbeat": HeartBeat
   
-  "notice.group_admin": EventHandler<GroupAdmin>
-  "notice.group_upload": EventHandler<GroupUpload>
-  "notice.group_decrease": EventHandler<GroupDecrease>
-  "notice.group_increase": EventHandler<GroupIncrease>
-  "notice.group_ban": EventHandler<GroupBan>
-  "notice.friend_add": EventHandler<FriendAdd>
-  "notice.group_recall": EventHandler<GroupRecall>
-  "notice.friend_recall": EventHandler<FriendRecall>
-  "notice.notify.poke.friend": EventHandler<NotifyPokeFriend>
-  "notice.notify.poke.group": EventHandler<NotifyPokeGroup>
-  "notice.notify.lucky_king": EventHandler<NotifyLuckyKing>
-  "notice.notify.honor": EventHandler<NotifyHonor>
-  "notice.group_card": EventHandler<GroupCard>
-  "notice.offline_file": EventHandler<OfflineFile>
-  "notice.client_status": EventHandler<ClientStatus>
-  "notice.essence": EventHandler<Essence>
+  "notice.group_admin": GroupAdmin
+  "notice.group_upload": GroupUpload
+  "notice.group_decrease": GroupDecrease
+  "notice.group_increase": GroupIncrease
+  "notice.group_ban": GroupBan
+  "notice.friend_add": FriendAdd
+  "notice.group_recall": GroupRecall
+  "notice.friend_recall": FriendRecall
+  "notice.notify.poke.friend": NotifyPokeFriend
+  "notice.notify.poke.group": NotifyPokeGroup
+  "notice.notify.lucky_king": NotifyLuckyKing
+  "notice.notify.honor": NotifyHonor
+  "notice.group_card": GroupCard
+  "notice.offline_file": OfflineFile
+  "notice.client_status": ClientStatus
+  "notice.essence": Essence
   
-  "message_sent": EventHandler<any>
+  "message_sent": any
   
   // node 原生事件
-  "newListener": ListenerChangeHandle
-  "removeListener": ListenerChangeHandle
+  "newListener": ListenerChangeType
+  "removeListener": ListenerChangeType
+  
 }
 
-export class CQEvent {
-  _isCanceled: boolean;
-  
-  constructor() {
-    this._isCanceled = false;
-  }
-  
-  get isCanceled(): boolean {
-    return this._isCanceled;
-  }
-  
-  stopPropagation(): void {
-    this._isCanceled = true;
-  }
-}
-
-exports.CQEventEmitter = EventEmitter;
-
-export declare class CQEventEmitter<T extends SocketHandle> extends EventEmitter {
-  protected _events: { [key in string]: Function | Function[] };
-  
-  addListener<K extends HandleEventType>(type: K, handler: T[K]): this;
-  
-  on<K extends HandleEventType>(type: K, handler: T[K]): this;
-  
-  once<K extends HandleEventType>(type: K, handler: T[K]): this;
-  
-  prependListener<K extends HandleEventType>(type: K, handler: T[K]): this;
-  
-  prependOnceListener<K extends HandleEventType>(type: K, handler: T[K]): this;
-  
-  removeListener<K extends HandleEventType>(type: K, handler: T[K]): this;
-  
-  off<K extends HandleEventType>(type: K, handler: T[K]): this;
-  
-  removeAllListeners(type?: HandleEventType): this;
-  
-  listeners<K extends HandleEventType>(type: K): T[K][];
-  
-  rawListeners<K extends HandleEventType>(type: K): T[K][];
-  
-  emit<K extends HandleEventType>(type: K, ...args: HandleEventParam<T, K>): boolean;
-  
-  listenerCount<K extends HandleEventType>(type: K): number;
-}
 
 export interface PromiseRes<T> extends Promise<T> {
   then<S = T, F = never>(
