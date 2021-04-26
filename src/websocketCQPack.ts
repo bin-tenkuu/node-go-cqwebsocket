@@ -388,18 +388,13 @@ export class CQWebSocket {
   }
   
   /**
-   * 设置群头像
-   *
-   * **[1]** `file` 参数支持以下几种格式：
-   *
-   * - 绝对路径, 例如 `file:///C:\\Users\Richard\Pictures\1.png`, 格式使用 [`file` URI]{@link https://tools.ietf.org/html/rfc8089}
-   * - 网络 URL, 例如 `http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg`
-   * - Base64 编码, 例如
-   * `base64://iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAIAAADJt1n/AAAAKElEQVQ4EWPk5+RmIBcwkasRpG9UM4mhNxpgowFGMARGEwnBIEJVAAAdBgBNAZf+QAAAAABJRU5ErkJggg==`
-   *
-   * **[2]** 目前这个API在登录一段时间后因cookie失效而失效, 请考虑后使用
+   * 设置群头像<br/>
+   * **[1]** 目前这个API在登录一段时间后因cookie失效而失效, 请考虑后使用
    * @param group_id 群号
-   * @param file 图片文件名,支持以下几种格式：
+   * @param file 图片文件名,支持以下几种格式：<br/>
+   * - 绝对路径, 例如 `file:///C:\\anyUri\fileName.png`, 格式使用 [`file` URI]{@link https://tools.ietf.org/html/rfc8089}<br/>
+   * - 网络 URL, 例如 `http://anyUrl/name.jpg`<br/>
+   * - Base64 编码, 例如 `base64://anyString`
    * @param cache 表示是否使用已缓存的文件,通过网络 URL 发送时有效, `1` 表示使用缓存, `0` 关闭关闭缓存, 默认 为 `1`
    */
   public set_group_portrait(group_id: int64, file: string, cache = 1): PromiseRes<void> {
@@ -552,7 +547,7 @@ export class CQWebSocket {
    * @param group_id 群号
    * @return 从起始序号开始的前19条消息
    */
-  public get_group_msg_history(group_id: int64, message_seq?: int64): PromiseRes<any[]> {
+  public get_group_msg_history(group_id: int64, message_seq?: int64): PromiseRes<message[]> {
     return this.send("get_group_msg_history", {message_seq, group_id});
   }
   
@@ -587,10 +582,6 @@ export class CQWebSocket {
   public check_url_safely(url: string): PromiseRes<URLSafely> {
     return this.send("check_url_safely", {url});
   }
-  
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // 以下为非go-cq标准文档api
-  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // 以下为连接API
