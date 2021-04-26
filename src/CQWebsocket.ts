@@ -834,6 +834,8 @@ export class CQWebSocket {
   public set errorEvent(value: ErrorEventHandle) {
     this._eventBus._errorEvent = value;
   }
+  
+  [Symbol.toStringTag]() {return CQWebSocket.name;}
 }
 
 interface CQEventBus {
@@ -1019,11 +1021,11 @@ class CQEventBus extends EventEmitter {
     }
     return true;
   }
+  
+  [Symbol.toStringTag]() {return CQEventBus.name;}
 }
 
-/**
- *
- */
+/**事件总类*/
 export class CQEvent<T extends HandleEventType> {
   private _isCancel: boolean;
   readonly bot: CQWebSocket;
@@ -1052,5 +1054,7 @@ export class CQEvent<T extends HandleEventType> {
   stopPropagation(): void {
     this._isCancel = true;
   }
+  
+  [Symbol.toStringTag]() {return CQEvent.name;}
 }
 

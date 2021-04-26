@@ -1,7 +1,7 @@
 import http from "http";
 import {ClientOptions, PerMessageDeflateOptions} from "ws";
 import {CQTag, node, Tag} from "./tags";
-import {CQEvent} from "./websocketCQPack";
+import {CQEvent} from "./CQWebsocket";
 
 /**@see send_msg*/
 export interface PrivateData {
