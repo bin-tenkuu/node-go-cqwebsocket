@@ -1,4 +1,5 @@
 export * as Tags from "./tags";
 export * as Interfaces from "./Interfaces";
-export {CQ, CQTag} from "./tags";
+export {PartialSocketHandle,EventHandle} from "./Interfaces";
+export {CQ, CQTag, message, messageNode} from "./tags";
 export {CQWebSocket, CQEvent} from "./CQWebsocket";

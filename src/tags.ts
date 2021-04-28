@@ -304,10 +304,11 @@ export var CQ = {
   [Symbol.toStringTag]() {return "CQ";},
 };
 
-export type allTags = text | face | record | video | at | rps | dice | shake | anonymous | share | contact | location
-    | music | image | reply | redbag | poke | gift | forward | node | xml | json | cardimage | tts
-
-export type tagName = allTags["type"]
+export type message = string | CQTag<msgTags>[]
+export type messageNode = CQTag<node>[]
+export type msgTags = text | face | record | video | at | rps | dice | shake | anonymous | share | contact | location
+    | music | image | reply | redbag | poke | gift | forward | xml | json | cardimage | tts
+export type tagName = msgTags["type"]
 
 export interface tts extends Tag {
   type: "tts"

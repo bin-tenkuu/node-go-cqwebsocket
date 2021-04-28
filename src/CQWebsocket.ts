@@ -6,14 +6,14 @@ import {
   APIRequest, APIResponse, CanSend, CookiesData, CQWebSocketOptions, CSRFTokenData, Device, DownloadFile,
   ErrorAPIResponse, ErrorEventHandle, EssenceMessage, EventHandle, FileUrl, ForwardData, FriendInfo, GroupAtAllRemain,
   GroupData, GroupFileSystemInfo, GroupHonorInfo, GroupInfo, GroupMemberInfo, GroupRootFileSystemInfo, GroupSystemMSG,
-  HandleEventType, int64, LoginInfo, message, MessageId, MessageInfo, messageNode, ObjectEntries, OCRImage,
-  PartialSocketHandle, PrivateData, PromiseRes, QQImageData, RecordFormatData, SocketHandle, Status, StrangerInfo,
-  URLSafely, VersionInfo, VipInfo, WordSlicesData,
+  int64, LoginInfo, MessageId, MessageInfo, OCRImage, PartialSocketHandle, PrivateData, PromiseRes, QQImageData,
+  RecordFormatData, SocketHandle, Status, StrangerInfo, URLSafely, VersionInfo, VipInfo, WordSlicesData,
 } from "./Interfaces";
-import {CQ, CQTag} from "./tags";
+import {CQ, CQTag, message, messageNode} from "./tags";
 
 type onSuccess<T> = (this: void, json: APIResponse<T>, message: APIRequest) => void
 type onFailure = (this: void, reason: ErrorAPIResponse, message: APIRequest) => void
+type ObjectEntries<T, K extends keyof T = keyof T> = [K, T[K]][];
 
 interface ResponseHandler {
   onSuccess: onSuccess<any>
@@ -702,7 +702,7 @@ export class CQWebSocket {
    * @param handle
    * @return 用于当作参数调用 [off]{@link off} 解除监听
    */
-  public on<T extends HandleEventType>(event: T, handle: EventHandle<T>): EventHandle<T> {
+  public on<T extends keyof SocketHandle>(event: T, handle: EventHandle<T>): EventHandle<T> {
     this._eventBus.on(event, handle);
     return handle;
   }
@@ -713,7 +713,7 @@ export class CQWebSocket {
    * @param handle
    * @return 用于当作参数调用 [off]{@link off} 解除监听
    */
-  public once<T extends HandleEventType>(event: T, handle: EventHandle<T>): EventHandle<T> {
+  public once<T extends keyof SocketHandle>(event: T, handle: EventHandle<T>): EventHandle<T> {
     this._eventBus.once(event, handle);
     return handle;
   }
@@ -723,7 +723,7 @@ export class CQWebSocket {
    * @param event
    * @param handle
    */
-  public off<T extends HandleEventType>(event: T, handle: EventHandle<T>): this {
+  public off<T extends keyof SocketHandle>(event: T, handle: EventHandle<T>): this {
     this._eventBus.off(event, handle);
     return this;
   }
@@ -817,7 +817,7 @@ export class CQWebSocket {
   }
   
   /**状态信息*/
-  public get state(): Status | undefined {
+  public get state(): Status {
     return this._eventBus.data.status;
   }
   
@@ -839,33 +839,33 @@ export class CQWebSocket {
 }
 
 interface CQEventBus {
-  addListener<K extends HandleEventType>(type: K, handler: EventHandle<K>): this;
+  addListener<K extends keyof SocketHandle>(type: K, handler: EventHandle<K>): this;
   
-  on<K extends HandleEventType>(type: K, handler: EventHandle<K>): this;
+  on<K extends keyof SocketHandle>(type: K, handler: EventHandle<K>): this;
   
-  once<K extends HandleEventType>(type: K, handler: EventHandle<K>): this;
+  once<K extends keyof SocketHandle>(type: K, handler: EventHandle<K>): this;
   
-  prependListener<K extends HandleEventType>(type: K, handler: EventHandle<K>): this;
+  prependListener<K extends keyof SocketHandle>(type: K, handler: EventHandle<K>): this;
   
-  prependOnceListener<K extends HandleEventType>(type: K, handler: EventHandle<K>): this;
+  prependOnceListener<K extends keyof SocketHandle>(type: K, handler: EventHandle<K>): this;
   
-  removeListener<K extends HandleEventType>(type: K, handler: EventHandle<K>): this;
+  removeListener<K extends keyof SocketHandle>(type: K, handler: EventHandle<K>): this;
   
-  off<K extends HandleEventType>(type: K, handler: EventHandle<K>): this;
+  off<K extends keyof SocketHandle>(type: K, handler: EventHandle<K>): this;
   
-  removeAllListeners(type?: HandleEventType): this;
+  removeAllListeners(type?: keyof SocketHandle): this;
   
-  listeners<K extends HandleEventType>(type: K): EventHandle<K>[];
+  listeners<K extends keyof SocketHandle>(type: K): EventHandle<K>[];
   
-  rawListeners<K extends HandleEventType>(type: K): EventHandle<K>[];
+  rawListeners<K extends keyof SocketHandle>(type: K): EventHandle<K>[];
   
-  emit<K extends HandleEventType>(type: K, arg: SocketHandle[K]): boolean;
+  emit<K extends keyof SocketHandle>(type: K, arg: SocketHandle[K]): boolean;
   
-  listenerCount<K extends HandleEventType>(type: K): number;
+  listenerCount<K extends keyof SocketHandle>(type: K): number;
 }
 
 class CQEventBus extends EventEmitter {
-  private declare _events: { [key in HandleEventType]: Function | Function[] };
+  private declare _events: { [key in keyof SocketHandle]: Function | Function[] };
   public _errorEvent: ErrorEventHandle;
   public data: {
     qq: number
@@ -994,7 +994,7 @@ class CQEventBus extends EventEmitter {
     }
   }
   
-  emit<T extends HandleEventType>(type: T, context: SocketHandle[T], cqTags: CQTag<any>[] = []): boolean {
+  emit<T extends keyof SocketHandle>(type: T, context: SocketHandle[T], cqTags: CQTag<any>[] = []): boolean {
     let event = new CQEvent(this.bot, type, context, cqTags);
     const handlers: Function | Function[] | undefined = this._events[type];
     if (handlers === undefined) return false;
@@ -1019,6 +1019,10 @@ class CQEventBus extends EventEmitter {
         }
       }
     }
+    let indexOf = type.lastIndexOf(".");
+    if (indexOf > 0) {
+      return this.emit(type.slice(0, indexOf) as T, context, cqTags);
+    }
     return true;
   }
   
@@ -1026,7 +1030,7 @@ class CQEventBus extends EventEmitter {
 }
 
 /**事件总类*/
-export class CQEvent<T extends HandleEventType> {
+export class CQEvent<T extends keyof SocketHandle> {
   private _isCancel: boolean;
   readonly bot: CQWebSocket;
   readonly contextType: T;

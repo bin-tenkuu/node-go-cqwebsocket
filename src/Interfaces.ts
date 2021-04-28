@@ -1,7 +1,7 @@
 import http from "http";
 import {ClientOptions, PerMessageDeflateOptions} from "ws";
-import {CQTag, node, Tag} from "./tags";
 import {CQEvent} from "./CQWebsocket";
+import {message, messageNode} from "./tags";
 
 /**@see send_msg*/
 export interface PrivateData {
@@ -380,7 +380,7 @@ export interface MessageType extends PostType, SubType, MessageId, UserId {
   post_type: "message"
   message_type: string
   /**消息内容*/
-  message: string | Tag[]
+  message: message
   /**原始消息内容*/
   raw_message: string
   /**字体*/
@@ -399,6 +399,17 @@ export interface PrivateMessage extends MessageType {
 /**群消息*/
 export interface GroupMessage extends MessageType, GroupId {
   message_type: "group"
+  /**消息子类型, 正常消息是 normal, 匿名消息是 anonymous, 系统提示 ( 如「管理员已禁止群内匿名聊天」 ) 是 notice*/
+  sub_type: "normal" | "anonymous" | "notice"
+  /**匿名信息, 如果不是匿名消息则为 null*/
+  anonymous: object
+  /**发送人信息*/
+  sender: GroupRenderInfo
+}
+
+/**讨论组消息*/
+export interface DiscussMessage extends MessageType, GroupId {
+  message_type: "discuss"
   /**消息子类型, 正常消息是 normal, 匿名消息是 anonymous, 系统提示 ( 如「管理员已禁止群内匿名聊天」 ) 是 notice*/
   sub_type: "normal" | "anonymous" | "notice"
   /**匿名信息, 如果不是匿名消息则为 null*/
@@ -481,7 +492,7 @@ export type CQWebSocketOptions = {
 /**API 消息发送报文*/
 export interface APIRequest {
   action: string,
-  params: CQTag<any>[] | string,
+  params: message | messageNode,
   echo: any,
 }
 
@@ -747,25 +758,24 @@ export interface SocketCloseType {
 }
 
 export interface ListenerChangeType {
-  type: HandleEventType,
-  handler: EventHandle<HandleEventType>
+  type: keyof SocketHandle,
+  handler: EventHandle<keyof SocketHandle>
 }
 
 export type int64 = number | string
-export type message = CQTag<any>[] | string
-export type messageNode = CQTag<node>[]
-export type HandleEventType = keyof SocketHandle
-export type ObjectEntries<T, K extends keyof T = keyof T> = [K, T[K]][];
-export type ErrorEventHandle = <T extends HandleEventType>(error: any, type: T, handler: EventHandle<T>) => void;
-export type EventHandle<T extends HandleEventType> = (this: void, event: CQEvent<T>) => void
-export type PartialSocketHandle = { [key in HandleEventType]?: EventHandle<key> }
+export type ErrorEventHandle = <T extends keyof SocketHandle>(error: any, type: T, handler: EventHandle<T>) => void;
+export type EventHandle<T extends keyof SocketHandle> = (this: void, event: CQEvent<T>) => void
+export type PartialSocketHandle = { [key in keyof SocketHandle]?: EventHandle<key> }
 export type SocketHandle = {
   "message.private": PrivateMessage
   "message.group": GroupMessage
-  "message.discuss": any
+  "message.discuss": DiscussMessage
+  "message": PrivateMessage | GroupMessage | DiscussMessage
   
   "request.friend": RequestFriend
   "request.group": RequestGroup
+  "request": RequestGroup | RequestFriend
+  
   
   "socket.open": void
   "socket.openEvent": void
@@ -773,12 +783,15 @@ export type SocketHandle = {
   "socket.closeEvent": SocketCloseType
   "socket.error": SocketCloseType
   "socket.errorEvent": SocketCloseType
+  "socket": SocketCloseType | void
   
   "api.preSend": APIRequest
   "api.response": ResponseHandle
+  "api": ResponseHandle | APIRequest
   
   "meta_event.lifecycle": LifeCycle
   "meta_event.heartbeat": HeartBeat
+  "meta_event": HeartBeat | LifeCycle
   
   "notice.group_admin": GroupAdmin
   "notice.group_upload": GroupUpload
@@ -792,10 +805,14 @@ export type SocketHandle = {
   "notice.notify.poke.group": NotifyPokeGroup
   "notice.notify.lucky_king": NotifyLuckyKing
   "notice.notify.honor": NotifyHonor
+  "notice.notify": NotifyHonor | NotifyLuckyKing | NotifyPokeGroup | NotifyPokeFriend
   "notice.group_card": GroupCard
   "notice.offline_file": OfflineFile
   "notice.client_status": ClientStatus
   "notice.essence": Essence
+  "notice": Essence | ClientStatus | OfflineFile | GroupCard | NotifyHonor | NotifyLuckyKing | NotifyPokeGroup |
+      NotifyPokeFriend | FriendRecall | GroupRecall | FriendAdd | GroupBan | GroupIncrease | GroupDecrease |
+      GroupUpload | GroupAdmin
   
   "message_sent": any
   
