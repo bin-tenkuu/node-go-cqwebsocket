@@ -228,8 +228,8 @@ export class CQWebSocket {
    * @param special_title 专属头衔, 不填或空字符串表示删除专属头衔
    * @param duration 专属头衔有效期, 单位秒, -1 表示永久, 不过此项似乎没有效果, 可能是只有某些特殊的时间长度有效, 有待测试
    */
-  public set_group_special_title(group_id: int64, user_id: int64, special_title: string,
-      duration: number): PromiseRes<void> {
+  public set_group_special_title(group_id: int64, user_id: int64, special_title = "",
+      duration = -1): PromiseRes<void> {
     return this.send("set_group_special_title", {group_id: +group_id, user_id: +user_id, special_title, duration});
   }
   

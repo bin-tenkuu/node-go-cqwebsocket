@@ -3,18 +3,21 @@ import {ClientOptions, PerMessageDeflateOptions} from "ws";
 import {CQEvent} from "./CQWebsocket";
 import {message, messageNode, Tag} from "./tags";
 
+export interface Message {
+  /**要发送的内容*/
+  message: message
+}
+
 /**@see send_msg*/
-export interface PrivateData {
+export interface PrivateData extends Message {
   message_type?: "private"
   user_id: number
-  message: message
   auto_escape: boolean
 }
 
 /**@see send_msg*/
-export interface GroupData extends GroupId {
+export interface GroupData extends GroupId, Message {
   message_type?: "group"
-  message: message
   auto_escape: boolean
 }
 
@@ -30,13 +33,11 @@ export interface ForwardData {
 }
 
 /**@see get_image*/
-export interface QQImageData {
+export interface QQImageData extends FileUrl {
   /**图片源文件大小*/
   size: number
   /**图片文件原名*/
   filename: string
-  /**图片下载地址*/
-  url: string
 }
 
 /**
@@ -165,8 +166,12 @@ export interface CSRFTokenData {
   token: number
 }
 
+export interface FileStr {
+  file: string
+}
+
 /**@see get_record*/
-export interface RecordFormatData {
+export interface RecordFormatData extends FileStr {
   /**转换后的语音文件路径*/
   file: string
 }
@@ -677,9 +682,7 @@ export interface OfflineFile extends NoticeType, UserId {
     name: string
     /**文件大小*/
     size: number
-    /**下载链接*/
-    url: string
-  }
+  } & FileUrl
 }
 
 /**@see get_online_clients*/
@@ -735,7 +738,7 @@ export interface OCRImage {
 }
 
 /**@see download_file*/
-export interface DownloadFile {
+export interface DownloadFile extends FileStr {
   /**下载文件的绝对路径*/
   file: string
 }
@@ -763,6 +766,10 @@ export interface ListenerChangeType {
 
 export type int64 = number | string
 type NoCache = { no_cache?: boolean }
+type Content = { content: string }
+type Domain = { domain: string }
+type Enable = { enable?: boolean }
+type Duration = { duration?: number }
 export type ErrorEventHandle = <T extends keyof SocketHandle>(error: any, type: T, handler: EventHandle<T>) => void;
 export type EventHandle<T extends keyof SocketHandle> = (this: void, event: CQEvent<T>) => void
 export type PartialSocketHandle = { [key in keyof SocketHandle]?: EventHandle<key> }
@@ -880,24 +887,24 @@ export type QuickOperation = {
   }
 }
 export type WSSendParam = {
-  "send_private_msg": { message: message, message_id?: number } & UserId
-  "send_group_msg": { message: message } & GroupId
+  "send_private_msg": { message_id?: number } & UserId & Message
+  "send_group_msg": Message & GroupId
   "send_group_forward_msg": { messages: messageNode } & GroupId
   "send_msg": PrivateData | GroupData
   "delete_msg": MessageId
   "get_msg": MessageId
   "get_forward_msg": { message_id: string }
-  "get_image": { file: string }
+  "get_image": FileStr
   "set_group_kick": { reject_add_request?: boolean } & GroupId & UserId
-  "set_group_ban": { duration?: number } & GroupId & UserId
-  "set_group_anonymous_ban": { anonymous: any, duration?: number, anonymous_flag?: string } & GroupId
-  "set_group_whole_ban": { enable?: boolean } & GroupId
-  "set_group_admin": { enable?: boolean } & GroupId & UserId
-  "set_group_anonymous": { enable?: boolean } & GroupId
+  "set_group_ban": Duration & GroupId & UserId
+  "set_group_anonymous_ban": { anonymous: any, anonymous_flag?: string } & GroupId & Duration
+  "set_group_whole_ban": Enable & GroupId
+  "set_group_admin": Enable & GroupId & UserId
+  "set_group_anonymous": Enable & GroupId
   "set_group_card": { card?: string } & GroupId & UserId
   "set_group_name": { group_name?: string } & GroupId
   "set_group_leave": { is_dismiss?: boolean } & GroupId
-  "set_group_special_title": { special_title: string, duration: number } & GroupId & UserId
+  "set_group_special_title": { special_title?: string } & GroupId & UserId & Duration
   "set_friend_add_request": { flag: string, approve?: boolean, remark?: string }
   "set_group_add_request": { flag: string, sub_type: string, approve?: boolean, reason?: string, type?: string }
   "get_login_info": {}
@@ -908,20 +915,20 @@ export type WSSendParam = {
   "get_group_member_info": NoCache & GroupId & UserId
   "get_group_member_list": GroupId
   "get_group_honor_info": { type: string } & GroupId
-  "get_cookies": { domain: string }
+  "get_cookies": Domain
   "get_csrf_token": {}
-  "get_credentials": { domain: string }
-  "get_record": { file: string, out_format: string }
+  "get_credentials": Domain
+  "get_record": { out_format: string } & FileStr
   "can_send_image": {}
   "can_send_record": {}
   "get_version_info": {}
   "set_restart": { delay?: number }
   "clean_cache": {}
-  "set_group_portrait": { file: string, cache?: number } & GroupId
-  ".get_word_slices": { content: string }
+  "set_group_portrait": { cache?: number } & GroupId & FileStr
+  ".get_word_slices": Content
   "ocr_image": { image: string }
   "get_group_system_msg": {}
-  "upload_group_file": { file: string, name: string, folder?: string } & GroupId
+  "upload_group_file": { name: string, folder?: string } & GroupId & FileStr
   "get_group_file_system_info": GroupId
   "get_group_root_files": GroupId
   "get_group_files_by_folder": { folder_id: string } & GroupId
@@ -930,15 +937,15 @@ export type WSSendParam = {
   "get_group_at_all_remain": GroupId
   ".handle_quick_operation": { context: SocketHandle[keyof QuickOperation], operation: QuickOperation[keyof QuickOperation] }
   "_get_vip_info": UserId
-  "_send_group_notice": { content: string } & GroupId
+  "_send_group_notice": Content & GroupId
   "reload_event_filter": {}
-  "download_file": { url: string, thread_count: number, headers: string | string[] }
+  "download_file": { thread_count: number, headers: string | string[] } & FileUrl
   "get_online_clients": NoCache
   "get_group_msg_history": { message_seq?: number } & GroupId
   "set_essence_msg": MessageId
   "delete_essence_msg": MessageId
   "get_essence_msg_list": GroupId
-  "check_url_safely": { url: string }
+  "check_url_safely": FileUrl
 }
 export type WSSendReturn = {
   "send_private_msg": MessageId
