@@ -6,7 +6,7 @@ import {message, messageNode} from "./tags";
 /**@see send_msg*/
 export interface PrivateData {
   message_type?: "private"
-  user_id: int64
+  user_id: number
   message: message
   auto_escape: boolean
 }
@@ -14,7 +14,7 @@ export interface PrivateData {
 /**@see send_msg*/
 export interface GroupData {
   message_type?: "group"
-  group_id: int64
+  group_id: number
   message: message
   auto_escape: boolean
 }
@@ -492,7 +492,7 @@ export type CQWebSocketOptions = {
 /**API 消息发送报文*/
 export interface APIRequest {
   action: string,
-  params: message | messageNode,
+  params: any,
   echo: any,
 }
 
@@ -776,7 +776,6 @@ export type SocketHandle = {
   "request.group": RequestGroup
   "request": RequestGroup | RequestFriend
   
-  
   "socket.open": void
   "socket.openEvent": void
   "socket.close": SocketCloseType
@@ -821,7 +820,108 @@ export type SocketHandle = {
   "removeListener": ListenerChangeType
   
 }
-
+export type WSSendParam = {
+  "send_private_msg": { user_id: number, message: message, group_id?: number },
+  "send_group_msg": { group_id: number, message: message },
+  "send_group_forward_msg": { group_id: number, messages: messageNode },
+  "send_msg": PrivateData | GroupData,
+  "delete_msg": { message_id: number },
+  "get_msg": { message_id: number },
+  "get_forward_msg": { message_id: string },
+  "get_image": { file: string },
+  "set_group_kick": { group_id: number, user_id: number, reject_add_request?: boolean },
+  "set_group_ban": { group_id: number, user_id: number, duration?: number },
+  "set_group_anonymous_ban": { group_id: number, anonymous: any, duration?: number, anonymous_flag?: string },
+  "set_group_whole_ban": { group_id: number, enable?: boolean },
+  "set_group_admin": { group_id: number, user_id: number, enable?: boolean },
+  "set_group_anonymous": { group_id: number, enable?: boolean },
+  "set_group_card": { group_id: number, user_id: number, card?: string },
+  "set_group_name": { group_id: number, group_name?: string },
+  "set_group_leave": { group_id: number, is_dismiss?: boolean },
+  "set_group_special_title": { group_id: number, user_id: number, special_title: string, duration: number },
+  "set_friend_add_request": { flag: string, approve?: boolean, remark?: string },
+  "set_group_add_request": { flag: string, sub_type: string, approve?: boolean, reason?: string, type?: string },
+  "get_login_info": {},
+  "get_stranger_info": { user_id: number, no_cache?: boolean },
+  "get_friend_list": {},
+  "get_group_info": { group_id: number, no_cache?: boolean },
+  "get_group_list": {},
+  "get_group_member_info": { group_id: number, user_id: number, no_cache?: boolean },
+  "get_group_member_list": { group_id: number },
+  "get_group_honor_info": { group_id: number, type: string },
+  "get_cookies": { domain: string },
+  "get_csrf_token": {},
+  "get_credentials": { domain: string },
+  "get_record": { file: string, out_format: string },
+  "can_send_image": {},
+  "can_send_record": {},
+  "get_version_info": {},
+  "set_restart": { delay?: number },
+  "clean_cache": {},
+  "set_group_portrait": { group_id: number, file: string, cache?: number },
+  "get_word_slices": { content: string },
+  "ocr_image": { image: string },
+  "get_group_system_msg": {},
+  "upload_group_file": { group_id: number, file: string, name: string, folder?: string },
+  "get_group_file_system_info": { group_id: number },
+  "get_group_root_files": { group_id: number },
+  "get_group_files_by_folder": { group_id: number, folder_id: string },
+  "get_group_file_url": { group_id: number, file_id: string, busid: number },
+  "get_status": {},
+  "get_group_at_all_remain": { group_id: number },
+  ".handle_quick_operation": { context: any, operation: any },
+  "_get_vip_info": { user_id: number },
+  "_send_group_notice": { group_id: number, content: string },
+  "reload_event_filter": {},
+  "download_file": { url: string, thread_count: number, headers: string | string[] },
+  "get_online_clients": { no_cache?: boolean },
+  "get_group_msg_history": { group_id: number, message_seq?: number },
+  "set_essence_msg": { message_id: number },
+  "delete_essence_msg": { message_id: number },
+  "get_essence_msg_list": { group_id: number },
+  "check_url_safely": { url: string },
+}
+export type WSSendReturn = {
+  "send_private_msg": MessageId,
+  "send_group_msg": MessageId,
+  "send_group_forward_msg": MessageId,
+  "send_msg": MessageId,
+  "get_msg": MessageInfo,
+  "get_forward_msg": ForwardData,
+  "get_image": QQImageData,
+  "get_login_info": LoginInfo,
+  "get_stranger_info": StrangerInfo,
+  "get_friend_list": FriendInfo[],
+  "get_group_info": GroupInfo,
+  "get_group_list": GroupInfo[],
+  "get_group_member_info": GroupMemberInfo,
+  "get_group_member_list": GroupMemberInfo[],
+  "get_group_honor_info": GroupHonorInfo,
+  "get_cookies": CookiesData,
+  "get_csrf_token": CSRFTokenData,
+  "get_credentials": CookiesData & CSRFTokenData,
+  "get_record": RecordFormatData,
+  "can_send_image": CanSend,
+  "can_send_record": CanSend,
+  "get_version_info": VersionInfo,
+  "get_word_slices": WordSlicesData,
+  "ocr_image": OCRImage,
+  "get_group_system_msg": GroupSystemMSG | null,
+  "get_group_file_system_info": GroupFileSystemInfo,
+  "get_group_root_files": GroupRootFileSystemInfo,
+  "get_group_files_by_folder": GroupRootFileSystemInfo,
+  "get_group_file_url": FileUrl,
+  "get_status": Status,
+  "get_group_at_all_remain": GroupAtAllRemain,
+  "_get_vip_info": VipInfo,
+  "download_file": DownloadFile,
+  "get_online_clients": Device[],
+  "get_group_msg_history": message[],
+  "get_essence_msg_list": EssenceMessage[],
+  "check_url_safely": URLSafely,
+} & {
+  [type in string]: undefined
+}
 
 export interface PromiseRes<T> extends Promise<T> {
   then<S = T, F = never>(

@@ -300,7 +300,7 @@ export var CQ = {
    * @param type CQ码类型
    * @param data CQ码参数
    */
-  custom<T extends Tag>(type: string, data: T = <T>{}) { return new CQTag<T>(type, data); },
+  custom<T extends Tag>(type: T["type"], data: T["data"] = {}) { return new CQTag<T>(type, data); },
   [Symbol.toStringTag]() {return "CQ";},
 };
 
