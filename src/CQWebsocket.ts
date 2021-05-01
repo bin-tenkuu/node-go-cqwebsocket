@@ -250,8 +250,7 @@ export class CQWebSocket {
    * @param approve 是否同意请求／邀请
    * @param reason 拒绝理由（仅在拒绝时有效）
    */
-  public set_group_add_request(flag: string, sub_type: string, approve = true,
-      reason = ""): PromiseRes<void> {
+  public set_group_add_request(flag: string, sub_type: string, approve = true, reason = ""): PromiseRes<void> {
     return this.send("set_group_add_request", {flag, sub_type, type: sub_type, approve, reason});
   }
   
