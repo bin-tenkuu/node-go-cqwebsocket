@@ -408,7 +408,7 @@ export class CQWebSocket {
    * @param content 内容
    */
   public get_word_slices(content: string): PromiseRes<WordSlicesData> {
-    return this.send("get_word_slices", {content});
+    return this.send(".get_word_slices", {content});
   }
   
   /**

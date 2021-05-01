@@ -1,7 +1,7 @@
 import http from "http";
 import {ClientOptions, PerMessageDeflateOptions} from "ws";
 import {CQEvent} from "./CQWebsocket";
-import {message, messageNode} from "./tags";
+import {message, messageNode, Tag} from "./tags";
 
 /**@see send_msg*/
 export interface PrivateData {
@@ -380,7 +380,7 @@ export interface MessageType extends PostType, SubType, MessageId, UserId {
   post_type: "message"
   message_type: string
   /**消息内容*/
-  message: message
+  message: string | Tag[]
   /**原始消息内容*/
   raw_message: string
   /**字体*/
@@ -859,7 +859,7 @@ export type WSSendParam = {
   "set_restart": { delay?: number },
   "clean_cache": {},
   "set_group_portrait": { group_id: number, file: string, cache?: number },
-  "get_word_slices": { content: string },
+  ".get_word_slices": { content: string },
   "ocr_image": { image: string },
   "get_group_system_msg": {},
   "upload_group_file": { group_id: number, file: string, name: string, folder?: string },
@@ -904,7 +904,7 @@ export type WSSendReturn = {
   "can_send_image": CanSend,
   "can_send_record": CanSend,
   "get_version_info": VersionInfo,
-  "get_word_slices": WordSlicesData,
+  ".get_word_slices": WordSlicesData,
   "ocr_image": OCRImage,
   "get_group_system_msg": GroupSystemMSG | null,
   "get_group_file_system_info": GroupFileSystemInfo,
