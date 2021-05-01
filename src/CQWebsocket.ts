@@ -7,8 +7,8 @@ import {
   ErrorAPIResponse, ErrorEventHandle, EssenceMessage, EventHandle, FileUrl, ForwardData, FriendInfo, GroupAtAllRemain,
   GroupData, GroupFileSystemInfo, GroupHonorInfo, GroupInfo, GroupMemberInfo, GroupRootFileSystemInfo, GroupSystemMSG,
   int64, LoginInfo, MessageId, MessageInfo, OCRImage, PartialSocketHandle, PrivateData, PromiseRes, QQImageData,
-  RecordFormatData, SocketHandle, Status, StrangerInfo, URLSafely, VersionInfo, VipInfo, WordSlicesData, WSSendParam,
-  WSSendReturn,
+  QuickOperation, RecordFormatData, SocketHandle, Status, StrangerInfo, URLSafely, VersionInfo, VipInfo, WordSlicesData,
+  WSSendParam, WSSendReturn,
 } from "./Interfaces";
 import {CQ, CQTag, message, messageNode} from "./tags";
 
@@ -495,7 +495,8 @@ export class CQWebSocket {
    * @param operation 快速操作对象, 例如 `{ "ban": true, "reply": "请不要说脏话"}`
    * @protected
    */
-  protected handle_quick_operation(context: any, operation: any): PromiseRes<void> {
+  protected handle_quick_operation<T extends keyof QuickOperation>(context: SocketHandle[T],
+      operation: QuickOperation[T]): PromiseRes<void> {
     return this.send(".handle_quick_operation", {context, operation});
   }
   

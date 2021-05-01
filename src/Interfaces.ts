@@ -12,9 +12,8 @@ export interface PrivateData {
 }
 
 /**@see send_msg*/
-export interface GroupData {
+export interface GroupData extends GroupId {
   message_type?: "group"
-  group_id: number
   message: message
   auto_escape: boolean
 }
@@ -399,7 +398,7 @@ export interface PrivateMessage extends MessageType {
 /**群消息*/
 export interface GroupMessage extends MessageType, GroupId {
   message_type: "group"
-  /**消息子类型, 正常消息是 normal, 匿名消息是 anonymous, 系统提示 ( 如「管理员已禁止群内匿名聊天」 ) 是 notice*/
+  /**消息子类型, 正常消息是 normal, 匿名消息是 anonymous, 系统提示(如「管理员已禁止群内匿名聊天」)是 notice*/
   sub_type: "normal" | "anonymous" | "notice"
   /**匿名信息, 如果不是匿名消息则为 null*/
   anonymous: object
@@ -410,7 +409,7 @@ export interface GroupMessage extends MessageType, GroupId {
 /**讨论组消息*/
 export interface DiscussMessage extends MessageType, GroupId {
   message_type: "discuss"
-  /**消息子类型, 正常消息是 normal, 匿名消息是 anonymous, 系统提示 ( 如「管理员已禁止群内匿名聊天」 ) 是 notice*/
+  /**消息子类型, 正常消息是 normal, 匿名消息是 anonymous, 系统提示(如「管理员已禁止群内匿名聊天」)是 notice*/
   sub_type: "normal" | "anonymous" | "notice"
   /**匿名信息, 如果不是匿名消息则为 null*/
   anonymous: object
@@ -491,9 +490,9 @@ export type CQWebSocketOptions = {
 
 /**API 消息发送报文*/
 export interface APIRequest {
-  action: string,
-  params: any,
-  echo: any,
+  action: string
+  params: any
+  echo: any
 }
 
 /**
@@ -530,7 +529,7 @@ export interface OperatorId {
 
 /**API 消息回复报文*/
 export interface APIResponse<T> {
-  status: string,
+  status: string
   /**
    * |retcode|说明|
    * |-|-|
@@ -588,7 +587,7 @@ export interface GroupDecrease extends NoticeType, SubType, GroupId, UserId, Ope
   notice_type: "group_decrease"
   /**事件子类型, 分别表示主动退群、成员被踢、登录号被踢*/
   sub_type: "leave" | "kick" | "kick_me"
-  /**操作者 QQ 号 ( 如果是主动退群, 则和 [user_id]{@link GroupDecrease.user_id} 相同 )*/
+  /**操作者 QQ 号(如果是主动退群, 则和 [user_id]{@link GroupDecrease.user_id} 相同 )*/
   operator_id: number
 }
 
@@ -748,21 +747,22 @@ export interface URLSafely {
 }
 
 export interface ResponseHandle {
-  response: APIResponse<any>,
+  response: APIResponse<any>
   sourceMSG: APIRequest
 }
 
 export interface SocketCloseType {
-  code: number,
+  code: number
   reason: string
 }
 
 export interface ListenerChangeType {
-  type: keyof SocketHandle,
+  type: keyof SocketHandle
   handler: EventHandle<keyof SocketHandle>
 }
 
 export type int64 = number | string
+type NoCache = { no_cache?: boolean }
 export type ErrorEventHandle = <T extends keyof SocketHandle>(error: any, type: T, handler: EventHandle<T>) => void;
 export type EventHandle<T extends keyof SocketHandle> = (this: void, event: CQEvent<T>) => void
 export type PartialSocketHandle = { [key in keyof SocketHandle]?: EventHandle<key> }
@@ -820,105 +820,164 @@ export type SocketHandle = {
   "removeListener": ListenerChangeType
   
 }
+export type QuickOperation = {
+  "message.private": {
+    /**要回复的内容*/
+    reply?: message
+  }
+  "message.group": {
+    /**要回复的内容*/
+    reply?: message
+    /**
+     * 是否要在回复开头 at 发送者(自动添加), 发送者是匿名用户时无效
+     * @default true
+     */
+    at_sender?: boolean
+    /**
+     * 撤回该条消息
+     * @default false
+     */
+    delete?: boolean
+    /**
+     * 把发送者踢出群组(需要登录号权限足够), **不**拒绝此人后续加群请求, 发送者是匿名用户时无效
+     * @default false
+     */
+    kick?: boolean
+    /**
+     * 把发送者禁言 ban_duration 指定时长, 对匿名用户也有效
+     * @default false
+     */
+    ban?: boolean
+    /**
+     * 禁言时长
+     * @default 30*60
+     */
+    ban_duration?: number
+  }
+  "request.friend": {
+    /**
+     * 是否同意请求
+     * @default false
+     */
+    approve?: boolean
+    /**
+     * 添加后的好友备注(仅在同意时有效)
+     * @default ""
+     */
+    remark?: string
+  }
+  "request.group": {
+    /**
+     * 是否同意请求／邀请
+     * @default false
+     */
+    approve?: boolean
+    /**
+     * 拒绝理由(仅在拒绝时有效)
+     * @default ""
+     */
+    reason?: string
+  }
+}
 export type WSSendParam = {
-  "send_private_msg": { user_id: number, message: message, group_id?: number },
-  "send_group_msg": { group_id: number, message: message },
-  "send_group_forward_msg": { group_id: number, messages: messageNode },
-  "send_msg": PrivateData | GroupData,
-  "delete_msg": { message_id: number },
-  "get_msg": { message_id: number },
-  "get_forward_msg": { message_id: string },
-  "get_image": { file: string },
-  "set_group_kick": { group_id: number, user_id: number, reject_add_request?: boolean },
-  "set_group_ban": { group_id: number, user_id: number, duration?: number },
-  "set_group_anonymous_ban": { group_id: number, anonymous: any, duration?: number, anonymous_flag?: string },
-  "set_group_whole_ban": { group_id: number, enable?: boolean },
-  "set_group_admin": { group_id: number, user_id: number, enable?: boolean },
-  "set_group_anonymous": { group_id: number, enable?: boolean },
-  "set_group_card": { group_id: number, user_id: number, card?: string },
-  "set_group_name": { group_id: number, group_name?: string },
-  "set_group_leave": { group_id: number, is_dismiss?: boolean },
-  "set_group_special_title": { group_id: number, user_id: number, special_title: string, duration: number },
-  "set_friend_add_request": { flag: string, approve?: boolean, remark?: string },
-  "set_group_add_request": { flag: string, sub_type: string, approve?: boolean, reason?: string, type?: string },
-  "get_login_info": {},
-  "get_stranger_info": { user_id: number, no_cache?: boolean },
-  "get_friend_list": {},
-  "get_group_info": { group_id: number, no_cache?: boolean },
-  "get_group_list": {},
-  "get_group_member_info": { group_id: number, user_id: number, no_cache?: boolean },
-  "get_group_member_list": { group_id: number },
-  "get_group_honor_info": { group_id: number, type: string },
-  "get_cookies": { domain: string },
-  "get_csrf_token": {},
-  "get_credentials": { domain: string },
-  "get_record": { file: string, out_format: string },
-  "can_send_image": {},
-  "can_send_record": {},
-  "get_version_info": {},
-  "set_restart": { delay?: number },
-  "clean_cache": {},
-  "set_group_portrait": { group_id: number, file: string, cache?: number },
-  ".get_word_slices": { content: string },
-  "ocr_image": { image: string },
-  "get_group_system_msg": {},
-  "upload_group_file": { group_id: number, file: string, name: string, folder?: string },
-  "get_group_file_system_info": { group_id: number },
-  "get_group_root_files": { group_id: number },
-  "get_group_files_by_folder": { group_id: number, folder_id: string },
-  "get_group_file_url": { group_id: number, file_id: string, busid: number },
-  "get_status": {},
-  "get_group_at_all_remain": { group_id: number },
-  ".handle_quick_operation": { context: any, operation: any },
-  "_get_vip_info": { user_id: number },
-  "_send_group_notice": { group_id: number, content: string },
-  "reload_event_filter": {},
-  "download_file": { url: string, thread_count: number, headers: string | string[] },
-  "get_online_clients": { no_cache?: boolean },
-  "get_group_msg_history": { group_id: number, message_seq?: number },
-  "set_essence_msg": { message_id: number },
-  "delete_essence_msg": { message_id: number },
-  "get_essence_msg_list": { group_id: number },
-  "check_url_safely": { url: string },
+  "send_private_msg": { message: message, message_id?: number } & UserId
+  "send_group_msg": { message: message } & GroupId
+  "send_group_forward_msg": { messages: messageNode } & GroupId
+  "send_msg": PrivateData | GroupData
+  "delete_msg": MessageId
+  "get_msg": MessageId
+  "get_forward_msg": { message_id: string }
+  "get_image": { file: string }
+  "set_group_kick": { reject_add_request?: boolean } & GroupId & UserId
+  "set_group_ban": { duration?: number } & GroupId & UserId
+  "set_group_anonymous_ban": { anonymous: any, duration?: number, anonymous_flag?: string } & GroupId
+  "set_group_whole_ban": { enable?: boolean } & GroupId
+  "set_group_admin": { enable?: boolean } & GroupId & UserId
+  "set_group_anonymous": { enable?: boolean } & GroupId
+  "set_group_card": { card?: string } & GroupId & UserId
+  "set_group_name": { group_name?: string } & GroupId
+  "set_group_leave": { is_dismiss?: boolean } & GroupId
+  "set_group_special_title": { special_title: string, duration: number } & GroupId & UserId
+  "set_friend_add_request": { flag: string, approve?: boolean, remark?: string }
+  "set_group_add_request": { flag: string, sub_type: string, approve?: boolean, reason?: string, type?: string }
+  "get_login_info": {}
+  "get_stranger_info": NoCache & UserId
+  "get_friend_list": {}
+  "get_group_info": NoCache & GroupId
+  "get_group_list": {}
+  "get_group_member_info": NoCache & GroupId & UserId
+  "get_group_member_list": GroupId
+  "get_group_honor_info": { type: string } & GroupId
+  "get_cookies": { domain: string }
+  "get_csrf_token": {}
+  "get_credentials": { domain: string }
+  "get_record": { file: string, out_format: string }
+  "can_send_image": {}
+  "can_send_record": {}
+  "get_version_info": {}
+  "set_restart": { delay?: number }
+  "clean_cache": {}
+  "set_group_portrait": { file: string, cache?: number } & GroupId
+  ".get_word_slices": { content: string }
+  "ocr_image": { image: string }
+  "get_group_system_msg": {}
+  "upload_group_file": { file: string, name: string, folder?: string } & GroupId
+  "get_group_file_system_info": GroupId
+  "get_group_root_files": GroupId
+  "get_group_files_by_folder": { folder_id: string } & GroupId
+  "get_group_file_url": { file_id: string, busid: number } & GroupId
+  "get_status": {}
+  "get_group_at_all_remain": GroupId
+  ".handle_quick_operation": { context: SocketHandle[keyof QuickOperation], operation: QuickOperation[keyof QuickOperation] }
+  "_get_vip_info": UserId
+  "_send_group_notice": { content: string } & GroupId
+  "reload_event_filter": {}
+  "download_file": { url: string, thread_count: number, headers: string | string[] }
+  "get_online_clients": NoCache
+  "get_group_msg_history": { message_seq?: number } & GroupId
+  "set_essence_msg": MessageId
+  "delete_essence_msg": MessageId
+  "get_essence_msg_list": GroupId
+  "check_url_safely": { url: string }
 }
 export type WSSendReturn = {
-  "send_private_msg": MessageId,
-  "send_group_msg": MessageId,
-  "send_group_forward_msg": MessageId,
-  "send_msg": MessageId,
-  "get_msg": MessageInfo,
-  "get_forward_msg": ForwardData,
-  "get_image": QQImageData,
-  "get_login_info": LoginInfo,
-  "get_stranger_info": StrangerInfo,
-  "get_friend_list": FriendInfo[],
-  "get_group_info": GroupInfo,
-  "get_group_list": GroupInfo[],
-  "get_group_member_info": GroupMemberInfo,
-  "get_group_member_list": GroupMemberInfo[],
-  "get_group_honor_info": GroupHonorInfo,
-  "get_cookies": CookiesData,
-  "get_csrf_token": CSRFTokenData,
-  "get_credentials": CookiesData & CSRFTokenData,
-  "get_record": RecordFormatData,
-  "can_send_image": CanSend,
-  "can_send_record": CanSend,
-  "get_version_info": VersionInfo,
-  ".get_word_slices": WordSlicesData,
-  "ocr_image": OCRImage,
-  "get_group_system_msg": GroupSystemMSG | null,
-  "get_group_file_system_info": GroupFileSystemInfo,
-  "get_group_root_files": GroupRootFileSystemInfo,
-  "get_group_files_by_folder": GroupRootFileSystemInfo,
-  "get_group_file_url": FileUrl,
-  "get_status": Status,
-  "get_group_at_all_remain": GroupAtAllRemain,
-  "_get_vip_info": VipInfo,
-  "download_file": DownloadFile,
-  "get_online_clients": Device[],
-  "get_group_msg_history": message[],
-  "get_essence_msg_list": EssenceMessage[],
-  "check_url_safely": URLSafely,
+  "send_private_msg": MessageId
+  "send_group_msg": MessageId
+  "send_group_forward_msg": MessageId
+  "send_msg": MessageId
+  "get_msg": MessageInfo
+  "get_forward_msg": ForwardData
+  "get_image": QQImageData
+  "get_login_info": LoginInfo
+  "get_stranger_info": StrangerInfo
+  "get_friend_list": FriendInfo[]
+  "get_group_info": GroupInfo
+  "get_group_list": GroupInfo[]
+  "get_group_member_info": GroupMemberInfo
+  "get_group_member_list": GroupMemberInfo[]
+  "get_group_honor_info": GroupHonorInfo
+  "get_cookies": CookiesData
+  "get_csrf_token": CSRFTokenData
+  "get_credentials": CookiesData & CSRFTokenData
+  "get_record": RecordFormatData
+  "can_send_image": CanSend
+  "can_send_record": CanSend
+  "get_version_info": VersionInfo
+  ".get_word_slices": WordSlicesData
+  "ocr_image": OCRImage
+  "get_group_system_msg": GroupSystemMSG | null
+  "get_group_file_system_info": GroupFileSystemInfo
+  "get_group_root_files": GroupRootFileSystemInfo
+  "get_group_files_by_folder": GroupRootFileSystemInfo
+  "get_group_file_url": FileUrl
+  "get_status": Status
+  "get_group_at_all_remain": GroupAtAllRemain
+  "_get_vip_info": VipInfo
+  "download_file": DownloadFile
+  "get_online_clients": Device[]
+  "get_group_msg_history": message[]
+  "get_essence_msg_list": EssenceMessage[]
+  "check_url_safely": URLSafely
 } & {
   [type in string]: undefined
 }
