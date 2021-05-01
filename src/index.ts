@@ -1,5 +1,13 @@
-export * as Tags from "./tags";
-export * as Interfaces from "./Interfaces";
-export {PartialSocketHandle,EventHandle} from "./Interfaces";
-export {CQ, CQTag, message, messageNode} from "./tags";
-export {CQWebSocket, CQEvent} from "./CQWebsocket";
+import {CQEvent, CQWebSocket} from "./CQWebsocket";
+import * as Interfaces from "./Interfaces";
+import {EventHandle, PartialSocketHandle} from "./Interfaces";
+import * as Tags from "./tags";
+import {CQ, CQTag, message, messageNode} from "./tags";
+
+export {
+  Tags,
+  Interfaces,
+  PartialSocketHandle, EventHandle,
+  CQ, CQTag, message, messageNode,
+  CQWebSocket, CQEvent,
+};
