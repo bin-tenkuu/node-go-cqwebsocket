@@ -770,6 +770,7 @@ type Content = { content: string }
 type Domain = { domain: string }
 type Enable = { enable?: boolean }
 type Duration = { duration?: number }
+type QuickOperationType<T extends keyof QuickOperation> = { context: SocketHandle[T], operation: QuickOperation[T] }
 export type ErrorEventHandle = <T extends keyof SocketHandle>(error: any, type: T, handler: EventHandle<T>) => void;
 export type EventHandle<T extends keyof SocketHandle> = (this: void, event: CQEvent<T>) => void
 export type PartialSocketHandle = { [key in keyof SocketHandle]?: EventHandle<key> }
@@ -935,7 +936,7 @@ export type WSSendParam = {
   "get_group_file_url": { file_id: string, busid: number } & GroupId
   "get_status": {}
   "get_group_at_all_remain": GroupId
-  ".handle_quick_operation": { context: SocketHandle[keyof QuickOperation], operation: QuickOperation[keyof QuickOperation] }
+  ".handle_quick_operation": QuickOperationType<keyof QuickOperation>
   "_get_vip_info": UserId
   "_send_group_notice": Content & GroupId
   "reload_event_filter": {}

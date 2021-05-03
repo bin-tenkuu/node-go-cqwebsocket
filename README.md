@@ -4,7 +4,7 @@
 
 本SDK中所有api基于 `go-cqhttp-v1.0.0-beta3` 与 `go-cq额外文档(部分)`
 
-go-cqhttp标准文档最后编辑日期： `4/17/2021, 5:31:10 AM`
+go-cqhttp 标准文档最后编辑日期： `4/17/2021, 5:31:10 AM`
 
 # 关于此SDK
 
@@ -52,14 +52,14 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
   | protocol     | `ws:` , `wss:`                           | `"ws:"`               | 协议                                                         |
   | host         | string                                   | `127.0.0.1`           | 地址                                                         |
   | port         | number                                   | `6700`                | 端口                                                         |
-  | accessToken  | string                                   | ""                    | 校验口令, [参考](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) config.hjson中配置 |
+  | accessToken  | string                                   | ""                    | 校验口令, 参考[config.hjson](https://ishkong.github.io/go-cqhttp-docs/guide/adminApi.html#公共参数) 中配置 |
   | baseUrl      | string                                   | `ws://127.0.0.1:6700` | 完整链接, 当配置中有此项时, 优先使用                         |
   | clientConfig | `ClientOptions` `http.ClientRequestArgs` | `undefined`           | ws 配置, 参考 IDE 内部提示                                   |
 
-**注1：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 API,
+**注1：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中全部 API,
 查找&调用请参考 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/)
 
-**注2：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中大部分 Event,
+**注2：** `CQWebSocket` 中实现了 `go-cqhttp` 文档中全部 Event,
 查找请参考 [go-cqhttp 帮助中心 Event](https://ishkong.github.io/go-cqhttp-docs/event/) , 注册监听请使用 `bot.on(...)`, `bot.once(...)`
 , `bot.off(...)`, `bot.bind(...)`, `bot.unbind(...)`
 
@@ -74,7 +74,7 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 - `CQ.escape(str)` | `CQ.unescape(str)`：转义/反转义方法
 - `CQ.text(...)` | `CQ.at(...)`等：便捷构建 CQ码 的方法
 - `CQ.custom(...)` ：自定义 CQ码, 有不被识别的风险
-- `CQ.parse(...)` ：将携带 CQ码 的 字符串 **或** 数组 转换为 CQ码数组
+- `CQ.parse(...)` ：将携带 CQ码 的 字符串 **或** 数组 转换为 CQTag数组
 
 #### `Tags`
 

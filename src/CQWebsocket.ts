@@ -402,7 +402,7 @@ export class CQWebSocket {
   }
   
   /**
-   * 获取中文分词 (隐藏 API)
+   * 获取中文分词(隐藏 API)
    * @protected
    * @param content 内容
    */
@@ -489,12 +489,12 @@ export class CQWebSocket {
   }
   
   /**
-   * 对事件执行快速操作 (隐藏 API)
+   * 对事件执行快速操作(隐藏 API)
    * @param context 事件数据对象, 可做精简, 如去掉 message 等无用字段
    * @param operation 快速操作对象, 例如 `{ "ban": true, "reply": "请不要说脏话"}`
    * @protected
    */
-  protected handle_quick_operation<T extends keyof QuickOperation>(context: SocketHandle[T],
+  public handle_quick_operation<T extends keyof QuickOperation>(context: SocketHandle[T],
       operation: QuickOperation[T]): PromiseRes<void> {
     return this.send(".handle_quick_operation", {context, operation});
   }
