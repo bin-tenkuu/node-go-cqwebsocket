@@ -50,7 +50,7 @@ export class CQTag<T extends Tag> implements Tag {
       return this.data.text;
     } else {
       return `[CQ:${this.type}${Object.entries(this.data).map(([k, v]) => {
-        if (v === undefined) return "";
+        if (v == null) return "";
         return `,${k}=${CQ.escape(String(v), true)}`;
       }).join("")}]`;
     }
