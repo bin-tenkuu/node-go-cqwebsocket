@@ -1,6 +1,5 @@
 import {EventEmitter} from "events";
 import http from "http";
-import shortid from "shortid";
 import WebSocket, {ClientOptions, Data} from "ws";
 import {
   APIRequest, APIResponse, CanSend, CookiesData, CQWebSocketOptions, CSRFTokenData, Device, DownloadFile,
@@ -808,11 +807,14 @@ export class CQWebSocket {
   }
   
   /**
-   * 获取随机ID <br/>
-   * 原本实现为 `return Date.now().toString(36);`, 后发现异步环境下方法调用可以达到毫秒级以内, 故废弃
+   * 获取随机唯一ID <br/>
+   * 原本实现为 `Date.now().toString(36);`, `Date.now() - Date.now() === 0` 故废弃 <br/>
+   * 原本实现为 `shortid.generate()`,测试:1.1-1.9毫秒之间 <br/>
+   * 现实现为 `process.hrtime()[].+toString(36)`, 测试:0.3-0.9毫秒之间
    */
   public getECHO(): string {
-    return shortid.generate();
+    let [s, ns] = process.hrtime();
+    return s.toString(36) + ns.toString(36);
   }
   
   /**状态信息*/

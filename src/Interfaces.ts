@@ -85,6 +85,8 @@ export interface StrangerInfo extends LoginInfo {
   sex: "male" | "female" | "unknown"
   /**年龄*/
   age: number
+  /**qid ID身份卡*/
+  qid: string
 }
 
 /**@see get_friend_list*/
@@ -888,8 +890,8 @@ export type QuickOperation = {
   }
 }
 export type WSSendParam = {
-  "send_private_msg": { message_id?: number } & UserId & Message
-  "send_group_msg": Message & GroupId
+  "send_private_msg": { message_id?: number, auto_escape?: boolean } & UserId & Message
+  "send_group_msg": { auto_escape?: boolean } & Message & GroupId
   "send_group_forward_msg": { messages: messageNode } & GroupId
   "send_msg": PrivateData | GroupData
   "delete_msg": MessageId
