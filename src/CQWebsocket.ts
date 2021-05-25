@@ -810,11 +810,12 @@ export class CQWebSocket {
    * 获取随机唯一ID <br/>
    * 原本实现为 `Date.now().toString(36);`, `Date.now() - Date.now() === 0` 故废弃 <br/>
    * 原本实现为 `shortid.generate()`,测试:1.1-1.9毫秒之间 <br/>
-   * 现实现为 `process.hrtime()[].+toString(36)`, 测试:0.3-0.9毫秒之间
+   * 现实现为 `process.hrtime().toString(36)`, 测试:0.3-0.9毫秒之间
+   * @return "(36),(36)"
    */
   public getECHO(): string {
     let [s, ns] = process.hrtime();
-    return s.toString(36) + ns.toString(36);
+    return s.toString(36) + "," + ns.toString(36);
   }
   
   /**状态信息*/
