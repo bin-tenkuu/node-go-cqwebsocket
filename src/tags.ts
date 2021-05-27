@@ -86,7 +86,7 @@ export var CQ = {
     return msg.split(SPLIT).map(tagStr => {
       let match = CQ_TAG_REGEXP.exec(tagStr);
       if (match === null) {
-        return new CQTag("text", CQ.unescape(tagStr));
+        return new CQTag<text>("text", {text: CQ.unescape(tagStr)});
       }
       // `[CQ:share,title=震惊&#44;小伙睡觉前居然...,url=http://baidu.com/?a=1&amp;b=2]`
       let [, tagName, value] = match;
