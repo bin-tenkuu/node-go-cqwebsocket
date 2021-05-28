@@ -2,9 +2,9 @@
 
 针对 go-cqhttp 开发的 SDK, 跟随官方文档更新, 理论上有向其他 OneBot 实现兼容的能力
 
-本SDK中所有api基于 `go-cqhttp-v1.0.0-beta3` 与 `go-cq额外文档(部分)`
+本SDK中所有api基于 `go-cqhttp-v1.0.0-beta4`
 
-go-cqhttp 标准文档最后编辑日期： `4/17/2021, 5:31:10 AM`
+go-cqhttp 标准文档最后编辑日期： `5/24/2021, 2:09:00 PM`
 
 # 关于此SDK
 
@@ -15,7 +15,7 @@ go-cqhttp 标准文档最后编辑日期： `4/17/2021, 5:31:10 AM`
 关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://ishkong.github.io/go-cqhttp-docs/api/) 为准， 同时提供 `send(...)`
 方法以供未知接口的调用
 
-> 本 SDK API 已趋于稳定, 项目中引用请使用 `2.0.0` 以上版本, 后续 API 将尽可能减少破坏性变化
+> 本 SDK API 已趋于稳定, 项目中引用请使用 `4.0.0` 以上版本, 后续 API 将尽可能减少破坏性变化
 
 > 本 SDK 仅为代码提示与方便调用，使用上有机会碰到 Bug，欢迎提交 PR 或 issue 回报。
 

@@ -79,6 +79,16 @@ export interface LoginInfo extends UserId {
   nickname: string
 }
 
+/**@see qidian_get_account_info*/
+export interface QiDianAccountInfo {
+  /** 父账号ID*/
+  master_id: number
+  /** 用户昵称*/
+  ext_name: string
+  /** 账号创建时间*/
+  create_time: number
+}
+
 /**@see get_stranger_info*/
 export interface StrangerInfo extends LoginInfo {
   /**性别*/
@@ -751,6 +761,12 @@ export interface URLSafely {
   level: number
 }
 
+/**@see get_model_show*/
+export interface Variants {
+  model_show: string
+  need_pay: boolean
+}
+
 export interface ResponseHandle {
   response: APIResponse<any>
   sourceMSG: APIRequest
@@ -911,8 +927,10 @@ export type WSSendParam = {
   "set_friend_add_request": { flag: string, approve?: boolean, remark?: string }
   "set_group_add_request": { flag: string, sub_type: string, approve?: boolean, reason?: string, type?: string }
   "get_login_info": {}
+  "qidian_get_account_info": {}
   "get_stranger_info": NoCache & UserId
   "get_friend_list": {}
+  "delete_friend": { friend_id: int64 }
   "get_group_info": NoCache & GroupId
   "get_group_list": {}
   "get_group_member_info": NoCache & GroupId & UserId
@@ -949,6 +967,8 @@ export type WSSendParam = {
   "delete_essence_msg": MessageId
   "get_essence_msg_list": GroupId
   "check_url_safely": FileUrl
+  "_get_model_show": { model: string }
+  "_set_model_show": { model: string, model_show: string }
 }
 export type WSSendReturn = {
   "send_private_msg": MessageId
@@ -959,6 +979,7 @@ export type WSSendReturn = {
   "get_forward_msg": ForwardData
   "get_image": QQImageData
   "get_login_info": LoginInfo
+  "qidian_get_account_info": QiDianAccountInfo
   "get_stranger_info": StrangerInfo
   "get_friend_list": FriendInfo[]
   "get_group_info": GroupInfo
@@ -988,8 +1009,9 @@ export type WSSendReturn = {
   "get_group_msg_history": message[]
   "get_essence_msg_list": EssenceMessage[]
   "check_url_safely": URLSafely
+  "_get_model_show": Variants[]
 } & {
-  [type in string]: undefined
+  [type in string]: void
 }
 
 export interface PromiseRes<T> extends Promise<T> {

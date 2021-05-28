@@ -5,9 +5,9 @@ import {
   APIRequest, APIResponse, CanSend, CookiesData, CQWebSocketOptions, CSRFTokenData, Device, DownloadFile,
   ErrorAPIResponse, ErrorEventHandle, EssenceMessage, EventHandle, FileUrl, ForwardData, FriendInfo, GroupAtAllRemain,
   GroupData, GroupFileSystemInfo, GroupHonorInfo, GroupInfo, GroupMemberInfo, GroupRootFileSystemInfo, GroupSystemMSG,
-  int64, LoginInfo, MessageId, MessageInfo, OCRImage, PartialSocketHandle, PrivateData, PromiseRes, QQImageData,
-  QuickOperation, RecordFormatData, SocketHandle, Status, StrangerInfo, URLSafely, VersionInfo, VipInfo, WordSlicesData,
-  WSSendParam, WSSendReturn,
+  int64, LoginInfo, MessageId, MessageInfo, OCRImage, PartialSocketHandle, PrivateData, PromiseRes, QiDianAccountInfo,
+  QQImageData, QuickOperation, RecordFormatData, SocketHandle, Status, StrangerInfo, URLSafely, Variants, VersionInfo,
+  VipInfo, WordSlicesData, WSSendParam, WSSendReturn,
 } from "./Interfaces";
 import {CQ, CQTag, message, messageNode} from "./tags";
 
@@ -22,8 +22,8 @@ interface ResponseHandler {
 }
 
 /**
- * 本类中所有api基于 `go-cqhttp-v1.0.0-beta3` 与 `go-cq额外文档(部分)` <br/>
- * go-cqhttp标准文档最后编辑日期： `4/17/2021, 5:31:10 AM` <br/>
+ * 本类中所有api基于 `go-cqhttp-v1.0.0-beta4` <br/>
+ * go-cqhttp标准文档最后编辑日期： `5/24/2021, 2:09:00 PM` <br/>
  * **注：** 标记为 `@deprecated` 的方法为__未被支持__方法，并非过时方法, 但依然禁止使用 <br/>
  * **注2：** 标记为 `@protected` 的方法为__隐藏 API__，__不__建议一般用户使用, 不正确的使用可能造成程序运行不正常
  */
@@ -67,18 +67,20 @@ export class CQWebSocket {
    * 发送私聊消息
    * @param user_id  对方 QQ 号
    * @param message 要发送的内容
+   * @param auto_escape 消息内容是否作为纯文本发送(即不解析 CQ 码),只在 message 字段是字符串时有效
    */
-  public send_private_msg(user_id: int64, message: message): PromiseRes<MessageId> {
-    return this.send("send_private_msg", {user_id: +user_id, message});
+  public send_private_msg(user_id: int64, message: message, auto_escape = false): PromiseRes<MessageId> {
+    return this.send("send_private_msg", {user_id: +user_id, message, auto_escape});
   }
   
   /**
    * 发送群消息
    * @param group_id 群号
    * @param message  要发送的内容
+   * @param auto_escape 消息内容是否作为纯文本发送(即不解析 CQ 码),只在 message 字段是字符串时有效
    */
-  public send_group_msg(group_id: int64, message: message): PromiseRes<MessageId> {
-    return this.send("send_group_msg", {group_id: +group_id, message});
+  public send_group_msg(group_id: int64, message: message, auto_escape = false): PromiseRes<MessageId> {
+    return this.send("send_group_msg", {group_id: +group_id, message, auto_escape});
   }
   
   /**
@@ -258,6 +260,11 @@ export class CQWebSocket {
     return this.send("get_login_info", {});
   }
   
+  /**获取企点账号信息,该API只有企点协议可用*/
+  public qidian_get_account_info(): PromiseRes<QiDianAccountInfo> {
+    return this.send("qidian_get_account_info", {});
+  }
+  
   /**
    * 获取陌生人信息
    * @param user_id QQ 号
@@ -270,6 +277,14 @@ export class CQWebSocket {
   /**获取好友列表*/
   public get_friend_list(): PromiseRes<FriendInfo[]> {
     return this.send("get_friend_list", {});
+  }
+  
+  /**
+   * 删除好友
+   * @param friend_id 好友 QQ 号
+   */
+  public delete_friend(friend_id: int64): PromiseRes<void> {
+    return this.send("delete_friend", {friend_id});
   }
   
   /**
@@ -581,6 +596,44 @@ export class CQWebSocket {
    */
   public check_url_safely(url: string): PromiseRes<URLSafely> {
     return this.send("check_url_safely", {url});
+  }
+  
+  /**
+   * 获取在线机型
+   * @param model 机型名称
+   */
+  public get_model_show(model: string): PromiseRes<Variants[]> {
+    return this.send("_get_model_show", {model});
+  }
+  
+  /**
+   * 检查链接安全性
+   * @param model 机型名称
+   * @param model_show
+   */
+  public set_model_show(model: string, model_show: string): PromiseRes<void> {
+    return this.send("_set_model_show", {model, model_show});
+  }
+  
+  /**
+   * @protected
+   */
+  protected create_group_file_folder() {
+  
+  }
+  
+  /**
+   * @protected
+   */
+  protected delete_group_folder() {
+  
+  }
+  
+  /**
+   * @protected
+   */
+  protected delete_group_file() {
+  
   }
   
   // 以下为连接API /////////////////////////////////////////////////////////////////////////////////////////////////////
