@@ -23,9 +23,9 @@ interface ResponseHandler {
 
 /**
  * 本类中所有api基于 `go-cqhttp-v1.0.0-beta4` <br/>
- * go-cqhttp标准文档最后编辑日期： `5/24/2021, 2:09:00 PM` <br/>
- * **注：** 标记为 `@deprecated` 的方法为__未被支持__方法，并非过时方法, 但依然禁止使用 <br/>
- * **注2：** 标记为 `@protected` 的方法为__隐藏 API__，__不__建议一般用户使用, 不正确的使用可能造成程序运行不正常
+ * go-cqhttp标准文档最后编辑日期： `5/30/2021, 8:47:58 AM` <br/>
+ * **注：** 标记为 `@protected` 的方法为__未被支持__方法，禁止使用 <br/>
+ * **注2：** 标记为 `@deprecated` 的方法为__隐藏 API__，并非过时方法，__不__建议一般用户使用，不正确的使用可能造成程序运行不正常
  */
 export class CQWebSocket {
   /**消息发送成功时自动调用*/
@@ -154,13 +154,13 @@ export class CQWebSocket {
   
   /**
    * 群组匿名用户禁言
-   * @deprecated
+   * @protected
    * @param group_id 群号
    * @param anonymous 选一，优先, 要禁言的匿名用户对象（群消息上报的 anonymous 字段）
    * @param duration 禁言时长, 单位秒, 无法取消匿名用户禁言
    * @param anonymous_flag 选一, 要禁言的匿名用户的 flag（需从群消息上报的数据中获得）
    */
-  public set_group_anonymous_ban(group_id: int64, anonymous: any, duration = 30 * 60,
+  protected set_group_anonymous_ban(group_id: int64, anonymous: any, duration = 30 * 60,
       anonymous_flag ?: string): PromiseRes<void> {
     return this.send("set_group_anonymous_ban", {group_id: +group_id, anonymous, duration, anonymous_flag});
   }
@@ -186,11 +186,11 @@ export class CQWebSocket {
   
   /**
    * 群组匿名
-   * @deprecated
+   * @protected
    * @param group_id 群号
    * @param enable 是否允许匿名聊天
    */
-  public set_group_anonymous(group_id: int64, enable = true): PromiseRes<void> {
+  protected set_group_anonymous(group_id: int64, enable = true): PromiseRes<void> {
     return this.send("set_group_anonymous", {group_id: +group_id, enable});
   }
   
@@ -336,37 +336,37 @@ export class CQWebSocket {
   
   /**
    * 获取 Cookies
-   * @deprecated
+   * @protected
    * @param domain 需要获取 cookies 的域名
    */
-  public get_cookies(domain: string): PromiseRes<CookiesData> {
+  protected get_cookies(domain: string): PromiseRes<CookiesData> {
     return this.send("get_cookies", {domain});
   }
   
   /**
    * 获取 CSRF Token
-   * @deprecated
+   * @protected
    */
-  public get_csrf_token(): PromiseRes<CSRFTokenData> {
+  protected get_csrf_token(): PromiseRes<CSRFTokenData> {
     return this.send("get_csrf_token", {});
   }
   
   /**
    * 获取 QQ 相关接口凭证
-   * @deprecated
+   * @protected
    * @param domain 需要获取 cookies 的域名
    */
-  public get_credentials(domain: string): PromiseRes<CookiesData & CSRFTokenData> {
+  protected get_credentials(domain: string): PromiseRes<CookiesData & CSRFTokenData> {
     return this.send("get_credentials", {domain});
   }
   
   /**
    * 获取语音
-   * @deprecated
+   * @protected
    * @param file 收到的语音文件名（消息段的 file 参数）
    * @param out_format 要转换到的格式, 目前支持 mp3、amr、wma、m4a、spx、ogg、wav、flac
    */
-  public get_record(file: string, out_format: string): PromiseRes<RecordFormatData> {
+  protected get_record(file: string, out_format: string): PromiseRes<RecordFormatData> {
     return this.send("get_record", {file, out_format});
   }
   
@@ -395,9 +395,9 @@ export class CQWebSocket {
   
   /**
    * 清理缓存
-   * @deprecated
+   * @protected
    */
-  public clean_cache(): PromiseRes<void> {
+  protected clean_cache(): PromiseRes<void> {
     return this.send("clean_cache", {});
   }
   
@@ -417,7 +417,7 @@ export class CQWebSocket {
   
   /**
    * 获取中文分词(隐藏 API)
-   * @protected
+   * @deprecated
    * @param content 内容
    */
   public get_word_slices(content: string): PromiseRes<WordSlicesData> {
@@ -506,7 +506,7 @@ export class CQWebSocket {
    * 对事件执行快速操作(隐藏 API)
    * @param context 事件数据对象, 可做精简, 如去掉 message 等无用字段
    * @param operation 快速操作对象, 例如 `{ "ban": true, "reply": "请不要说脏话"}`
-   * @protected
+   * @deprecated
    */
   public handle_quick_operation<T extends keyof QuickOperation>(context: SocketHandle[T],
       operation: QuickOperation[T]): PromiseRes<void> {
@@ -607,7 +607,7 @@ export class CQWebSocket {
   }
   
   /**
-   * 检查链接安全性
+   * 设置在线机型
    * @param model 机型名称
    * @param model_show
    */
@@ -1095,9 +1095,9 @@ export class CQEvent<T extends keyof SocketHandle> {
   readonly contextType: T;
   readonly context: SocketHandle[T];
   /**非空,但仅在 `messageType` 情况下有内容*/
-  readonly cqTags: CQTag<any>[];
+  readonly cqTags: CQTag[];
   
-  constructor(bot: CQWebSocket, type: T, context: SocketHandle[T], cqTags: CQTag<any>[] = []) {
+  constructor(bot: CQWebSocket, type: T, context: SocketHandle[T], cqTags: CQTag[] = []) {
     this._isCancel = false;
     this.bot = bot;
     this.contextType = type;

@@ -969,6 +969,8 @@ export type WSSendParam = {
   "check_url_safely": FileUrl
   "_get_model_show": { model: string }
   "_set_model_show": { model: string, model_show: string }
+} & {
+  [type in string]: {}
 }
 export type WSSendReturn = {
   "send_private_msg": MessageId

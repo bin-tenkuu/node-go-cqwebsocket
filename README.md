@@ -4,7 +4,7 @@
 
 本SDK中所有api基于 `go-cqhttp-v1.0.0-beta4`
 
-go-cqhttp 标准文档最后编辑日期： `5/24/2021, 2:09:00 PM`
+go-cqhttp 标准文档最后编辑日期： `5/30/2021, 8:47:58 AM`
 
 # 关于此SDK
 
@@ -90,4 +90,5 @@ import {CQWebSocket, CQ} from "go-cqwebsocket"
 
 - [node-cq-websocket](https://github.com/momocow/node-cq-websocket/blob/master/README.md)
 - [go-cqhttp 帮助中心](https://ishkong.github.io/go-cqhttp-docs/)
+- [go-cqhttp 帮助中心](https://docs.go-cqhttp.org/cqcode/)
 - [CQHTTP 插件](https://richardchien.gitee.io/coolq-http-api/docs/4.15/#/)
