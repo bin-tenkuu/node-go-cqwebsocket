@@ -908,7 +908,7 @@ export type QuickOperation = {
 	}
 }
 export type WSSendParam = {
-	"send_private_msg": { message_id?: number, auto_escape?: boolean } & UserId & Message
+	"send_private_msg": { group_id?: number, auto_escape?: boolean } & UserId & Message
 	"send_group_msg": { auto_escape?: boolean } & Message & GroupId
 	"send_group_forward_msg": { messages: messageNode } & GroupId
 	"send_msg": PrivateData | GroupData
@@ -971,8 +971,6 @@ export type WSSendParam = {
 	"check_url_safely": FileUrl
 	"_get_model_show": { model: string }
 	"_set_model_show": { model: string, model_show: string }
-} & {
-	[type in string]: {}
 }
 export type WSSendReturn = {
 	"send_private_msg": MessageId
