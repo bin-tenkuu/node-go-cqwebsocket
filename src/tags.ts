@@ -1,8 +1,8 @@
 export interface Tag {
-	type: string
+	type: string;
 	data: {
 		[key: string]: any | undefined
-	}
+	};
 }
 
 export class CQTag<T extends Tag = any> {
@@ -51,7 +51,9 @@ export class CQTag<T extends Tag = any> {
 	public toString(): string {
 		let tag = this.valueOf();
 		return `[CQ:${tag.type}${Object.entries(tag.data).map(([k, v]) => {
-			if (v == null) return "";
+			if (v == null) {
+				return "";
+			}
 			return `,${k}=${CQ.escape(String(v), true)}`;
 		}).join("")}]`;
 	}
@@ -69,7 +71,9 @@ export class CQTag<T extends Tag = any> {
 		};
 	}
 
-	[Symbol.toStringTag]() {return CQTag.name;}
+	[Symbol.toStringTag]() {
+		return CQTag.name;
+	}
 }
 
 export const SPLIT = /(?=\[CQ:)|(?<=])/;
@@ -116,7 +120,9 @@ export const CQ = {
 	 * @returns 转义后的字符串
 	 */
 	escape(str: string, insideCQ = false): string {
-		if (!/[[\]&,]/.test(str)) return str;
+		if (!/[[\]&,]/.test(str)) {
+			return str;
+		}
 		let temp = str.replace(/&/g, "&amp;")
 			 .replace(/\[/g, "&#91;")
 			 .replace(/]/g, "&#93;");
@@ -141,13 +147,17 @@ export const CQ = {
 	 * 纯文本
 	 * @param text 纯文本内容
 	 */
-	text(text: string) { return new CQText("text", {text: String(text)}); },
+	text(text: string) {
+		return new CQText("text", {text: String(text)});
+	},
 	/**
 	 * QQ 表情
 	 * @param id QQ 表情 ID,处于 [0,221] 区间
 	 * @see https://github.com/kyubotics/coolq-http-api/wiki/%E8%A1%A8%E6%83%85-CQ-%E7%A0%81-ID-%E8%A1%A8
 	 */
-	face(id: number) { return new CQFace("face", {id}); },
+	face(id: number) {
+		return new CQFace("face", {id});
+	},
 	/**
 	 * 语音
 	 * @param file 语音文件名(或URL)
@@ -174,7 +184,9 @@ export const CQ = {
 	 * .@某人
 	 * @param qq @的 QQ 号, `all` 表示全体成员
 	 */
-	at(qq: number | "all") { return new CQAt("at", {qq}); },
+	at(qq: number | "all") {
+		return new CQAt("at", {qq});
+	},
 	/**
 	 * 链接分享
 	 * @param url URL
@@ -195,7 +207,9 @@ export const CQ = {
 	 * @param type 分别表示使用 QQ 音乐、网易云音乐、虾米音乐
 	 * @param id 歌曲 ID
 	 */
-	music(type: "qq" | "163" | "xm", id: number) { return new CQTag<music>("music", {type, id}); },
+	music(type: "qq" | "163" | "xm", id: number) {
+		return new CQTag<music>("music", {type, id});
+	},
 	/**
 	 * 音乐自定义分享
 	 * @param url 点击后跳转目标 URL
@@ -235,7 +249,9 @@ export const CQ = {
 	 * 回复
 	 * @param id 回复时所引用的消息id, 必须为本群消息.
 	 */
-	reply(id: number) { return new CQReply("reply", {id}); },
+	reply(id: number) {
+		return new CQReply("reply", {id});
+	},
 	/**
 	 * 自定义回复
 	 * @param text 自定义回复时的自定义QQ, 如果使用自定义信息必须指定.
@@ -250,18 +266,24 @@ export const CQ = {
 	 * 戳一戳
 	 * @param qq 需要戳的成员
 	 */
-	poke(qq: number) { return new CQPoke("poke", {qq}); },
+	poke(qq: number) {
+		return new CQPoke("poke", {qq});
+	},
 	/**
 	 * 礼物
 	 * @param qq 接收礼物的成员
 	 * @param id 礼物的类型
 	 */
-	gift(qq: number, id: number) { return new CQGift("gift", {qq, id}); },
+	gift(qq: number, id: number) {
+		return new CQGift("gift", {qq, id});
+	},
 	/**
 	 * 合并转发消息节点
 	 * @param id 转发消息id, 直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序
 	 */
-	nodeId(id: number) { return new CQNodeId("node", {id}); },
+	nodeId(id: number) {
+		return new CQNodeId("node", {id});
+	},
 	/**
 	 * 合并转发消息节点
 	 * @param name 发送者显示名字
@@ -276,13 +298,17 @@ export const CQ = {
 	 * @param data xml内容, xml中的value部分, 记得实体化处理
 	 * @param resid 可以不填
 	 */
-	xml(data: string, resid?: number) { return new CQXml("xml", {data, resid}); },
+	xml(data: string, resid?: number) {
+		return new CQXml("xml", {data, resid});
+	},
 	/**
 	 * JSON 消息
 	 * @param data json内容, json的所有字符串记得实体化处理
 	 * @param resid 默认不填为0, 走小程序通道, 填了走富文本通道发送
 	 */
-	json(data: string, resid = 0) { return new CQJson("json", {data, resid}); },
+	json(data: string, resid = 0) {
+		return new CQJson("json", {data, resid});
+	},
 	/**
 	 * 一种xml的图片消息（装逼大图）<br/> **PS** : xml 接口的消息都存在风控风险, 请自行兼容发送失败后的处理 ( 可以失败后走普通图片模式 )
 	 * @param file 和image的file字段对齐, 支持也是一样的
@@ -303,15 +329,21 @@ export const CQ = {
 	 * 文本转语音
 	 * @param text 内容
 	 */
-	tts(text: string) { return new CQTts("tts", {text}); },
+	tts(text: string) {
+		return new CQTts("tts", {text});
+	},
 	/**
 	 * 自定义 CQ码
 	 * @param type CQ码类型
 	 * @param data CQ码参数
 	 */
-	custom<T extends Tag>(type: T["type"], data: T["data"] = {}) { return new CQTag<T>(type, data); },
-	[Symbol.toStringTag]() {return "CQ";},
-};
+	custom<T extends Tag>(type: T["type"], data: T["data"] = {}) {
+		return new CQTag<T>(type, data);
+	},
+	[Symbol.toStringTag]() {
+		return "CQ";
+	},
+} as const;
 
 export type message = string | msgTags[];
 export type messageNode = NodeTags[];
@@ -321,11 +353,11 @@ export type msgTags = CQText | CQFace | CQRecord | CQVideo | CQAt | CQRps | CQDi
 export type NodeTags = CQNode | CQNodeId;
 
 interface tts extends Tag {
-	type: "tts"
+	type: "tts";
 	data: {
 		/** 内容 */
 		text: string
-	}
+	};
 }
 
 export class CQTts extends CQTag<tts> {
@@ -339,11 +371,13 @@ export class CQTts extends CQTag<tts> {
 	}
 
 	/** 内容 */
-	get text(): string { return String(this._data.text); }
+	get text(): string {
+		return String(this._data.text);
+	}
 }
 
 interface cardimage extends Tag {
-	type: "cardimage"
+	type: "cardimage";
 	data: {
 		/** 和image的file字段对齐, 支持也是一样的 */
 		file: string
@@ -360,7 +394,7 @@ interface cardimage extends Tag {
 		/** `收` 分享来源的icon图标url, 可以留空 */
 		icon?: string
 
-	}
+	};
 }
 
 export class CQCardImage extends CQTag<cardimage> {
@@ -380,35 +414,49 @@ export class CQCardImage extends CQTag<cardimage> {
 	}
 
 	/** 和image的file字段对齐, 支持也是一样的 */
-	get file(): string { return String(this._data.file); }
+	get file(): string {
+		return String(this._data.file);
+	}
 
 	/** `收` 默认不填为400, 最小width */
-	get minwidth(): number | undefined { return this._data.minwidth; };
+	get minwidth(): number | undefined {
+		return this._data.minwidth;
+	};
 
 	/** `收` 默认不填为400, 最小height */
-	get minheight(): number | undefined { return this._data.minheight; };
+	get minheight(): number | undefined {
+		return this._data.minheight;
+	};
 
 	/** `收` 默认不填为500, 最大width */
-	get maxwidth(): number | undefined { return this._data.maxwidth; };
+	get maxwidth(): number | undefined {
+		return this._data.maxwidth;
+	};
 
 	/** `收` 默认不填为1000, 最大height */
-	get maxheight(): number | undefined { return this._data.maxheight; };
+	get maxheight(): number | undefined {
+		return this._data.maxheight;
+	};
 
 	/** `收` 分享来源的名称, 可以留空 */
-	get source(): string | undefined { return this._data.source; };
+	get source(): string | undefined {
+		return this._data.source;
+	};
 
 	/** `收` 分享来源的icon图标url, 可以留空 */
-	get icon(): string | undefined { return this._data.icon; };
+	get icon(): string | undefined {
+		return this._data.icon;
+	};
 }
 
 interface json extends Tag {
-	type: "json"
+	type: "json";
 	data: {
 		/** json内容, json的所有字符串记得实体化处理 */
 		data: string
 		/** `收` 默认不填为0, 走小程序通道, 填了走富文本通道发送 */
 		resid?: number
-	}
+	};
 }
 
 export class CQJson extends CQTag<json> {
@@ -423,20 +471,24 @@ export class CQJson extends CQTag<json> {
 	}
 
 	/** json内容, json的所有字符串记得实体化处理 */
-	get data(): string { return String(this._data.data); }
+	get data(): string {
+		return String(this._data.data);
+	}
 
 	/** `收` 默认不填为0, 走小程序通道, 填了走富文本通道发送 */
-	get resid(): number | undefined { return this._data.resid; }
+	get resid(): number | undefined {
+		return this._data.resid;
+	}
 }
 
 interface xml extends Tag {
-	type: "xml"
+	type: "xml";
 	data: {
 		/** xml内容, xml中的value部分, 记得实体化处理 */
 		data: string
 		/** `收` 可以不填 */
 		resid?: number
-	}
+	};
 }
 
 export class CQXml extends CQTag<xml> {
@@ -451,14 +503,18 @@ export class CQXml extends CQTag<xml> {
 	}
 
 	/** xml内容, xml中的value部分, 记得实体化处理 */
-	get data(): string { return String(this._data.data); }
+	get data(): string {
+		return String(this._data.data);
+	}
 
 	/** `收` 可以不填 */
-	get resid(): number | undefined { return this._data.resid; }
+	get resid(): number | undefined {
+		return this._data.resid;
+	}
 }
 
 interface node extends Tag {
-	type: "node"
+	type: "node";
 	data: {
 		/** 发送者显示名字 */
 		name: string
@@ -470,7 +526,7 @@ interface node extends Tag {
 		 * 不支持转发套娃, 不支持引用回复
 		 */
 		content: CQTag[] | string
-	}
+	};
 }
 
 export class CQNode extends CQTag<node> {
@@ -486,21 +542,27 @@ export class CQNode extends CQTag<node> {
 	}
 
 	/**发送者显示名字*/
-	get name(): string {return String(this._data.name);}
+	get name(): string {
+		return String(this._data.name);
+	}
 
 	/**发送者QQ号*/
-	get uin(): string {return String(this._data.uin);}
+	get uin(): string {
+		return String(this._data.uin);
+	}
 
 	/**具体消息,不支持转发套娃,不支持引用回复*/
-	get content(): CQTag[] | string {return this._data.content;}
+	get content(): CQTag[] | string {
+		return this._data.content;
+	}
 }
 
 interface nodeId extends Tag {
-	type: "node"
+	type: "node";
 	data: {
 		/** 转发消息id, 直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序 */
 		id: number
-	}
+	};
 }
 
 export class CQNodeId extends CQTag<nodeId> {
@@ -514,15 +576,17 @@ export class CQNodeId extends CQTag<nodeId> {
 	}
 
 	/** 转发消息id, 直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序 */
-	get id(): number {return this._data.id;}
+	get id(): number {
+		return this._data.id;
+	}
 }
 
 interface forward extends Tag {
-	type: "forward"
+	type: "forward";
 	data: {
 		/** 合并转发ID, 需要通过 {@link get_forward_msg} API获取转发的具体内容 */
 		id: string
-	}
+	};
 }
 
 export class CQForward extends CQTag<forward> {
@@ -536,17 +600,19 @@ export class CQForward extends CQTag<forward> {
 	}
 
 	/** 合并转发ID, 需要通过 [get_forward_msg]{@link CQWebSocket.get_forward_msg} API获取转发的具体内容 */
-	get id(): string {return String(this._data.id);}
+	get id(): string {
+		return String(this._data.id);
+	}
 }
 
 interface gift extends Tag {
-	type: "gift"
+	type: "gift";
 	data: {
 		/** 接收礼物的成员 */
 		qq: number
 		/** 礼物的类型 <br/>取值:[0,13]*/
 		id: number
-	}
+	};
 }
 
 export class CQGift extends CQTag<gift> {
@@ -561,18 +627,22 @@ export class CQGift extends CQTag<gift> {
 	}
 
 	/** 接收礼物的成员 */
-	get qq(): number {return Number(this._data.qq); }
+	get qq(): number {
+		return Number(this._data.qq);
+	}
 
 	/** 礼物的类型 <br/>取值:[0,13]*/
-	get id(): number {return Number(this._data.id); }
+	get id(): number {
+		return Number(this._data.id);
+	}
 }
 
 interface poke extends Tag {
-	type: "poke"
+	type: "poke";
 	data: {
 		/** 需要戳的成员 */
 		qq: number
-	}
+	};
 }
 
 export class CQPoke extends CQTag<poke> {
@@ -586,15 +656,17 @@ export class CQPoke extends CQTag<poke> {
 	}
 
 	/** 需要戳的成员 */
-	get qq(): number {return Number(this._data.qq);}
+	get qq(): number {
+		return Number(this._data.qq);
+	}
 }
 
 interface redbag extends Tag {
-	type: "redbag"
+	type: "redbag";
 	data: {
 		/**祝福语/口令*/
 		title: string
-	}
+	};
 }
 
 export class CQRedBag extends CQTag<redbag> {
@@ -608,15 +680,17 @@ export class CQRedBag extends CQTag<redbag> {
 	}
 
 	/**祝福语/口令*/
-	get title(): string {return String(this._data.title);}
+	get title(): string {
+		return String(this._data.title);
+	}
 }
 
 interface reply extends Tag {
-	type: "reply"
+	type: "reply";
 	data: {
 		/**回复时所引用的消息id, 必须为本群消息.*/
 		id: number
-	}
+	};
 }
 
 export class CQReply extends CQTag<reply> {
@@ -630,11 +704,13 @@ export class CQReply extends CQTag<reply> {
 	}
 
 	/**回复时所引用的消息id, 必须为本群消息.*/
-	get id(): number {return Number(this._data.id);}
+	get id(): number {
+		return Number(this._data.id);
+	}
 }
 
 interface replyCustom extends Tag {
-	type: "reply"
+	type: "reply";
 	data: {
 		/**自定义回复的信息*/
 		text: string
@@ -644,7 +720,7 @@ interface replyCustom extends Tag {
 		time?: number
 		/**起始消息序号, 可通过 get_msg 获得*/
 		seq?: number
-	}
+	};
 }
 
 export class CQReplyCustom extends CQTag<replyCustom> {
@@ -661,20 +737,28 @@ export class CQReplyCustom extends CQTag<replyCustom> {
 	}
 
 	/**自定义回复的信息*/
-	get text(): string {return String(this._data.text);}
+	get text(): string {
+		return String(this._data.text);
+	}
 
 	/**自定义回复时的自定义QQ, 如果使用自定义信息必须指定.*/
-	get qq(): number {return Number(this._data.qq);}
+	get qq(): number {
+		return Number(this._data.qq);
+	}
 
 	/**可选. 自定义回复时的时间, 格式为Unix时间*/
-	get time(): number | undefined {return this._data.time;}
+	get time(): number | undefined {
+		return this._data.time;
+	}
 
 	/**起始消息序号, 可通过 get_msg 获得*/
-	get seq(): number | undefined {return this._data.seq;}
+	get seq(): number | undefined {
+		return this._data.seq;
+	}
 }
 
 interface image extends Tag {
-	type: "image"
+	type: "image";
 	data: {
 		/** 图片文件名 */
 		file: string
@@ -688,7 +772,7 @@ interface image extends Tag {
 		id?: number
 		/** 通过网络下载图片时的线程数, 默认单线程. (在资源不支持并发时会自动处理) */
 		c?: number
-	}
+	};
 }
 
 export class CQImage extends CQTag<image> {
@@ -707,32 +791,44 @@ export class CQImage extends CQTag<image> {
 	}
 
 	/** 图片文件名 */
-	get file(): string {return String(this._data.file);}
+	get file(): string {
+		return String(this._data.file);
+	}
 
 	/** 图片类型, flash 表示闪照, show 表示秀图, 默认普通图片 */
-	get type(): string | undefined {return (this._data.type);}
+	get type(): string | undefined {
+		return (this._data.type);
+	}
 
 	/** `收` 图片 URL */
-	get url(): string | undefined {return (this._data.url);}
+	get url(): string | undefined {
+		return (this._data.url);
+	}
 
 	/** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
-	get cache(): number | undefined {return (this._data.cache);}
+	get cache(): number | undefined {
+		return (this._data.cache);
+	}
 
 	/** 发送秀图时的特效id, 默认为40000 <br/>取值:[40000,40005]*/
-	get id(): number | undefined {return (this._data.id);}
+	get id(): number | undefined {
+		return (this._data.id);
+	}
 
 	/** 通过网络下载图片时的线程数, 默认单线程. (在资源不支持并发时会自动处理) */
-	get c(): number | undefined {return (this._data.c);}
+	get c(): number | undefined {
+		return (this._data.c);
+	}
 }
 
 interface music extends Tag {
-	type: "music"
+	type: "music";
 	data: {
 		/** 分别表示使用 QQ 音乐、网易云音乐、虾米音乐 */
 		type: "qq" | "163" | "xm"
 		/** 歌曲 ID */
 		id: number
-	}
+	};
 }
 
 export class CQMusic extends CQTag<music> {
@@ -747,14 +843,18 @@ export class CQMusic extends CQTag<music> {
 	}
 
 	/** 分别表示使用 QQ 音乐、网易云音乐、虾米音乐 */
-	get type(): "qq" | "163" | "xm" {return <"qq" | "163" | "xm">String(this._data.type);}
+	get type(): "qq" | "163" | "xm" {
+		return <"qq" | "163" | "xm">String(this._data.type);
+	}
 
 	/** 歌曲 ID */
-	get id(): number {return Number(this._data.id);}
+	get id(): number {
+		return Number(this._data.id);
+	}
 }
 
 interface musicCustom extends Tag {
-	type: "music"
+	type: "music";
 	data: {
 		type: "custom"
 		/** 点击后跳转目标 URL */
@@ -767,7 +867,7 @@ interface musicCustom extends Tag {
 		content?: string
 		/** 发送时可选, 图片 URL */
 		image?: string
-	}
+	};
 }
 
 export class CQMusicCustom extends CQTag<musicCustom> {
@@ -785,26 +885,38 @@ export class CQMusicCustom extends CQTag<musicCustom> {
 		};
 	}
 
-	get type(): "custom" {return "custom";}
+	get type(): "custom" {
+		return "custom";
+	}
 
 	/** 点击后跳转目标 URL */
-	get url(): string {return String(this._data.url);}
+	get url(): string {
+		return String(this._data.url);
+	}
 
 	/** 音乐 URL */
-	get audio(): string {return String(this._data.audio);}
+	get audio(): string {
+		return String(this._data.audio);
+	}
 
 	/** 标题 */
-	get title(): string {return String(this._data.title);}
+	get title(): string {
+		return String(this._data.title);
+	}
 
 	/** 发送时可选, 内容描述 */
-	get content(): string | undefined {return this._data.content;}
+	get content(): string | undefined {
+		return this._data.content;
+	}
 
 	/** 发送时可选, 图片 URL */
-	get image(): string | undefined {return this._data.image;}
+	get image(): string | undefined {
+		return this._data.image;
+	}
 }
 
 interface location extends Tag {
-	type: "location"
+	type: "location";
 	data: {
 		/**纬度*/
 		lat: number
@@ -814,7 +926,7 @@ interface location extends Tag {
 		title?: string
 		/**`收` 发送时可选, 内容描述*/
 		content?: string
-	}
+	};
 }
 
 export class CQLocation extends CQTag<location> {
@@ -830,23 +942,31 @@ export class CQLocation extends CQTag<location> {
 		};
 	}
 
-	get lat(): number {return Number(this._data.lat);}
+	get lat(): number {
+		return Number(this._data.lat);
+	}
 
-	get lon(): number {return Number(this._data.lon);}
+	get lon(): number {
+		return Number(this._data.lon);
+	}
 
-	get title(): string | undefined {return this._data.title;}
+	get title(): string | undefined {
+		return this._data.title;
+	}
 
-	get content(): string | undefined {return this._data.content;}
+	get content(): string | undefined {
+		return this._data.content;
+	}
 }
 
 interface contact extends Tag {
-	type: "contact"
+	type: "contact";
 	data: {
 		/**推荐好友/群*/
 		type: "qq" | "group"
 		/**被推荐的 QQ （群）号*/
 		id: number
-	}
+	};
 }
 
 export class CQContact extends CQTag<contact> {
@@ -860,13 +980,17 @@ export class CQContact extends CQTag<contact> {
 		};
 	}
 
-	get type(): "qq" | "group" {return <"qq" | "group">String(this._data.type);}
+	get type(): "qq" | "group" {
+		return <"qq" | "group">String(this._data.type);
+	}
 
-	get id(): number {return Number(this._data.id);}
+	get id(): number {
+		return Number(this._data.id);
+	}
 }
 
 interface share extends Tag {
-	type: "share"
+	type: "share";
 	data: {
 		/** URL */
 		url: string
@@ -876,7 +1000,7 @@ interface share extends Tag {
 		content?: string
 		/** `收` 图片 URL */
 		image?: string
-	}
+	};
 }
 
 export class CQShare extends CQTag<share> {
@@ -892,18 +1016,26 @@ export class CQShare extends CQTag<share> {
 		};
 	}
 
-	get url(): string {return String(this._data.url);}
+	get url(): string {
+		return String(this._data.url);
+	}
 
-	get title(): string {return String(this._data.title);}
+	get title(): string {
+		return String(this._data.title);
+	}
 
-	get content(): string | undefined {return (this._data.content);}
+	get content(): string | undefined {
+		return (this._data.content);
+	}
 
-	get image(): string | undefined {return (this._data.image);}
+	get image(): string | undefined {
+		return (this._data.image);
+	}
 }
 
 interface anonymous extends Tag {
-	type: "anonymous"
-	data: {}
+	type: "anonymous";
+	data: {};
 }
 
 export class CQAnonymous extends CQTag<anonymous> {
@@ -916,8 +1048,8 @@ export class CQAnonymous extends CQTag<anonymous> {
 }
 
 interface shake extends Tag {
-	type: "shake"
-	data: {}
+	type: "shake";
+	data: {};
 }
 
 export class CQShake extends CQTag<shake> {
@@ -930,8 +1062,8 @@ export class CQShake extends CQTag<shake> {
 }
 
 interface dice extends Tag {
-	type: "dice"
-	data: {}
+	type: "dice";
+	data: {};
 }
 
 export class CQDice extends CQTag<dice> {
@@ -944,8 +1076,8 @@ export class CQDice extends CQTag<dice> {
 }
 
 interface rps extends Tag {
-	type: "rps"
-	data: {}
+	type: "rps";
+	data: {};
 }
 
 export class CQRps extends CQTag<rps> {
@@ -958,11 +1090,11 @@ export class CQRps extends CQTag<rps> {
 }
 
 interface at extends Tag {
-	type: "at"
+	type: "at";
 	data: {
 		/** .@的 QQ 号, `all` 表示全体成员 */
 		qq: number | "all"
-	}
+	};
 }
 
 export class CQAt extends CQTag<at> {
@@ -975,11 +1107,13 @@ export class CQAt extends CQTag<at> {
 		};
 	}
 
-	get qq(): number | "all" {return this._data.qq;}
+	get qq(): number | "all" {
+		return this._data.qq;
+	}
 }
 
 interface video extends Tag {
-	type: "video"
+	type: "video";
 	data: {
 		/**视频地址, 支持http和file发送*/
 		file: string
@@ -987,7 +1121,7 @@ interface video extends Tag {
 		cover?: string
 		/**通过网络下载视频时的线程数, 默认单线程. (在资源不支持并发时会自动处理)*/
 		c?: number
-	}
+	};
 }
 
 export class CQVideo extends CQTag<video> {
@@ -1002,15 +1136,21 @@ export class CQVideo extends CQTag<video> {
 		};
 	}
 
-	get file(): string {return String(this._data.file);}
+	get file(): string {
+		return String(this._data.file);
+	}
 
-	get cover(): string | undefined {return this._data.cover;}
+	get cover(): string | undefined {
+		return this._data.cover;
+	}
 
-	get c(): number | undefined {return this._data.c;}
+	get c(): number | undefined {
+		return this._data.c;
+	}
 }
 
 interface record extends Tag {
-	type: "record"
+	type: "record";
 	data: {
 		/** 语音文件名 */
 		file: string
@@ -1024,7 +1164,7 @@ interface record extends Tag {
 		proxy?: boolean
 		/** 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时 */
 		timeout?: number
-	}
+	};
 }
 
 export class CQRecord extends CQTag<record> {
@@ -1044,30 +1184,42 @@ export class CQRecord extends CQTag<record> {
 
 
 	/** 语音文件名 */
-	get file(): string {return String(this._data.file);}
+	get file(): string {
+		return String(this._data.file);
+	}
 
 	/** `收` 表示变声,发送时可选, 默认 0, 设置为 1 */
-	get magic(): boolean | undefined {return this._data.magic;}
+	get magic(): boolean | undefined {
+		return this._data.magic;
+	}
 
 	/** `收` 语音 URL */
-	get url(): string | undefined {return this._data.url;}
+	get url(): string | undefined {
+		return this._data.url;
+	}
 
 	/** 只在通过网络 URL 发送时有效, 表示是否使用已缓存的文件, 默认 1 */
-	get cache(): boolean | undefined {return this._data.cache;}
+	get cache(): boolean | undefined {
+		return this._data.cache;
+	}
 
 	/** 只在通过网络 URL 发送时有效, 表示是否通过代理下载文件 ( 需通过环境变量或配置文件配置代理 ) , 默认 1 */
-	get proxy(): boolean | undefined {return this._data.proxy;}
+	get proxy(): boolean | undefined {
+		return this._data.proxy;
+	}
 
 	/** 只在通过网络 URL 发送时有效, 单位秒, 表示下载网络文件的超时时间 , 默认不超时 */
-	get timeout(): number | undefined {return this._data.timeout;}
+	get timeout(): number | undefined {
+		return this._data.timeout;
+	}
 }
 
 interface face extends Tag {
-	type: "face"
+	type: "face";
 	data: {
 		/** QQ 表情 ID,处于 [0,221] 区间 */
 		id: number
-	}
+	};
 }
 
 export class CQFace extends CQTag<face> {
@@ -1081,15 +1233,17 @@ export class CQFace extends CQTag<face> {
 	}
 
 	/** QQ 表情 ID,处于 [0,221] 区间 */
-	get id(): number { return Number(this._data.id); }
+	get id(): number {
+		return Number(this._data.id);
+	}
 }
 
 interface text extends Tag {
-	type: "text"
+	type: "text";
 	data: {
 		/** 纯文本内容 */
 		text: string
-	}
+	};
 }
 
 export class CQText extends CQTag<text> {
@@ -1103,7 +1257,9 @@ export class CQText extends CQTag<text> {
 	}
 
 	/** 纯文本内容 */
-	get text(): string { return String(this._data.text); }
+	get text(): string {
+		return String(this._data.text);
+	}
 }
 
 /**本对象中收录所有会被接收到的CQ码,格式为{ type : CQTag类 }*/
@@ -1126,4 +1282,4 @@ export const ReceiveTags: { [key in string]: any } = {
 	share: CQShare,
 	video: CQVideo,
 	xml: CQXml,
-};
+} as const;
