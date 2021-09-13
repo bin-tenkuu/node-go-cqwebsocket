@@ -1283,3 +1283,20 @@ export const ReceiveTags: { [key in string]: any } = {
 	video: CQVideo,
 	xml: CQXml,
 } as const;
+
+/**TODO:*/
+export class CQHelper extends Array<CQTag> {
+	constructor(items?: CQTag[]) {
+		super(...items ?? []);
+	}
+
+	public toMessage(): msgTags[] {
+		// @ts-ignore
+		return this.filter<msgTags>(value => value.tagName !== "node");
+	}
+
+	public toMessageNode(): NodeTags[] {
+		// @ts-ignore
+		return this.filter<NodeTags>(value => value.tagName === "node");
+	}
+}
