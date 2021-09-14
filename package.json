@@ -12,7 +12,8 @@
     "out/**/*.d.ts"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "node --inspect-brk debug.js"
   },
   "repository": {
     "type": "git",
