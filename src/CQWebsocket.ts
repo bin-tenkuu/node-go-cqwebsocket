@@ -161,7 +161,7 @@ export class CQWebSocket {
 	 * @param anonymous_flag 选一, 要禁言的匿名用户的 flag（需从群消息上报的数据中获得）
 	 */
 	protected set_group_anonymous_ban(group_id: int64, anonymous: any, duration = 30 * 60,
-		 anonymous_flag ?: string): PromiseRes<void> {
+			anonymous_flag ?: string): PromiseRes<void> {
 		return this.send("set_group_anonymous_ban", {group_id: +group_id, anonymous, duration, anonymous_flag});
 	}
 
@@ -230,7 +230,7 @@ export class CQWebSocket {
 	 * @param duration 专属头衔有效期, 单位秒, -1 表示永久, 不过此项似乎没有效果, 可能是只有某些特殊的时间长度有效, 有待测试
 	 */
 	public set_group_special_title(group_id: int64, user_id: int64, special_title = "",
-		 duration = -1): PromiseRes<void> {
+			duration = -1): PromiseRes<void> {
 		return this.send("set_group_special_title", {group_id: +group_id, user_id: +user_id, special_title, duration});
 	}
 
@@ -281,10 +281,10 @@ export class CQWebSocket {
 
 	/**
 	 * 删除好友
-	 * @param friend_id 好友 QQ 号
+	 * @param user_id 好友 QQ 号
 	 */
-	public delete_friend(friend_id: int64): PromiseRes<void> {
-		return this.send("delete_friend", {friend_id});
+	public delete_friend(user_id: number): PromiseRes<void> {
+		return this.send("delete_friend", {user_id});
 	}
 
 	/**
@@ -509,7 +509,7 @@ export class CQWebSocket {
 	 * @deprecated
 	 */
 	public handle_quick_operation<T extends keyof QuickOperation>(context: SocketHandle[T],
-		 operation: QuickOperation[T]): PromiseRes<void> {
+			operation: QuickOperation[T]): PromiseRes<void> {
 		return this.send(".handle_quick_operation", {context, operation});
 	}
 

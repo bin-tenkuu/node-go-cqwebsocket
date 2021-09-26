@@ -79,6 +79,12 @@ export interface LoginInfo extends UserId {
 	nickname: string;
 }
 
+/**@see get_unidirectional_friend_list*/
+export interface SourceInfo extends LoginInfo {
+	/**添加途径*/
+	source: string;
+}
+
 /**@see qidian_get_account_info*/
 export interface QiDianAccountInfo {
 	/** 父账号ID*/
@@ -838,8 +844,8 @@ export type SocketHandle = {
 	"notice.client_status": ClientStatus
 	"notice.essence": Essence
 	"notice": Essence | ClientStatus | OfflineFile | GroupCard | NotifyHonor | NotifyLuckyKing | NotifyPokeGroup |
-		 NotifyPokeFriend | FriendRecall | GroupRecall | FriendAdd | GroupBan | GroupIncrease | GroupDecrease |
-		 GroupUpload | GroupAdmin
+			NotifyPokeFriend | FriendRecall | GroupRecall | FriendAdd | GroupBan | GroupIncrease | GroupDecrease |
+			GroupUpload | GroupAdmin
 
 	"message_sent": any
 
@@ -932,7 +938,7 @@ export type WSSendParam = {
 	"qidian_get_account_info": {}
 	"get_stranger_info": NoCache & UserId
 	"get_friend_list": {}
-	"delete_friend": { friend_id: int64 }
+	"delete_friend": UserId
 	"get_group_info": NoCache & GroupId
 	"get_group_list": {}
 	"get_group_member_info": NoCache & GroupId & UserId
@@ -971,6 +977,9 @@ export type WSSendParam = {
 	"check_url_safely": FileUrl
 	"_get_model_show": { model: string }
 	"_set_model_show": { model: string, model_show: string }
+	"mark_msg_as_read": MessageId
+	"delete_unidirectional_friend": UserId
+	"get_unidirectional_friend_list": {}
 }
 export type WSSendReturn = {
 	"send_private_msg": MessageId
@@ -1012,14 +1021,15 @@ export type WSSendReturn = {
 	"get_essence_msg_list": EssenceMessage[]
 	"check_url_safely": URLSafely
 	"_get_model_show": Variants[]
+	"get_unidirectional_friend_list": SourceInfo
 } & {
 	[type in string]: void
 }
 
 export interface PromiseRes<T> extends Promise<T> {
 	then<S = T, F = never>(
-		 onFulfilled?: ((value: T) => S | Promise<S>) | null,
-		 onRejected?: ((reason: ErrorAPIResponse) => F | Promise<F>) | null,
+			onFulfilled?: ((value: T) => S | Promise<S>) | null,
+			onRejected?: ((reason: ErrorAPIResponse) => F | Promise<F>) | null,
 	): Promise<S | F>;
 
 	catch<S = never>(onrejected?: ((reason: ErrorAPIResponse) => S | Promise<S>) | undefined | null): Promise<T | S>;

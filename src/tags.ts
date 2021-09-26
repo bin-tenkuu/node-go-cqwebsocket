@@ -124,8 +124,8 @@ export const CQ = {
 			return str;
 		}
 		let temp = str.replace(/&/g, "&amp;")
-			 .replace(/\[/g, "&#91;")
-			 .replace(/]/g, "&#93;");
+				.replace(/\[/g, "&#91;")
+				.replace(/]/g, "&#93;");
 		if (insideCQ) {
 			return temp.replace(/,/g, "&#44;");
 		}
@@ -139,9 +139,9 @@ export const CQ = {
 	 */
 	unescape(str: string): string {
 		return str.replace(/&#44;/g, ",")
-			 .replace(/&#91;/g, "[")
-			 .replace(/&#93;/g, "]")
-			 .replace(/&amp;/g, "&");
+				.replace(/&#91;/g, "[")
+				.replace(/&#93;/g, "]")
+				.replace(/&amp;/g, "&");
 	},
 	/**
 	 * 纯文本
@@ -220,14 +220,14 @@ export const CQ = {
 	 */
 	musicCustom(url: string, audio: string, title: string, content?: string, image?: string) {
 		return new CQMusicCustom(
-			 "music", {
-				 type: "custom",
-				 url,
-				 audio,
-				 title,
-				 content,
-				 image,
-			 });
+				"music", {
+					type: "custom",
+					url,
+					audio,
+					title,
+					content,
+					image,
+				});
 	},
 	/**
 	 * 图片
@@ -241,9 +241,9 @@ export const CQ = {
 	 */
 	image(file: string, type?: string, url?: string, cache?: number, id?: number, c?: number) {
 		return new CQImage(
-			 "image", {
-				 file, type, url, cache, id, c,
-			 });
+				"image", {
+					file, type, url, cache, id, c,
+				});
 	},
 	/**
 	 * 回复
@@ -320,7 +320,7 @@ export const CQ = {
 	 * @param icon 分享来源的icon图标url, 可以留空
 	 */
 	cardimage(file: string, minwidth?: number, minheight?: number, maxwidth?: number, maxheight?: number,
-		 source ?: string, icon?: string) {
+			source ?: string, icon?: string) {
 		return new CQCardImage("cardimage", {
 			file, minwidth, minheight, maxwidth, maxheight, source, icon,
 		});
@@ -348,8 +348,8 @@ export const CQ = {
 export type message = string | msgTags[];
 export type messageNode = NodeTags[];
 export type msgTags = CQText | CQFace | CQRecord | CQVideo | CQAt | CQRps | CQDice | CQShake | CQAnonymous | CQShare
-	 | CQContact | CQLocation | CQMusic | CQMusicCustom | CQImage | CQReply | CQReplyCustom | CQRedBag | CQPoke | CQGift
-	 | CQForward | CQXml | CQJson | CQCardImage | CQTts;
+		| CQContact | CQLocation | CQMusic | CQMusicCustom | CQImage | CQReply | CQReplyCustom | CQRedBag | CQPoke | CQGift
+		| CQForward | CQXml | CQJson | CQCardImage | CQTts;
 export type NodeTags = CQNode | CQNodeId;
 
 interface tts extends Tag {
