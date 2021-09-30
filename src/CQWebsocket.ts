@@ -5,9 +5,9 @@ import {
 	APIRequest, APIResponse, CanSend, CookiesData, CQWebSocketOptions, CSRFTokenData, Device, DownloadFile,
 	ErrorAPIResponse, ErrorEventHandle, EssenceMessage, EventHandle, FileUrl, ForwardData, FriendInfo, GroupAtAllRemain,
 	GroupData, GroupFileSystemInfo, GroupHonorInfo, GroupInfo, GroupMemberInfo, GroupRootFileSystemInfo, GroupSystemMSG,
-	int64, LoginInfo, MessageId, MessageInfo, OCRImage, PartialSocketHandle, PrivateData, PromiseRes, QiDianAccountInfo,
-	QQImageData, QuickOperation, RecordFormatData, SocketHandle, Status, StrangerInfo, URLSafely, Variants, VersionInfo,
-	VipInfo, WordSlicesData, WSSendParam, WSSendReturn,
+	ILogger, int64, LoginInfo, MessageId, MessageInfo, OCRImage, PartialSocketHandle, PrivateData, PromiseRes,
+	QiDianAccountInfo, QQImageData, QuickOperation, RecordFormatData, SocketHandle, Status, StrangerInfo, URLSafely,
+	Variants, VersionInfo, VipInfo, WordSlicesData, WSSendParam, WSSendReturn,
 } from "./Interfaces";
 import {CQ, CQTag, message, messageNode} from "./tags";
 
@@ -32,6 +32,7 @@ export class CQWebSocket {
 	public messageSuccess: onSuccess<any>;
 	/**消息发送失败时自动调用*/
 	public messageFail: onFailure;
+	private _logger: ILogger;
 
 	private _responseHandlers: Map<string, ResponseHandler>;
 	private _eventBus: CQEventBus;
@@ -51,15 +52,16 @@ export class CQWebSocket {
 		baseUrl,
 		clientConfig,
 	}: CQWebSocketOptions = {}, debug = false) {
+		this._logger = console;
 		this._debug = Boolean(debug);
 		this._responseHandlers = new Map();
 		this._eventBus = new CQEventBus(this);
 		this._accessToken = accessToken;
 		this._baseUrl = baseUrl ?? `${protocol}//${host}:${port}`;
 		this._clientConfig = clientConfig;
-		this.messageSuccess = (ret) => console.log(`发送成功:${ret.echo}`);
-		this.messageFail = (reason) => console.log(`发送失败[${reason.retcode}]:${reason.wording}`);
-		this.errorEvent = (error) => console.error("调用API失败", error);
+		this.messageSuccess = (ret) => this.logger.info(`发送成功:${ret.echo}`);
+		this.messageFail = (reason) => this.logger.info(`发送失败[${reason.retcode}]:${reason.wording}`);
+		this.errorEvent = (error) => this.logger.error("调用API失败", error);
 		this._socket = this._socketEvent = undefined;
 	}
 
@@ -721,7 +723,7 @@ export class CQWebSocket {
 			echo: echo,
 		};
 		if (this._debug) {
-			console.log(message);
+			this.logger.debug(message);
 		}
 		return new Promise<WSSendReturn[T]>((resolve, reject) => {
 			let onSuccess: onSuccess<WSSendReturn[T]> = (resp: APIResponse<WSSendReturn[T]>) => {
@@ -830,7 +832,7 @@ export class CQWebSocket {
 		}
 		let json: ErrorAPIResponse = JSON.parse(data);
 		if (this._debug) {
-			console.log(json);
+			this.logger.debug(json);
 		}
 		if (json.echo === undefined) {
 			return;
@@ -857,7 +859,7 @@ export class CQWebSocket {
 		}
 		let json: ErrorAPIResponse = JSON.parse(data);
 		if (this._debug) {
-			console.log(json);
+			this.logger.debug(json);
 		}
 		this._eventBus.handleMSG(json);
 		return;
@@ -904,6 +906,14 @@ export class CQWebSocket {
 	[Symbol.toStringTag]() {
 		return CQWebSocket.name;
 	}
+
+	public get logger(): ILogger {
+		return this._logger;
+	}
+
+	public set logger(v) {
+		this._logger = v == null ? console : v;
+	}
 }
 
 interface CQEventBus {
@@ -945,7 +955,7 @@ class CQEventBus extends EventEmitter {
 		super({captureRejections: true});
 		this.bot = bot;
 		this.setMaxListeners(0);
-		this._errorEvent = (e) => console.error(e);
+		this._errorEvent = (e) => this.logger.error(e);
 		this.data = {
 			qq: -1, status: {
 				good: false, online: false, stat: {
@@ -967,7 +977,7 @@ class CQEventBus extends EventEmitter {
 		case "group":
 			return this.emit("message.group", json, cqTags);
 		default:
-			return console.warn(`未知的消息类型: ${messageType}`);
+			return this.bot.logger.warn(`未知的消息类型: ${messageType}`);
 		}
 	}
 
@@ -985,7 +995,7 @@ class CQEventBus extends EventEmitter {
 		case "honor":
 			return this.emit("notice.notify.honor", json);
 		default:
-			return console.warn(`未知的 notify 类型: ${subType}`);
+			return this.logger.warn(`未知的 notify 类型: ${subType}`);
 		}
 	}
 
@@ -1019,7 +1029,7 @@ class CQEventBus extends EventEmitter {
 		case "essence":
 			return this.emit("notice.essence", json);
 		default:
-			return console.warn(`未知的 notice 类型: ${notice_type}`);
+			return this.logger.warn(`未知的 notice 类型: ${notice_type}`);
 		}
 	}
 
@@ -1031,7 +1041,7 @@ class CQEventBus extends EventEmitter {
 		case "group":
 			return this.emit("request.group", json);
 		default:
-			return console.warn(`未知的 request 类型: ${request_type}`);
+			return this.logger.warn(`未知的 request 类型: ${request_type}`);
 		}
 	}
 
@@ -1045,7 +1055,7 @@ class CQEventBus extends EventEmitter {
 			this.data.status = json["status"];
 			return this.emit("meta_event.heartbeat", json);
 		default:
-			return console.warn(`未知的 meta_event 类型: ${meta_event_type}`);
+			return this.logger.warn(`未知的 meta_event 类型: ${meta_event_type}`);
 		}
 	}
 
@@ -1058,11 +1068,11 @@ class CQEventBus extends EventEmitter {
 		if (Reflect.has(this, post_type)) {
 			return this[post_type](json);
 		} else {
-			return console.warn(`未知的上报类型: ${post_type}`);
+			return this.logger.warn(`未知的上报类型: ${post_type}`);
 		}
 	}
 
-	emit<T extends keyof SocketHandle>(type: T, context: SocketHandle[T], cqTags: CQTag<any>[] = []): boolean {
+	emit<T extends keyof SocketHandle>(type: T, context: SocketHandle[T], cqTags: CQTag[] = []): boolean {
 		const handlers: Function | Function[] | undefined = this._events[type];
 		if (handlers === undefined) {
 			return false;
@@ -1104,6 +1114,10 @@ class CQEventBus extends EventEmitter {
 
 	[Symbol.toStringTag]() {
 		return CQEventBus.name;
+	}
+
+	private get logger(): ILogger {
+		return this.bot.logger;
 	}
 }
 

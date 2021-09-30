@@ -1026,11 +1026,24 @@ export type WSSendReturn = {
 	[type in string]: void
 }
 
+export interface ILogger {
+
+	debug(...data: any[]): void;
+
+	error(...data: any[]): void;
+
+	info(...data: any[]): void;
+
+	trace(...data: any[]): void;
+
+	warn(...data: any[]): void;
+}
+
 export interface PromiseRes<T> extends Promise<T> {
 	then<S = T, F = never>(
 			onFulfilled?: ((value: T) => S | Promise<S>) | null,
 			onRejected?: ((reason: ErrorAPIResponse) => F | Promise<F>) | null,
 	): Promise<S | F>;
 
-	catch<S = never>(onrejected?: ((reason: ErrorAPIResponse) => S | Promise<S>) | undefined | null): Promise<T | S>;
+	catch<S = never>(onRejected?: ((reason: ErrorAPIResponse) => S | Promise<S>) | undefined | null): Promise<T | S>;
 }
