@@ -4,7 +4,7 @@
 
 本SDK中所有api基于 `go-cqhttp-v1.0.0-beta6`
 
-go-cqhttp 标准文档最后编辑日期： `9/4/2021, 6:54:32 AM`
+go-cqhttp 标准文档最后编辑日期： `10/7/2021, 3:26:08 PM`
 
 # 关于此SDK
 
