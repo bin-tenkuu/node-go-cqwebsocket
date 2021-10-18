@@ -5,7 +5,7 @@
 
     /* Basic Options */
     "incremental": true,
-    "target": "ES2020",
+    "target": "ESNext",
     "module": "CommonJS",
     //     "lib": [],                             /* Specify library files to be included in the compilation. */
     "declaration": true,

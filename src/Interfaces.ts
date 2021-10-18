@@ -492,15 +492,17 @@ export interface LifeCycle extends MetaEventType, SubType {
 /**@see CQWebSocket.constructor*/
 export type CQWebSocketOptions = {
 	/**@default "ws:"*/
-	protocol?: "ws:" | "wss:"
+	protocol?: "ws:" | "wss:";
 	/**@default "127.0.0.1"*/
-	host?: string
+	host?: string;
 	/**@default 6700*/
-	port?: number
+	port?: number;
 	/**@default ""*/
-	accessToken?: string
+	accessToken?: string;
 	/**基础链接*/
-	baseUrl?: string
+	baseUrl?: string;
+	/**@default 20s*/
+	sendTimeout?: number;
 	clientConfig?: {
 		/**握手请求的超时事件（单位：毫秒）*/
 		handshakeTimeout?: number
@@ -510,7 +512,7 @@ export type CQWebSocketOptions = {
 		protocolVersion?: number
 		/**Value of the `Origin` or `Sec-WebSocket-Origin` header 取决于 the protocolVersion.*/
 		origin?: string
-	} & (ClientOptions | http.ClientRequestArgs | {})
+	} & (ClientOptions | http.ClientRequestArgs | {});
 }
 
 /**API 消息发送报文*/

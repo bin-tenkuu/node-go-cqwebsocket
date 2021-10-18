@@ -16,9 +16,10 @@ type onFailure = (this: void, reason: ErrorAPIResponse, message: APIRequest) => 
 type ObjectEntries<T, K extends keyof T = keyof T> = [K, T[K]][];
 
 interface ResponseHandler {
-	onSuccess: onSuccess<any>;
-	onFailure: onFailure;
+	onSuccess: (this: void, json: APIResponse<any>) => void;
+	onFailure: (this: void, reason: ErrorAPIResponse) => void;
 	message: APIRequest;
+	sendTime: [number, number];
 }
 
 /**
@@ -28,11 +29,29 @@ interface ResponseHandler {
  * **注2：** 标记为 `@deprecated` 的方法为__隐藏 API__，并非过时方法，__不__建议一般用户使用，不正确的使用可能造成程序运行不正常
  */
 export class CQWebSocket {
+	private static sendTimeout(bot: CQWebSocket) {
+		for (let [k, v] of bot._responseHandlers.entries()) {
+			const hrtime: number = process.hrtime(v.sendTime)[0];
+			if (hrtime > bot.sendTimeout) {
+				bot._responseHandlers.delete(k);
+				v.onFailure({
+					data: null,
+					echo: undefined,
+					msg: "",
+					retcode: 500,
+					status: "TIMEOUT",
+					wording: "发送超时",
+				});
+			}
+		}
+	}
+
 	/**消息发送成功时自动调用*/
 	public messageSuccess: onSuccess<any>;
 	/**消息发送失败时自动调用*/
 	public messageFail: onFailure;
 	private _logger: ILogger;
+	private sendTimeout: number;
 
 	private _responseHandlers: Map<string, ResponseHandler>;
 	private _eventBus: CQEventBus;
@@ -43,6 +62,7 @@ export class CQWebSocket {
 	private readonly _debug: boolean;
 	private _socket?: WebSocket;
 	private _socketEvent?: WebSocket;
+	private _sendTimeoutTimer?: NodeJS.Timer;
 
 	constructor({
 		protocol = "ws:",
@@ -51,9 +71,11 @@ export class CQWebSocket {
 		accessToken = "",
 		baseUrl,
 		clientConfig,
+		sendTimeout = 20,
 	}: CQWebSocketOptions = {}, debug = false) {
 		this._logger = console;
 		this._debug = Boolean(debug);
+		this.sendTimeout = sendTimeout;
 		this._responseHandlers = new Map();
 		this._eventBus = new CQEventBus(this);
 		this._accessToken = accessToken;
@@ -675,6 +697,7 @@ export class CQWebSocket {
 				this._onmessageEvent(data);
 			});
 		}
+		this._sendTimeoutTimer = setInterval(CQWebSocket.sendTimeout.bind(null, this), 1000 * this.sendTimeout);
 	}
 
 	/**断开*/
@@ -686,6 +709,10 @@ export class CQWebSocket {
 		if (this._socketEvent !== undefined) {
 			this._socketEvent.close(1000);
 			this._socketEvent = undefined;
+		}
+		if (this._sendTimeoutTimer !== undefined) {
+			clearInterval(this._sendTimeoutTimer);
+			this._sendTimeoutTimer = undefined;
 		}
 	}
 
@@ -726,15 +753,15 @@ export class CQWebSocket {
 			this.logger.debug(message);
 		}
 		return new Promise<WSSendReturn[T]>((resolve, reject) => {
-			let onSuccess: onSuccess<WSSendReturn[T]> = (resp: APIResponse<WSSendReturn[T]>) => {
+			let onSuccess: ResponseHandler["onSuccess"] = (resp) => {
 				this._responseHandlers.delete(echo);
 				return resolve(resp.data);
 			};
-			let onFailure: onFailure = (err) => {
+			let onFailure: ResponseHandler["onFailure"] = (err) => {
 				this._responseHandlers.delete(echo);
 				return reject(err);
 			};
-			this._responseHandlers.set(echo, {message, onSuccess, onFailure});
+			this._responseHandlers.set(echo, {message, onSuccess, onFailure, sendTime: process.hrtime()});
 			this._eventBus.emit("api.preSend", message);
 			if (this._socket === undefined) {
 				onFailure({
@@ -744,7 +771,7 @@ export class CQWebSocket {
 					retcode: 500,
 					status: "NO CONNECTED",
 					wording: "无连接",
-				}, message);
+				});
 			} else {
 				this._socket.send(JSON.stringify(message));
 			}
@@ -843,10 +870,10 @@ export class CQWebSocket {
 		}
 		let message = handler.message;
 		if (json.retcode <= 1) {
-			handler.onSuccess(json, message);
+			handler.onSuccess(json);
 			this.messageSuccess(json, message);
 		} else {
-			handler.onFailure(json, message);
+			handler.onFailure(json);
 			this.messageFail(json, message);
 		}
 		this._eventBus.emit("api.response", {response: json, sourceMSG: message});
@@ -886,12 +913,16 @@ export class CQWebSocket {
 
 	/**状态信息*/
 	public get state(): Status {
-		return this._eventBus.data.status;
+		return this.socketData.status;
 	}
 
 	/**获取当前登录账号的 QQ 号, 当获取失败时返回 `-1`*/
 	public get qq(): number {
-		return this._eventBus.data.qq ?? -1;
+		return this.socketData.qq;
+	}
+
+	public get socketData(): { qq: number, status: Status } {
+		return this._eventBus.data;
 	}
 
 	public get errorEvent(): ErrorEventHandle {
@@ -916,7 +947,7 @@ export class CQWebSocket {
 	}
 }
 
-interface CQEventBus {
+interface CQEventBus extends NodeJS.EventEmitter {
 	addListener<K extends keyof SocketHandle>(type: K, handler: EventHandle<K>): this;
 
 	on<K extends keyof SocketHandle>(type: K, handler: EventHandle<K>): this;
@@ -937,12 +968,10 @@ interface CQEventBus {
 
 	rawListeners<K extends keyof SocketHandle>(type: K): EventHandle<K>[];
 
-	emit<K extends keyof SocketHandle>(type: K, arg: SocketHandle[K]): boolean;
-
 	listenerCount<K extends keyof SocketHandle>(type: K): number;
 }
 
-class CQEventBus extends EventEmitter {
+class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 	private declare _events: { [key in keyof SocketHandle]: Function | Function[] };
 	public _errorEvent: ErrorEventHandle;
 	public data: {
@@ -1075,6 +1104,10 @@ class CQEventBus extends EventEmitter {
 	emit<T extends keyof SocketHandle>(type: T, context: SocketHandle[T], cqTags: CQTag[] = []): boolean {
 		const handlers: Function | Function[] | undefined = this._events[type];
 		if (handlers === undefined) {
+			let indexOf = type.lastIndexOf(".");
+			if (indexOf > 0) {
+				return this.emit(type.slice(0, indexOf) as T, context, cqTags);
+			}
 			return false;
 		}
 		const event = new CQEvent(this.bot, type, context, cqTags);
