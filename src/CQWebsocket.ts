@@ -29,11 +29,11 @@ interface ResponseHandler {
  * **注2：** 标记为 `@deprecated` 的方法为__隐藏 API__，并非过时方法，__不__建议一般用户使用，不正确的使用可能造成程序运行不正常
  */
 export class CQWebSocket {
-	private static sendTimeout(bot: CQWebSocket) {
-		for (let [k, v] of bot._responseHandlers.entries()) {
+	private static sendTimeout(this: CQWebSocket) {
+		for (let [k, v] of this._responseHandlers.entries()) {
 			const hrtime: number = process.hrtime(v.sendTime)[0];
-			if (hrtime > bot.sendTimeout) {
-				bot._responseHandlers.delete(k);
+			if (hrtime > this._sendTimeout) {
+				this._responseHandlers.delete(k);
 				v.onFailure({
 					data: null,
 					echo: undefined,
@@ -51,11 +51,10 @@ export class CQWebSocket {
 	/**消息发送失败时自动调用*/
 	public messageFail: onFailure;
 	private _logger: ILogger;
-	private sendTimeout: number;
-
 	private _responseHandlers: Map<string, ResponseHandler>;
 	private _eventBus: CQEventBus;
 
+	private readonly _sendTimeout: number;
 	private readonly _accessToken: string;
 	private readonly _baseUrl: string;
 	private readonly _clientConfig?: ClientOptions | http.ClientRequestArgs;
@@ -75,7 +74,7 @@ export class CQWebSocket {
 	}: CQWebSocketOptions = {}, debug = false) {
 		this._logger = console;
 		this._debug = Boolean(debug);
-		this.sendTimeout = sendTimeout;
+		this._sendTimeout = sendTimeout;
 		this._responseHandlers = new Map();
 		this._eventBus = new CQEventBus(this);
 		this._accessToken = accessToken;
@@ -697,7 +696,7 @@ export class CQWebSocket {
 				this._onmessageEvent(data);
 			});
 		}
-		this._sendTimeoutTimer = setInterval(CQWebSocket.sendTimeout.bind(null, this), 1000 * this.sendTimeout);
+		this._sendTimeoutTimer = setInterval(CQWebSocket.sendTimeout.bind(this), 1000 * this._sendTimeout);
 	}
 
 	/**断开*/
