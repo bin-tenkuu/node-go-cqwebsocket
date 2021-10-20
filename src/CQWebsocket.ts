@@ -972,6 +972,7 @@ interface CQEventBus extends NodeJS.EventEmitter {
 
 class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 	private declare _events: { [key in keyof SocketHandle]: Function | Function[] };
+	private declare _eventsCount: number;
 	public _errorEvent: ErrorEventHandle;
 	public data: {
 		qq: number
@@ -1103,36 +1104,44 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 	emit<T extends keyof SocketHandle>(type: T, context: SocketHandle[T], cqTags: CQTag[] = []): boolean {
 		const handlers: Function | Function[] | undefined = this._events[type];
 		if (handlers === undefined) {
-			let indexOf = type.lastIndexOf(".");
+			const indexOf = type.lastIndexOf(".");
 			if (indexOf > 0) {
 				return this.emit(type.slice(0, indexOf) as T, context, cqTags);
 			}
 			return false;
 		}
 		const event = new CQEvent(this.bot, type, context, cqTags);
-		let handler: EventHandle<T>;
 		if (typeof handlers === "function") {
-			handler = <EventHandle<T>>handlers;
+			const handler: EventHandle<T> = <EventHandle<T>>handlers;
 			try {
 				handler(event);
+				if (event.isCanceled) {
+					return true;
+				}
 			} catch (e) {
-				this.off(type, handler);
+				if (--this._eventsCount === 0) {
+					this._events = Object.create(null);
+				} else {
+					Reflect.deleteProperty(this._events, type);
+				}
 				this._errorEvent(e, type, handler);
 			}
 		} else {
 			let i: number;
-			let len = handlers.length;
-			for (i = 0; i < len; i++) {
-				handler = <EventHandle<T>>handlers[i];
+			for (i = 0; i < handlers.length; i++) {
+				const handler = <EventHandle<T>>handlers[i];
 				try {
 					handler(event);
 					if (event.isCanceled) {
-						break;
+						return true;
 					}
 				} catch (e) {
-					this.off(type, handler);
+					if (i === 0) {
+						handlers.shift();
+					} else {
+						handlers.splice(i, 1);
+					}
 					this._errorEvent(e, type, handler);
-					len--;
 					i--;
 				}
 			}

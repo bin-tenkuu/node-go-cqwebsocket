@@ -850,11 +850,6 @@ export type SocketHandle = {
 			GroupUpload | GroupAdmin
 
 	"message_sent": any
-
-	// node 原生事件
-	"newListener": ListenerChangeType
-	"removeListener": ListenerChangeType
-
 }
 export type QuickOperation = {
 	"message.private": {
