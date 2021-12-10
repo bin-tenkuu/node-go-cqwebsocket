@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 export interface Tag {
 	type: string;
 	data: {
@@ -12,13 +14,9 @@ export class CQTag<T extends Tag = any> {
 	public constructor(type: T["type"], data: T["data"]) {
 		this._type = type ?? "unknown";
 		this._data = data ?? {};
-		let tag = this.valueOf();
+		const tag = this.valueOf();
 		this._type = tag.type;
 		this._data = tag.data;
-	}
-
-	public get tagName(): T["type"] {
-		return this._type;
 	}
 
 	/**
@@ -39,7 +37,7 @@ export class CQTag<T extends Tag = any> {
 	 * @return 替换前的值
 	 */
 	public set<K extends keyof T["data"]>(key: K, value: T["data"][K]): T["data"][K] {
-		let temp = this._data[key];
+		const temp = this._data[key];
 		this._data[key] = value;
 		return temp;
 	}
@@ -49,8 +47,8 @@ export class CQTag<T extends Tag = any> {
 	}
 
 	public toString(): string {
-		let tag = this.valueOf();
-		return `[CQ:${tag.type}${Object.entries(tag.data).map(([k, v]) => {
+		const {type, data} = this.valueOf();
+		return `[CQ:${type}${Object.entries(data).map(([k, v]) => {
 			if (v == null) {
 				return "";
 			}
@@ -74,6 +72,10 @@ export class CQTag<T extends Tag = any> {
 	[Symbol.toStringTag]() {
 		return CQTag.name;
 	}
+
+	get tagName(): T["type"] {
+		return this._type;
+	}
 }
 
 export const SPLIT = /(?=\[CQ:)|(?<=])/;
@@ -83,7 +85,7 @@ export const CQ = {
 	/** 将携带 CQ码 的字符串转换为 CQ码数组 */
 	parse(msg: string | Tag[]): CQTag[] {
 		function parse(type: string = "", data: any = {}): CQTag {
-			let tag = ReceiveTags[type];
+			const tag = ReceiveTags[type];
 			if (tag === undefined) {
 				console.warn(`type:'${type}' not be support`);
 				return new CQTag(type, data);
@@ -97,17 +99,17 @@ export const CQ = {
 			}).map(tag => parse(tag.type, tag.data));
 		}
 		return msg.split(SPLIT).map(tagStr => {
-			let match = CQ_TAG_REGEXP.exec(tagStr);
+			const match = CQ_TAG_REGEXP.exec(tagStr);
 			if (match === null) {
 				return new CQText("text", {text: CQ.unescape(tagStr)});
 			}
 			// `[CQ:share,title=震惊&#44;小伙睡觉前居然...,url=http://baidu.com/?a=1&amp;b=2]`
-			let [, tagName, value] = match;
+			const [, tagName, value] = match;
 			if (value === undefined) {
 				return parse(tagName);
 			}
-			let data = Object.fromEntries(value.split(",").map((v) => {
-				let index = v.indexOf("=");
+			const data = Object.fromEntries(value.split(",").map((v) => {
+				const index = v.indexOf("=");
 				return [v.substr(0, index), v.substr(index + 1)];
 			}));
 			return parse(tagName, data);
@@ -123,7 +125,7 @@ export const CQ = {
 		if (!/[[\]&,]/.test(str)) {
 			return str;
 		}
-		let temp = str.replace(/&/g, "&amp;")
+		const temp = str.replace(/&/g, "&amp;")
 				.replace(/\[/g, "&#91;")
 				.replace(/]/g, "&#93;");
 		if (insideCQ) {
@@ -183,9 +185,10 @@ export const CQ = {
 	/**
 	 * .@某人
 	 * @param qq @的 QQ 号, `all` 表示全体成员
+	 * @param name 当在群中找不到此QQ号的名称时使用
 	 */
-	at(qq: number | "all") {
-		return new CQAt("at", {qq});
+	at(qq: number | "all", name?: string) {
+		return new CQAt("at", {qq, name});
 	},
 	/**
 	 * 链接分享
@@ -256,11 +259,12 @@ export const CQ = {
 	 * 自定义回复
 	 * @param text 自定义回复时的自定义QQ, 如果使用自定义信息必须指定.
 	 * @param qq 自定义回复时的自定义QQ, 如果使用自定义信息必须指定.
+	 * @param id 回复时所引用的消息id, 必须为本群消息.
 	 * @param time 可选. 自定义回复时的时间, 格式为Unix时间
 	 * @param seq 起始消息序号, 可通过 get_msg 获得
 	 */
-	replyCustom(text: string, qq: number, time?: number, seq?: number) {
-		return new CQReplyCustom("reply", {text, qq, time, seq});
+	replyCustom(text: string, qq: number, id?: number, time?: number, seq?: number) {
+		return new CQReplyCustom("reply", {id, text, qq, time, seq});
 	},
 	/**
 	 * 戳一戳
@@ -287,11 +291,11 @@ export const CQ = {
 	/**
 	 * 合并转发消息节点
 	 * @param name 发送者显示名字
-	 * @param uin 发送者QQ号
+	 * @param user_id 发送者QQ号
 	 * @param content 具体消息, 不支持转发套娃, 不支持引用回复
 	 */
-	node(name: string, uin: number | string, content: CQTag[] | string) {
-		return new CQNode("node", {name, uin: String(uin), content});
+	node(name: string, user_id: number | string, content: message) {
+		return new CQNode("node", {name, user_id: String(user_id), content, seq: content});
 	},
 	/**
 	 * XML 消息
@@ -348,7 +352,8 @@ export const CQ = {
 export type message = string | msgTags[];
 export type messageNode = NodeTags[];
 export type msgTags = CQText | CQFace | CQRecord | CQVideo | CQAt | CQRps | CQDice | CQShake | CQAnonymous | CQShare
-		| CQContact | CQLocation | CQMusic | CQMusicCustom | CQImage | CQReply | CQReplyCustom | CQRedBag | CQPoke | CQGift
+		| CQContact | CQLocation | CQMusic | CQMusicCustom | CQImage | CQReply | CQReplyCustom | CQRedBag | CQPoke
+		| CQGift
 		| CQForward | CQXml | CQJson | CQCardImage | CQTts;
 export type NodeTags = CQNode | CQNodeId;
 
@@ -519,13 +524,15 @@ interface node extends Tag {
 		/** 发送者显示名字 */
 		name: string
 		/** 发送者QQ号 */
-		uin: number | string
+		user_id: number | string
 		/**
 		 * 具体消息
 		 *
 		 * 不支持转发套娃, 不支持引用回复
 		 */
-		content: CQTag[] | string
+		content: message
+		/**具体消息,用于自定义消息*/
+		seq: message
 	};
 }
 
@@ -535,8 +542,9 @@ export class CQNode extends CQTag<node> {
 			type: "node",
 			data: {
 				name: this.name,
-				uin: this.uin,
+				user_id: this.user_id,
 				content: this.content,
+				seq: this.seq,
 			},
 		};
 	}
@@ -546,14 +554,24 @@ export class CQNode extends CQTag<node> {
 		return String(this._data.name);
 	}
 
-	/**发送者QQ号*/
+	/**@deprecated 发送者QQ号*/
 	get uin(): string {
-		return String(this._data.uin);
+		return String(this._data.user_id);
+	}
+
+	/**发送者QQ号*/
+	get user_id(): string {
+		return String(this._data.user_id);
 	}
 
 	/**具体消息,不支持转发套娃,不支持引用回复*/
-	get content(): CQTag[] | string {
+	get content(): message {
 		return this._data.content;
+	}
+
+	/**具体消息,不支持转发套娃,不支持引用回复*/
+	get seq(): message {
+		return this._data.seq;
 	}
 }
 
@@ -712,6 +730,8 @@ export class CQReply extends CQTag<reply> {
 interface replyCustom extends Tag {
 	type: "reply";
 	data: {
+		/**回复时所引用的消息id, 必须为本群消息.*/
+		id: number | undefined
 		/**自定义回复的信息*/
 		text: string
 		/**自定义回复时的自定义QQ, 如果使用自定义信息必须指定.*/
@@ -728,12 +748,18 @@ export class CQReplyCustom extends CQTag<replyCustom> {
 		return {
 			type: "reply",
 			data: {
+				id: this.id,
 				text: this.text,
 				qq: this.qq,
 				time: this.time,
 				seq: this.seq,
 			},
 		};
+	}
+
+	/**回复时所引用的消息id, 必须为本群消息.*/
+	get id(): number | undefined {
+		return Number(this._data.id);
 	}
 
 	/**自定义回复的信息*/
@@ -1094,6 +1120,8 @@ interface at extends Tag {
 	data: {
 		/** .@的 QQ 号, `all` 表示全体成员 */
 		qq: number | "all"
+		/**当在群中找不到此QQ号的名称时使用*/
+		name: string | undefined
 	};
 }
 
@@ -1103,12 +1131,17 @@ export class CQAt extends CQTag<at> {
 			type: "at",
 			data: {
 				qq: this.qq,
+				name: this.name,
 			},
 		};
 	}
 
 	get qq(): number | "all" {
 		return this._data.qq;
+	}
+
+	get name(): string | undefined {
+		return this._data.name;
 	}
 }
 
@@ -1181,7 +1214,6 @@ export class CQRecord extends CQTag<record> {
 			},
 		};
 	}
-
 
 	/** 语音文件名 */
 	get file(): string {
@@ -1283,20 +1315,3 @@ export const ReceiveTags: { [key in string]: any } = {
 	video: CQVideo,
 	xml: CQXml,
 } as const;
-
-/**TODO:*/
-export class CQHelper extends Array<CQTag> {
-	constructor(items?: CQTag[]) {
-		super(...items ?? []);
-	}
-
-	public toMessage(): msgTags[] {
-		// @ts-ignore
-		return this.filter<msgTags>(value => value.tagName !== "node");
-	}
-
-	public toMessageNode(): NodeTags[] {
-		// @ts-ignore
-		return this.filter<NodeTags>(value => value.tagName === "node");
-	}
-}

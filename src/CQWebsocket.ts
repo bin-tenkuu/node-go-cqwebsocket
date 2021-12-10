@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import {EventEmitter} from "events";
 import http from "http";
 import WebSocket, {ClientOptions, Data} from "ws";
@@ -23,14 +25,14 @@ interface ResponseHandler {
 }
 
 /**
- * 本类中所有api基于 `go-cqhttp-v1.0.0-beta6` <br/>
- * go-cqhttp标准文档最后编辑日期： `10/7/2021, 3:26:08 PM` <br/>
+ * 本类中所有api基于 `go-cqhttp-v1.0.0-beta8-fix2` <br/>
+ * go-cqhttp标准文档最后编辑日期： `11/17/2021, 3:13:28 PM` <br/>
  * **注：** 标记为 `@protected` 的方法为__未被支持__方法，禁止使用 <br/>
  * **注2：** 标记为 `@deprecated` 的方法为__隐藏 API__，并非过时方法，__不__建议一般用户使用，不正确的使用可能造成程序运行不正常
  */
 export class CQWebSocket {
 	private static sendTimeout(this: CQWebSocket) {
-		for (let [k, v] of this._responseHandlers.entries()) {
+		for (const [k, v] of this._responseHandlers.entries()) {
 			const hrtime: number = process.hrtime(v.sendTime)[0];
 			if (hrtime > this._sendTimeout) {
 				this._responseHandlers.delete(k);
@@ -177,13 +179,12 @@ export class CQWebSocket {
 
 	/**
 	 * 群组匿名用户禁言
-	 * @protected
 	 * @param group_id 群号
 	 * @param anonymous 选一，优先, 要禁言的匿名用户对象（群消息上报的 anonymous 字段）
 	 * @param duration 禁言时长, 单位秒, 无法取消匿名用户禁言
 	 * @param anonymous_flag 选一, 要禁言的匿名用户的 flag（需从群消息上报的数据中获得）
 	 */
-	protected set_group_anonymous_ban(group_id: int64, anonymous: any, duration = 30 * 60,
+	public set_group_anonymous_ban(group_id: int64, anonymous: any, duration = 30 * 60,
 			anonymous_flag ?: string): PromiseRes<void> {
 		return this.send("set_group_anonymous_ban", {group_id: +group_id, anonymous, duration, anonymous_flag});
 	}
@@ -312,6 +313,7 @@ export class CQWebSocket {
 
 	/**
 	 * 获取群信息
+	 * 如果机器人尚未加入群, `group_create_time`, `group_level`, `max_member_count` 和 `member_count` 将会为0
 	 * @param group_id 群号
 	 * @param no_cache 是否不使用缓存（使用缓存可能更新不及时, 但响应更快）
 	 */
@@ -673,7 +675,7 @@ export class CQWebSocket {
 	/**连接*/
 	public connect(): void {
 		{
-			let url = `${this._baseUrl}/api?access_token=${this._accessToken}`;
+			const url = `${this._baseUrl}/api?access_token=${this._accessToken}`;
 			this._socket = new WebSocket(url, undefined, this._clientConfig);
 			this._socket.on("open", () => {
 				this._eventBus.emit("socket.open", undefined);
@@ -685,7 +687,7 @@ export class CQWebSocket {
 			});
 		}
 		{
-			let url = `${this._baseUrl}/event?access_token=${this._accessToken}`;
+			const url = `${this._baseUrl}/event?access_token=${this._accessToken}`;
 			this._socketEvent = new WebSocket(url, undefined, this._clientConfig);
 			this._socketEvent.on("open", () => {
 				this._eventBus.emit("socket.openEvent", undefined);
@@ -721,7 +723,7 @@ export class CQWebSocket {
 	 * @param params 消息内容
 	 * @return api调用结果
 	 */
-	public send<T extends keyof WSSendParam>(method: T, params: WSSendParam[T]): PromiseRes<WSSendReturn[T]> {
+	public send<T extends keyof WSSendParam>(method: T, params: WSSendParam[T]): Promise<WSSendReturn[T]> {
 		if (this._socket === undefined) {
 			return Promise.reject(<ErrorAPIResponse>{
 				data: null,
@@ -742,8 +744,8 @@ export class CQWebSocket {
 				wording: "连接关闭",
 			});
 		}
-		let echo = this.getECHO();
-		let message: APIRequest = {
+		const echo = this.getECHO();
+		const message: APIRequest = {
 			action: method,
 			params: params,
 			echo: echo,
@@ -752,11 +754,11 @@ export class CQWebSocket {
 			this.logger.debug(message);
 		}
 		return new Promise<WSSendReturn[T]>((resolve, reject) => {
-			let onSuccess: ResponseHandler["onSuccess"] = (resp) => {
+			const onSuccess: ResponseHandler["onSuccess"] = (resp) => {
 				this._responseHandlers.delete(echo);
 				return resolve(resp.data);
 			};
-			let onFailure: ResponseHandler["onFailure"] = (err) => {
+			const onFailure: ResponseHandler["onFailure"] = (err) => {
 				this._responseHandlers.delete(echo);
 				return reject(err);
 			};
@@ -856,18 +858,18 @@ export class CQWebSocket {
 		if (typeof data !== "string") {
 			return;
 		}
-		let json: ErrorAPIResponse = JSON.parse(data);
+		const json: ErrorAPIResponse = JSON.parse(data);
 		if (this._debug) {
 			this.logger.debug(json);
 		}
 		if (json.echo === undefined) {
 			return;
 		}
-		let handler = this._responseHandlers.get(json.echo);
+		const handler = this._responseHandlers.get(json.echo);
 		if (handler === undefined) {
 			return;
 		}
-		let message = handler.message;
+		const message = handler.message;
 		if (json.retcode <= 1) {
 			handler.onSuccess(json);
 			this.messageSuccess(json, message);
@@ -883,7 +885,7 @@ export class CQWebSocket {
 		if (typeof data !== "string") {
 			return;
 		}
-		let json: ErrorAPIResponse = JSON.parse(data);
+		const json: ErrorAPIResponse = JSON.parse(data);
 		if (this._debug) {
 			this.logger.debug(json);
 		}
@@ -906,7 +908,7 @@ export class CQWebSocket {
 	 * @return "(36),(36)"
 	 */
 	public getECHO(): string {
-		let [s, ns] = process.hrtime();
+		const [s, ns] = process.hrtime();
 		return s.toString(36) + "," + ns.toString(36);
 	}
 
@@ -971,14 +973,14 @@ interface CQEventBus extends NodeJS.EventEmitter {
 }
 
 class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
-	private declare _events: { [key in keyof SocketHandle]: Function | Function[] };
-	private declare _eventsCount: number;
 	public _errorEvent: ErrorEventHandle;
 	public data: {
 		qq: number
 		status: Status
 	};
 	private readonly bot: CQWebSocket;
+	private declare _events: { [key in keyof SocketHandle]: Function | Function[] };
+	private declare _eventsCount: number;
 
 	constructor(bot: CQWebSocket) {
 		super({captureRejections: true});
@@ -995,9 +997,69 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 		};
 	}
 
+	public handleMSG(json: any): void | boolean {
+		const post_type = json["post_type"] as "message" | "notice" | "request" | "meta_event" | "message_sent";
+		if (Reflect.has(this, post_type)) {
+			return this[post_type](json);
+		} else {
+			return this.logger.warn(`未知的上报类型: ${post_type}`);
+		}
+	}
+
+	emit<T extends keyof SocketHandle>(type: T, context: SocketHandle[T], cqTags: CQTag[] = []): boolean {
+		const handlers: Function | Function[] | undefined = this._events[type];
+		if (handlers !== undefined) {
+			const event = new CQEvent(this.bot, type, context, cqTags);
+			if (typeof handlers === "function") {
+				const handler: EventHandle<T> = <EventHandle<T>>handlers;
+				try {
+					handler(event);
+					if (event.isCanceled) {
+						return true;
+					}
+				} catch (e) {
+					if (--this._eventsCount === 0) {
+						this._events = Object.create(null);
+					} else {
+						Reflect.deleteProperty(this._events, type);
+					}
+					this._errorEvent(e, type, handler);
+				}
+			} else {
+				let i: number;
+				for (i = 0; i < handlers.length; i++) {
+					const handler = <EventHandle<T>>handlers[i];
+					try {
+						handler(event);
+						if (event.isCanceled) {
+							return true;
+						}
+					} catch (e) {
+						if (i === 0) {
+							handlers.shift();
+						} else {
+							handlers.splice(i, 1);
+						}
+						this._errorEvent(e, type, handler);
+						i--;
+					}
+				}
+			}
+		}
+		const indexOf = type.lastIndexOf(".");
+		if (indexOf > 0) {
+			return this.emit(type.slice(0, indexOf) as T, context, cqTags);
+		}
+		return true;
+	}
+
+	[Symbol.toStringTag]() {
+		return CQEventBus.name;
+	}
+
 	private message(json: any): void | boolean {
-		let messageType = json["message_type"];
-		let cqTags = CQ.parse(json.message);
+		const messageType = json["message_type"];
+		const cqTags = CQ.parse(json.message);
 		switch (messageType) {
 		case "private":
 			return this.emit("message.private", json, cqTags);
@@ -1011,7 +1073,7 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 	}
 
 	private "notice.notify"(json: any): void | boolean {
-		let subType = json["sub_type"];
+		const subType = json["sub_type"];
 		switch (subType) {
 		case "poke":
 			if (Reflect.has(json, "group_id")) {
@@ -1029,7 +1091,7 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 	}
 
 	private notice(json: any): void | boolean {
-		let notice_type = json["notice_type"];
+		const notice_type = json["notice_type"];
 		switch (notice_type) {
 		case "group_upload":
 			return this.emit("notice.group_upload", json);
@@ -1063,7 +1125,7 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 	}
 
 	private request(json: any): void | boolean {
-		let request_type = json["request_type"];
+		const request_type = json["request_type"];
 		switch (request_type) {
 		case "friend":
 			return this.emit("request.friend", json);
@@ -1075,7 +1137,7 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 	}
 
 	private meta_event(json: any): void | boolean {
-		let meta_event_type = json["meta_event_type"];
+		const meta_event_type = json["meta_event_type"];
 		switch (meta_event_type) {
 		case "lifecycle":
 			this.data.qq = json["self_id"];
@@ -1090,71 +1152,6 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 
 	private message_sent(json: any): void | boolean {
 		return this.emit("message_sent", json);
-	}
-
-	public handleMSG(json: any): void | boolean {
-		let post_type = json["post_type"] as "message" | "notice" | "request" | "meta_event" | "message_sent";
-		if (Reflect.has(this, post_type)) {
-			return this[post_type](json);
-		} else {
-			return this.logger.warn(`未知的上报类型: ${post_type}`);
-		}
-	}
-
-	emit<T extends keyof SocketHandle>(type: T, context: SocketHandle[T], cqTags: CQTag[] = []): boolean {
-		const handlers: Function | Function[] | undefined = this._events[type];
-		if (handlers === undefined) {
-			const indexOf = type.lastIndexOf(".");
-			if (indexOf > 0) {
-				return this.emit(type.slice(0, indexOf) as T, context, cqTags);
-			}
-			return false;
-		}
-		const event = new CQEvent(this.bot, type, context, cqTags);
-		if (typeof handlers === "function") {
-			const handler: EventHandle<T> = <EventHandle<T>>handlers;
-			try {
-				handler(event);
-				if (event.isCanceled) {
-					return true;
-				}
-			} catch (e) {
-				if (--this._eventsCount === 0) {
-					this._events = Object.create(null);
-				} else {
-					Reflect.deleteProperty(this._events, type);
-				}
-				this._errorEvent(e, type, handler);
-			}
-		} else {
-			let i: number;
-			for (i = 0; i < handlers.length; i++) {
-				const handler = <EventHandle<T>>handlers[i];
-				try {
-					handler(event);
-					if (event.isCanceled) {
-						return true;
-					}
-				} catch (e) {
-					if (i === 0) {
-						handlers.shift();
-					} else {
-						handlers.splice(i, 1);
-					}
-					this._errorEvent(e, type, handler);
-					i--;
-				}
-			}
-		}
-		let indexOf = type.lastIndexOf(".");
-		if (indexOf > 0) {
-			return this.emit(type.slice(0, indexOf) as T, context, cqTags);
-		}
-		return true;
-	}
-
-	[Symbol.toStringTag]() {
-		return CQEventBus.name;
 	}
 
 	private get logger(): ILogger {

@@ -47,6 +47,12 @@ export interface QQImageData extends FileUrl {
 export interface GroupInfo extends GroupId {
 	/**群名称*/
 	group_name: string;
+	/**群备注*/
+	group_memo: string;
+	/**群创建时间*/
+	group_create_time: number;
+	/**群等级*/
+	group_level: number;
 	/**成员数*/
 	member_count: number;
 	/**最大成员数(群容量)*/
@@ -60,11 +66,11 @@ export interface MessageInfo extends MessageId {
 	/**当 [group]{@link group} == true 时, 有值, 否则为 `null`*/
 	group_id: number | null;
 	/**消息内容*/
-	message: string;
+	message: message;
 	/**消息来源 `private`,`group`, 等*/
 	message_type: string;
 	/**原始消息内容*/
-	raw_message: string;
+	raw_message: message;
 	/**消息真实id*/
 	real_id: number;
 	/**发送者*/
@@ -103,6 +109,10 @@ export interface StrangerInfo extends LoginInfo {
 	age: number;
 	/**qid ID身份卡*/
 	qid: string;
+	/**等级*/
+	level: number | string;
+	/**等级*/
+	login_days: number;
 }
 
 /**@see get_friend_list*/
@@ -139,6 +149,8 @@ export interface GroupMemberInfo extends GroupRenderInfo, GroupId {
 	title_expire_time: number;
 	/**是否允许修改群名片*/
 	card_changeable: boolean;
+	/**禁言到期时间*/
+	shut_up_timestamp: number;
 }
 
 /**@see get_group_honor_info*/
@@ -211,12 +223,33 @@ export interface CanSend {
 
 /**@see get_version_info*/
 export interface VersionInfo {
-	/**应用标识, 如 mirai-native*/
-	app_name: string;
-	/**应用版本, 如 1.2.3*/
+	/**应用标识, 如 go-cqhttp 固定值*/
+	app_name: "go-cqhttp" | string;
+	/**应用版本, 如 v0.9.40-fix4*/
 	app_version: string;
+	/**应用完整名称*/
+	app_full_name: string;
 	/**OneBot 标准版本, 如 v11*/
 	protocol_version: string;
+	/**原Coolq版本 固定值*/
+	coolq_edition: "pro" | string;
+	coolq_directory: string;
+	/**是否为go-cqhttp 固定值*/
+	"go-cqhttp": true;
+	/**4.15.0	固定值*/
+	plugin_version: string;
+	/**99	固定值*/
+	plugin_build_number: number;
+	/**release	固定值*/
+	plugin_build_configuration: string;
+	/***/
+	runtime_version: string;
+	/***/
+	runtime_os: string;
+	/**应用版本, 如 v0.9.40-fix4*/
+	version: string;
+	/**0/1/2/3/-1	当前登陆使用协议类型*/
+	protocol: number;
 }
 
 /**@see get_word_slices*/
@@ -288,7 +321,7 @@ export interface GroupRootFileSystemInfo {
 }
 
 /**@see GroupRootFileSystemInfo*/
-export interface GroupFileInfo {
+export interface GroupFileInfo extends GroupId {
 	/**文件ID*/
 	file_id: string;
 	/**文件名*/
@@ -414,9 +447,19 @@ export interface MessageType extends PostType, SubType, MessageId, UserId {
 /**私聊消息*/
 export interface PrivateMessage extends MessageType {
 	message_type: "private";
-	/**消息子类型, 如果是好友则是 friend, 如果是群临时会话则是 group*/
-	sub_type: "friend" | "group" | "other";
-	/**临时会话来源*/
+	/**消息子类型, 如果是好友则是 friend, 如果是群临时会话则是 group, 如果是在群中自身发送则是 group_self*/
+	sub_type: "friend" | "group" | "group_self" | "other";
+	/**临时会话来源
+	 * 0	群聊
+	 * 1	QQ咨询
+	 * 2	查找
+	 * 3	QQ电影
+	 * 4	热聊
+	 * 6	验证消息
+	 * 7	多人聊天
+	 * 8	约会
+	 * 9	通讯录
+	 */
 	temp_source: number;
 }
 
