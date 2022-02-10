@@ -65,6 +65,10 @@ export class CQWebSocket {
 	private _socketEvent?: WebSocket;
 	private _sendTimeoutTimer?: NodeJS.Timer;
 
+	// noinspection JSCommentMatchesSignature
+	/**
+	 * @param {boolean} debug 是否启用 DEBUG 模式
+	 */
 	constructor({
 		protocol = "ws:",
 		host = "127.0.0.1",
@@ -946,6 +950,10 @@ export class CQWebSocket {
 	public set logger(v) {
 		this._logger = v == null ? console : v;
 	}
+
+	public get debug(): boolean {
+		return this._debug;
+	}
 }
 
 interface CQEventBus extends NodeJS.EventEmitter {
@@ -1001,8 +1009,9 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 		const post_type = json["post_type"] as "message" | "notice" | "request" | "meta_event" | "message_sent";
 		if (Reflect.has(this, post_type)) {
 			return this[post_type](json);
-		} else {
-			return this.logger.warn(`未知的上报类型: ${post_type}`);
+		} else if (this.bot.debug) {
+			this.logger.warn(`未知的上报类型: ${post_type}`);
+			return false
 		}
 	}
 
@@ -1068,7 +1077,10 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 		case "group":
 			return this.emit("message.group", json, cqTags);
 		default:
-			return this.bot.logger.warn(`未知的消息类型: ${messageType}`);
+			if (this.bot.debug) {
+				this.bot.logger.warn(`未知的消息类型: ${messageType}`);
+			}
+			return false;
 		}
 	}
 
@@ -1086,7 +1098,10 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 		case "honor":
 			return this.emit("notice.notify.honor", json);
 		default:
-			return this.logger.warn(`未知的 notify 类型: ${subType}`);
+			if (this.bot.debug) {
+				this.logger.warn(`未知的 notify 类型: ${subType}`);
+			}
+			return false;
 		}
 	}
 
@@ -1120,7 +1135,10 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 		case "essence":
 			return this.emit("notice.essence", json);
 		default:
-			return this.logger.warn(`未知的 notice 类型: ${notice_type}`);
+			if (this.bot.debug) {
+				this.logger.warn(`未知的 notice 类型: ${notice_type}`);
+			}
+			return false;
 		}
 	}
 
@@ -1132,7 +1150,10 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 		case "group":
 			return this.emit("request.group", json);
 		default:
-			return this.logger.warn(`未知的 request 类型: ${request_type}`);
+			if (this.bot.debug) {
+				this.logger.warn(`未知的 request 类型: ${request_type}`);
+			}
+			return false;
 		}
 	}
 
@@ -1146,7 +1167,10 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
 			this.data.status = json["status"];
 			return this.emit("meta_event.heartbeat", json);
 		default:
-			return this.logger.warn(`未知的 meta_event 类型: ${meta_event_type}`);
+			if (this.bot.debug) {
+				this.logger.warn(`未知的 meta_event 类型: ${meta_event_type}`);
+			}
+			return false;
 		}
 	}
 

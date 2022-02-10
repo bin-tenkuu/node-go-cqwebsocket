@@ -1,6 +1,6 @@
 {
 	"name": "go-cqwebsocket",
-	"version": "6.2.0",
+	"version": "6.2.1",
 	"description": "cq-websocket 停止维护后的替代",
 	"engines": {
 		"node": ">=14"
