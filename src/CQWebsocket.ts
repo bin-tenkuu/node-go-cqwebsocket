@@ -25,8 +25,8 @@ interface ResponseHandler {
 }
 
 /**
- * 本类中所有api基于 `go-cqhttp-v1.0.0-beta8-fix2` <br/>
- * go-cqhttp标准文档最后编辑日期： `11/17/2021, 3:13:28 PM` <br/>
+ * 本类中所有api基于 `go-cqhttp-v1.0.0-rc1` <br/>
+ * go-cqhttp标准文档最后编辑日期： `2/10/2022, 8:19:21 AM` <br/>
  * **注：** 标记为 `@protected` 的方法为__未被支持__方法，禁止使用 <br/>
  * **注2：** 标记为 `@deprecated` 的方法为__隐藏 API__，并非过时方法，__不__建议一般用户使用，不正确的使用可能造成程序运行不正常
  */

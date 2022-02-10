@@ -1120,7 +1120,7 @@ interface at extends Tag {
 	data: {
 		/** .@的 QQ 号, `all` 表示全体成员 */
 		qq: number | "all"
-		/**当在群中找不到此QQ号的名称时使用*/
+		/**当在群中找不到此QQ号的名称时才会生效*/
 		name: string | undefined
 	};
 }

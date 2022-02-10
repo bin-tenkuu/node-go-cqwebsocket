@@ -47,11 +47,11 @@ export interface QQImageData extends FileUrl {
 export interface GroupInfo extends GroupId {
 	/**群名称*/
 	group_name: string;
-	/**群备注*/
+	/**群备注, 0 如果机器人尚未加入群*/
 	group_memo: string;
-	/**群创建时间*/
+	/**群创建时间, 0 如果机器人尚未加入群*/
 	group_create_time: number;
-	/**群等级*/
+	/**群等级, 0 如果机器人尚未加入群*/
 	group_level: number;
 	/**成员数*/
 	member_count: number;
@@ -345,7 +345,7 @@ export interface GroupFileInfo extends GroupId {
 }
 
 /**@see GroupRootFileSystemInfo*/
-export interface GroupFolderInfo {
+export interface GroupFolderInfo extends GroupId {
 	/**文件夹ID*/
 	folder_id: string;
 	/**文件名*/
@@ -733,9 +733,9 @@ export interface NotifyHonor extends NoticeNotifyType, GroupId, UserId {
 export interface GroupCard extends NoticeType, GroupId, UserId {
 	notice_type: "group_card";
 	/**新名片*/
-	card_new: number;
+	card_new: string;
 	/**旧名片*/
-	card_old: number;
+	card_old: string;
 }
 
 /**接收到离线文件*/

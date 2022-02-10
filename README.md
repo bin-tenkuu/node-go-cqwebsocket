@@ -2,9 +2,9 @@
 
 针对 go-cqhttp 开发的 SDK, 跟随官方文档更新, 理论上有向其他 OneBot 实现兼容的能力
 
-本SDK中所有api基于 `go-cqhttp-v1.0.0-beta8-fix2`
+本SDK中所有api基于 `go-cqhttp-v1.0.0-rc1`
 
-go-cqhttp 标准文档最后编辑日期： `11/17/2021, 3:13:28 PM`
+go-cqhttp 标准文档最后编辑日期： `2/10/2022, 8:19:21 AM`
 
 # 关于此SDK
 
