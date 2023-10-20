@@ -1,5 +1,5 @@
 {
-  "name": "go-cqwebsocket",
+  "name": "@huan_kong/go-cqwebsocket",
   "version": "6.2.2",
   "description": "cq-websocket 停止维护后的替代",
   "engines": {
@@ -27,6 +27,12 @@
     "cq-websocket"
   ],
   "author": "src_bin",
+  "contributors": [
+    {
+      "name": "huan_kong",
+      "url": "https://github.com/huankong233"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/2938137849/node-go-cqwebsocket/issues"
