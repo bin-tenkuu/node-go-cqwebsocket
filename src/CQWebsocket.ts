@@ -780,14 +780,14 @@ export class CQWebSocket {
           this._eventBus.emit('socket.open', undefined)
         })
         .on('close', (code, reason) => {
-          this._close(false, code, reason)
+          this._close(false, code, reason.toString())
           this._socket = undefined
         })
         .on('message', data => {
           this._onmessage(data)
         })
         .on('error', data => {
-          this._eventBus.emit('socket.error', data)
+          this._eventBus.emit('socket.error', data.toString())
         })
     }
     {
@@ -798,14 +798,14 @@ export class CQWebSocket {
           this._eventBus.emit('socket.openEvent', undefined)
         })
         .on('close', (code, reason) => {
-          this._close(true, code, reason)
+          this._close(true, code, reason.toString())
           this._socketEvent = undefined
         })
         .on('message', data => {
           this._onmessageEvent(data)
         })
         .on('error', data => {
-          this._eventBus.emit('socket.errorEvent', data)
+          this._eventBus.emit('socket.errorEvent', data.toString())
         })
     }
     this._sendTimeoutTimer = setInterval(
@@ -825,7 +825,7 @@ export class CQWebSocket {
       this._socketEvent = undefined
     }
     if (this._sendTimeoutTimer !== undefined) {
-      clearInterval(this._sendTimeoutTimer)
+      clearInterval(this._sendTimeoutTimer as NodeJS.Timeout)
       this._sendTimeoutTimer = undefined
     }
   }
