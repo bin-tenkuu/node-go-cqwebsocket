@@ -787,7 +787,7 @@ export class CQWebSocket {
           this._onmessage(data)
         })
         .on('error', data => {
-          this._eventBus.emit('socket.error', data.toString())
+          this._eventBus.emit('socket.error', data)
         })
     }
     {
@@ -805,7 +805,7 @@ export class CQWebSocket {
           this._onmessageEvent(data)
         })
         .on('error', data => {
-          this._eventBus.emit('socket.errorEvent', data.toString())
+          this._eventBus.emit('socket.errorEvent', data)
         })
     }
     this._sendTimeoutTimer = setInterval(

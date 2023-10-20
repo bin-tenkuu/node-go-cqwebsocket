@@ -868,8 +868,8 @@ export type SocketHandle = {
   'socket.openEvent': void
   'socket.close': SocketCloseType
   'socket.closeEvent': SocketCloseType
-  'socket.error': SocketCloseType | string
-  'socket.errorEvent': SocketCloseType | string
+  'socket.error': SocketCloseType | Error
+  'socket.errorEvent': SocketCloseType | Error
   socket: SocketCloseType | void
 
   'api.preSend': APIRequest
