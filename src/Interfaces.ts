@@ -838,6 +838,7 @@ export interface ListenerChangeType {
 }
 
 export type int64 = number | string
+type wsType = '/api' | '/event'
 type NoCache = { no_cache?: boolean }
 type Content = { content: string }
 type Domain = { domain: string }
@@ -864,6 +865,8 @@ export type SocketHandle = {
   'request.group': RequestGroup
   request: RequestGroup | RequestFriend
 
+  'socket.connect': wsType
+  'socket.connectEvent': wsType
   'socket.open': void
   'socket.openEvent': void
   'socket.close': SocketResponse
