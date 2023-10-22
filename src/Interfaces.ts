@@ -827,7 +827,7 @@ export interface ResponseHandle {
   sourceMSG: APIRequest
 }
 
-export interface SocketCloseType {
+export interface SocketResponse {
   code: number
   reason: string
 }
@@ -866,11 +866,11 @@ export type SocketHandle = {
 
   'socket.open': void
   'socket.openEvent': void
-  'socket.close': SocketCloseType
-  'socket.closeEvent': SocketCloseType
-  'socket.error': SocketCloseType | Error
-  'socket.errorEvent': SocketCloseType | Error
-  socket: SocketCloseType | void
+  'socket.close': SocketResponse
+  'socket.closeEvent': SocketResponse
+  'socket.error': SocketResponse
+  'socket.errorEvent': SocketResponse
+  socket: SocketResponse | void
 
   'api.preSend': APIRequest
   'api.response': ResponseHandle
