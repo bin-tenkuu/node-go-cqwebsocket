@@ -173,6 +173,15 @@ export class CQWebSocket {
   }
 
   /**
+   * 发送合并转发(好友)
+   * @param user_id QQ号
+   * @param messages 自定义转发消息
+   */
+  public send_private_forward_msg(user_id: int64, messages: messageNode): PromiseRes<MessageId> {
+    return this.send('send_private_forward_msg', { user_id: +user_id, messages })
+  }
+
+  /**
    * 发送消息
    * @param data
    */

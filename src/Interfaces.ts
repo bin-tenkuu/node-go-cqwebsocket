@@ -572,6 +572,7 @@ export interface APIRequest {
  * @see send_private_msg
  * @see send_group_msg
  * @see send_group_forward_msg
+ * @see send_private_forward_msg
  * @see send_msg
  */
 export interface MessageId {
@@ -982,6 +983,7 @@ export type WSSendParam = {
   send_private_msg: { group_id?: number; auto_escape?: boolean } & UserId & Message
   send_group_msg: { auto_escape?: boolean } & Message & GroupId
   send_group_forward_msg: { messages: messageNode } & GroupId
+  send_private_forward_msg: { messages: messageNode } & UserId
   send_msg: PrivateData | GroupData
   delete_msg: MessageId
   get_msg: MessageId
@@ -1056,6 +1058,7 @@ export type WSSendReturn = {
   send_private_msg: MessageId
   send_group_msg: MessageId
   send_group_forward_msg: MessageId
+  send_private_forward_msg: MessageId
   send_msg: MessageId
   get_msg: MessageInfo
   get_forward_msg: ForwardData
