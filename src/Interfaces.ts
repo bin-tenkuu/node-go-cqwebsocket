@@ -864,8 +864,8 @@ export type SocketHandle = {
   'request.group': RequestGroup
   request: RequestGroup | RequestFriend
 
-  'socket.connect': void
-  'socket.connectEvent': void
+  'socket.connecting': void
+  'socket.connectingEvent': void
   'socket.open': void
   'socket.openEvent': void
   'socket.close': SocketResponse

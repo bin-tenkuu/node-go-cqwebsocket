@@ -775,7 +775,7 @@ export class CQWebSocket {
     {
       const url = `${this._baseUrl}/api?access_token=${this._accessToken}`
       this._socket = new WebSocket(url, undefined, this._clientConfig)
-      this._eventBus.emit('socket.connect', undefined)
+      this._eventBus.emit('socket.connecting', undefined)
       this._socket
         .on('open', () => {
           this._eventBus.emit('socket.open', undefined)
@@ -792,7 +792,7 @@ export class CQWebSocket {
     {
       const url = `${this._baseUrl}/event?access_token=${this._accessToken}`
       this._socketEvent = new WebSocket(url, undefined, this._clientConfig)
-      this._eventBus.emit('socket.connectEvent', undefined)
+      this._eventBus.emit('socket.connectingEvent', undefined)
       this._socketEvent
         .on('open', () => {
           this._eventBus.emit('socket.openEvent', undefined)
