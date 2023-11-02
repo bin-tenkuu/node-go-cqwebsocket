@@ -987,6 +987,7 @@ export class CQWebSocket {
   }
 
   private _onmessage(data: Data): void {
+    data = Buffer.isBuffer(data) ? (data = data.toString()) : data
     if (typeof data !== 'string') {
       return
     }
@@ -1014,6 +1015,7 @@ export class CQWebSocket {
   }
 
   private _onmessageEvent(data: Data): void {
+    data = Buffer.isBuffer(data) ? (data = data.toString()) : data
     if (typeof data !== 'string') {
       return
     }
