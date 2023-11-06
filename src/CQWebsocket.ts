@@ -1219,8 +1219,6 @@ class CQEventBus extends EventEmitter implements NodeJS.EventEmitter {
     switch (messageType) {
       case 'private':
         return this.emit('message.private', json, cqTags)
-      case 'discuss':
-        return this.emit('message.discuss', json, cqTags)
       case 'group':
         return this.emit('message.group', json, cqTags)
       default:

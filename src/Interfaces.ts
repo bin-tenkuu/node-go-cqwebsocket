@@ -476,17 +476,6 @@ export interface GroupMessage extends MessageType, GroupId {
   sender: GroupRenderInfo
 }
 
-/**讨论组消息*/
-export interface DiscussMessage extends MessageType, GroupId {
-  message_type: 'discuss'
-  /**消息子类型, 正常消息是 normal, 匿名消息是 anonymous, 系统提示(如「管理员已禁止群内匿名聊天」)是 notice*/
-  sub_type: 'normal' | 'anonymous' | 'notice'
-  /**匿名信息, 如果不是匿名消息则为 null*/
-  anonymous: object
-  /**发送人信息*/
-  sender: GroupRenderInfo
-}
-
 /**请求类型*/
 export interface RequestType extends PostType {
   post_type: 'request'
@@ -858,8 +847,7 @@ export type PartialSocketHandle = { [key in keyof SocketHandle]?: EventHandle<ke
 export type SocketHandle = {
   'message.private': PrivateMessage
   'message.group': GroupMessage
-  'message.discuss': DiscussMessage
-  message: PrivateMessage | GroupMessage | DiscussMessage
+  message: PrivateMessage | GroupMessage
 
   'request.friend': RequestFriend
   'request.group': RequestGroup
