@@ -941,6 +941,21 @@ export class CQWebSocket {
   }
 
   /**
+   * 手动模拟触发某个事件
+   * @param type
+   * @param context
+   * @param cqTags
+   */
+  public emit<T extends keyof SocketHandle>(
+    type: T,
+    context: SocketHandle[T],
+    cqTags: CQTag[] = []
+  ): this {
+    this._eventBus.emit(type, context, cqTags)
+    return this
+  }
+
+  /**
    * 同时注册多种监听方法,解除监听调用 [unbind]{@link unbind} 方法<br/>
    * 当 `option` 参数为 `onceAll` 时, 也可以手动调用返回值中任意一个方法来解除监听
    * @param option -
