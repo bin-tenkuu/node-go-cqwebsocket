@@ -115,7 +115,7 @@ export const CQ = {
       const data = Object.fromEntries(
         value.split(',').map(v => {
           const index = v.indexOf('=')
-          return [v.substr(0, index), v.substr(index + 1)]
+          return [v.slice(0, index), CQ.unescape(v.slice(index + 1))]
         })
       )
       return parse(tagName, data)
