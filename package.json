@@ -1,6 +1,6 @@
 {
-  "name": "@huan_kong/go-cqwebsocket",
-  "version": "6.2.11",
+  "name": "go-cqwebsocket",
+  "version": "6.2.12",
   "description": "cq-websocket 停止维护后的替代",
   "engines": {
     "node": ">=14"
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/2938137849/node-go-cqwebsocket.git"
+    "url": "git+https://github.com/bin-tenkuu/node-go-cqwebsocket.git"
   },
   "keywords": [
     "cqhttp",
@@ -26,7 +26,7 @@
     "qq-robot",
     "cq-websocket"
   ],
-  "author": "src_bin",
+  "author": "bin-tenkuu",
   "contributors": [
     {
       "name": "huan_kong",
@@ -35,9 +35,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/2938137849/node-go-cqwebsocket/issues"
+    "url": "https://github.com/bin-tenkuu/node-go-cqwebsocket/issues"
   },
-  "homepage": "https://github.com/2938137849/node-go-cqwebsocket",
+  "homepage": "https://github.com/bin-tenkuu/node-go-cqwebsocket",
   "devDependencies": {
     "@types/node": "^20.8.7",
     "@types/ws": "^8.5.8",
