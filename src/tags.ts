@@ -85,11 +85,11 @@ export const CQ_TAG_REGEXP = /^\[CQ:([a-z]+)(?:,([^\]]+))?]$/
 
 export const CQ = {
   /** 将携带 CQ码 的字符串转换为 CQ码数组 */
-  parse(msg: string | Tag[]): CQTag[] {
+  parse(msg: string | Tag[], debug = false): CQTag[] {
     function parse(type: string = '', data: any = {}): CQTag {
       const tag = ReceiveTags[type]
       if (tag === undefined) {
-        console.warn(`type:'${type}' not be support`)
+        if (debug) console.warn(`未知的CQ码:'${type}'`)
         return new CQTag(type, data)
       }
       return new tag(type, data)
