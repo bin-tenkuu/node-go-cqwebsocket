@@ -85,11 +85,11 @@ export const CQ_TAG_REGEXP = /^\[CQ:([a-z]+)(?:,([^\]]+))?]$/
 
 export const CQ = {
   /** 将携带 CQ码 的字符串转换为 CQ码数组 */
-  parse(msg: string | Tag[]): CQTag[] {
+  parse(msg: string | Tag[], debug = false): CQTag[] {
     function parse(type: string = '', data: any = {}): CQTag {
       const tag = ReceiveTags[type]
       if (tag === undefined) {
-        console.warn(`type:'${type}' not be support`)
+        if (debug) console.warn(`未知的CQ码:'${type}'`)
         return new CQTag(type, data)
       }
       return new tag(type, data)
@@ -561,6 +561,54 @@ export class CQXml extends CQTag<xml> {
   /** `收` 可以不填 */
   get resid(): number | undefined {
     return this._data.resid
+  }
+}
+
+interface file extends Tag {
+  type: 'file'
+  data: {
+    /** `收` 文件的路径 */
+    path: string
+    /** `收` 文件名 */
+    name: string
+    /** `收` 文件的大小 */
+    size: number
+    /** `收` 文件的id ¿ */
+    busid: number
+  }
+}
+
+export class CQFile extends CQTag<file> {
+  public valueOf(): file {
+    return {
+      type: 'file',
+      data: {
+        path: this.path,
+        name: this.name,
+        size: this.size,
+        busid: this.busid
+      }
+    }
+  }
+
+  /** 文件的路径 */
+  get path(): string {
+    return String(this._data.path)
+  }
+
+  /** 文件名 */
+  get name(): string {
+    return this._data.name
+  }
+
+  /** `收` 文件的大小 */
+  get size(): number {
+    return this._data.size
+  }
+
+  /** `收` 文件的id ¿ */
+  get busid(): number {
+    return this._data.busid
   }
 }
 
@@ -1359,5 +1407,6 @@ export const ReceiveTags: { [key in string]: any } = {
   shake: CQShake,
   share: CQShare,
   video: CQVideo,
-  xml: CQXml
+  xml: CQXml,
+  file: CQFile
 } as const
