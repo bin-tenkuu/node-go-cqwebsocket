@@ -564,6 +564,54 @@ export class CQXml extends CQTag<xml> {
   }
 }
 
+interface file extends Tag {
+  type: 'file'
+  data: {
+    /** `收` 文件的路径 */
+    path: string
+    /** `收` 文件名 */
+    name: string
+    /** `收` 文件的大小 */
+    size: number
+    /** `收` 文件的id ¿ */
+    busid: number
+  }
+}
+
+export class CQFile extends CQTag<file> {
+  public valueOf(): file {
+    return {
+      type: 'file',
+      data: {
+        path: this.path,
+        name: this.name,
+        size: this.size,
+        busid: this.busid
+      }
+    }
+  }
+
+  /** 文件的路径 */
+  get path(): string {
+    return String(this._data.path)
+  }
+
+  /** 文件名 */
+  get name(): string {
+    return this._data.name
+  }
+
+  /** `收` 文件的大小 */
+  get size(): number {
+    return this._data.size
+  }
+
+  /** `收` 文件的id ¿ */
+  get busid(): number {
+    return this._data.busid
+  }
+}
+
 interface node extends Tag {
   type: 'node'
   data: {
@@ -1359,5 +1407,6 @@ export const ReceiveTags: { [key in string]: any } = {
   shake: CQShake,
   share: CQShare,
   video: CQVideo,
-  xml: CQXml
+  xml: CQXml,
+  file: CQFile
 } as const
