@@ -1,6 +1,6 @@
 {
   "name": "go-cqwebsocket",
-  "version": "6.2.14",
+  "version": "6.3.0",
   "description": "cq-websocket 停止维护后的替代",
   "engines": {
     "node": ">=14"
@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "node --inspect-brk debug.js"
+    "test": "tsx debug.ts"
   },
   "repository": {
     "type": "git",
@@ -38,12 +38,12 @@
     "url": "https://github.com/bin-tenkuu/node-go-cqwebsocket/issues"
   },
   "homepage": "https://github.com/bin-tenkuu/node-go-cqwebsocket",
+  "dependencies": {
+    "ws": "^8.14.2"
+  },
   "devDependencies": {
     "@types/node": "^20.8.7",
     "@types/ws": "^8.5.8",
     "typescript": "^5.2.2"
-  },
-  "dependencies": {
-    "ws": "^8.14.2"
   }
 }
