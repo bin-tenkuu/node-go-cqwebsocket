@@ -8,8 +8,9 @@
 
 ## 关于此SDK
 
-关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://docs.go-cqhttp.org/api) 和 [OpenShamrock 帮助中心 API](https://whitechi73.github.io/OpenShamrock/api) 为准，同时提供 `send(...)`
-方法以供未知接口的调用
+关于 CQWebsocket 的 API 接口，以 [go-cqhttp 帮助中心 API](https://docs.go-cqhttp.org/api) 和 [OpenShamrock 帮助中心 API](https://whitechi73.github.io/OpenShamrock/api) 为准
+
+同时提供 `send(...)` 方法以供未知接口的调用
 
 ## 在自己项目中引用
 
@@ -29,20 +30,22 @@ const bot = new CQWebSocket({options})
 
 - 参数 `options`
 
-| 可选参数     | 类型                                     | 默认值                  | 描述                                 |
-| ------------ | ---------------------------------------- | ----------------------- | ------------------------------------ |
-| protocol     | `ws:` , `wss:`                           | `"ws:"`                 | 协议                                 |
-| host         | string                                   | `"127.0.0.1"`           | 地址                                 |
-| port         | number                                   | `6700`                  | 端口                                 |
-| accessToken  | string                                   | `""`                    | 校验口令                             |
-| baseUrl      | string                                   | `"ws://127.0.0.1:6700"` | 完整链接, 当配置中有此项时, 优先使用 |
-| clientConfig | `ClientOptions` `http.ClientRequestArgs` | `undefined`             | ws 配置                              |
+| 可选参数     | 类型            | 默认值                  | 描述                                 |
+| ------------ | --------------- | ----------------------- | ------------------------------------ |
+| protocol     | `ws:` , `wss:`  | `"ws:"`                 | 协议                                 |
+| host         | `string`        | `"127.0.0.1"`           | 地址                                 |
+| port         | `number`        | `6700`                  | 端口                                 |
+| accessToken  | `string`        | `""`                    | 校验口令                             |
+| baseUrl      | `string`        | `"ws://127.0.0.1:6700"` | 完整链接, 当配置中有此项时, 优先使用 |
+| clientConfig | `ClientOptions` | `undefined`             | ws 配置                              |
 
 **注1：** `CQWebSocket` 中实现了对应的API,
 查找&调用请参考 [go-cqhttp 帮助中心 API](https://docs.go-cqhttp.org/api) 和 [OpenShamrock 帮助中心 API](https://whitechi73.github.io/OpenShamrock/api)
 
 **注2：** `CQWebSocket` 中实现了对应的Event,
-查找请参考 [go-cqhttp 帮助中心 Event](https://docs.go-cqhttp.org/event) 和 [OpenShamrock 帮助中心 Event](https://whitechi73.github.io/OpenShamrock/event) , 注册监听请使用 `bot.on(...)`, `bot.once(...)`, `bot.off(...)`, `bot.bind(...)`, `bot.unbind(...)`
+查找请参考 [go-cqhttp 帮助中心 Event](https://docs.go-cqhttp.org/event) 和 [OpenShamrock 帮助中心 Event](https://whitechi73.github.io/OpenShamrock/event)
+
+注册监听请使用 `bot.on(...)`, `bot.once(...)`, `bot.off(...)`, `bot.bind(...)`, `bot.unbind(...)`
 
 **注3：** 实例属性 `errorEvent` 用于替代默认的 `error` 事件, 仅在事件运行出错时调用
 
