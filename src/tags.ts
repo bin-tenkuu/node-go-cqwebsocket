@@ -1,5 +1,3 @@
-// noinspection JSUnusedGlobalSymbols
-
 export interface Tag {
   type: string
   data: {
