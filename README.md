@@ -2,9 +2,11 @@
 
 ## 介绍
 
-针对 `go-cqhttp` 和 `OpenShamrock` 开发的 `SDK`, 跟随官方文档更新
+针对 `go-cqhttp`  开发的 `SDK`, 跟随官方文档更新
 
-本SDK中所有api基于 `go-cqhttp-v1.2.0` `OpenShamrock-v1.0.8`
+本SDK中所有api基于 `go-cqhttp-v1.2.0`
+
+在一定程度上兼容 `OpenShamrock-v1.0.8`
 
 ## 关于此SDK
 

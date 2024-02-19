@@ -1013,7 +1013,7 @@ export type WSSendParam = {
   get_msg: MessageId
   delete_msg: MessageId
   mark_msg_as_read: MessageId
-  get_forward_msg: { message_id: string }
+  get_forward_msg: { message_id: string; id: string }
   send_group_forward_msg: { messages: messageNode } & GroupId
   send_private_forward_msg: { messages: messageNode } & UserId
   get_group_msg_history: { message_seq?: int64 } & GroupId

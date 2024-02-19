@@ -271,7 +271,7 @@ export class CQWebSocket {
    * @param message_id 消息id
    */
   public get_forward_msg(message_id: string): PromiseRes<ForwardData> {
-    return this.send('get_forward_msg', { message_id })
+    return this.send('get_forward_msg', { message_id, id: message_id })
   }
 
   /**
