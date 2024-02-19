@@ -101,7 +101,7 @@ export class CQWebSocket {
     // 兼容 OpenShamrock
     this._clientConfig = {
       ...clientConfig,
-      headers: { ...(clientConfig?.headers ?? {}), accessToken: accessToken }
+      headers: { ...(clientConfig?.headers ?? {}), access_token: accessToken }
     }
   }
 
@@ -208,13 +208,13 @@ export class CQWebSocket {
    */
   public send_private_msg(
     user_id: int64,
-    group_id: int64,
     message: message,
+    group_id?: int64,
     auto_escape = false
   ): PromiseRes<MessageId> {
     return this.send('send_private_msg', {
       user_id: +user_id,
-      group_id: +group_id,
+      group_id: group_id ? +group_id : undefined,
       message,
       auto_escape
     })

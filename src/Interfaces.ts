@@ -126,7 +126,7 @@ export interface GroupRenderInfo extends StrangerInfo {
   /**地区*/
   area: string
   /**成员等级*/
-  level: string
+  level: int32
   /**角色, owner 或 admin 或 member*/
   role: 'owner' | 'member' | 'admin'
   /**专属头衔*/
@@ -841,12 +841,12 @@ export interface ListenerChangeType {
   handler: EventHandle<keyof SocketHandle>
 }
 
-export type int = string | number
-export type int16 = string | number
-export type int32 = string | number
-export type int64 = number | string
-export type uint32 = string | number
-export type uint64 = string | number
+export type int = number
+export type int16 = number
+export type int32 = number
+export type int64 = number
+export type uint32 = number
+export type uint64 = number
 
 type NoCache = { no_cache?: boolean }
 type Content = { content: string }
